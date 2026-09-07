@@ -431,7 +431,7 @@ function mostrarLetreiroCheio(texto, carimbo) {
       disparouCheio = false;
       gravar("letreiro", { modo: "rodape" });
     }
-  }, 15000);
+  }, 5000);
 }
 let disparouCheio = false;
 
