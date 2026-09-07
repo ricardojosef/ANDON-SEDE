@@ -560,6 +560,39 @@ input[type=color] { width: 46px; height: 34px; padding: 2px; border: 1px solid v
 .linha-radios { display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; margin-bottom: 6px; }
 .linha-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
+/* --- switch liga/desliga --- */
+.linha-switch {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; font-size: 15px; cursor: pointer; margin-bottom: 10px;
+}
+.linha-switch-sub { font-size: 13.5px; color: var(--texto-fraco); margin-bottom: 8px; }
+
+.switch { position: relative; display: inline-block; width: 46px; height: 26px; flex: none; }
+.switch input {
+  position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; z-index: 1;
+}
+.switch-trilho {
+  position: absolute; inset: 0;
+  background: var(--borda);
+  border-radius: 999px;
+  transition: background .18s;
+}
+.switch-trilho::before {
+  content: "";
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  background: var(--branco);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(18, 58, 92, .3);
+  transition: transform .18s;
+}
+.switch input:checked ~ .switch-trilho { background: var(--azul); }
+.switch input:checked ~ .switch-trilho::before { transform: translateX(20px); }
+.switch input:focus-visible ~ .switch-trilho { outline: 2px solid var(--azul); outline-offset: 2px; }
+
+.linha-horarios { display: flex; gap: 14px; margin: 4px 0 8px; flex-wrap: wrap; }
+.campo-inline { flex: 1; min-width: 120px; margin-bottom: 0 !important; }
+
 .dica { font-size: 12.5px; color: var(--texto-fraco); margin: 4px 0 10px; line-height: 1.45; }
 
 .btn {
@@ -574,6 +607,35 @@ input[type=color] { width: 46px; height: 34px; padding: 2px; border: 1px solid v
 .btn.destaque:hover:not(:disabled) { background: var(--marinho-claro); }
 
 /* --- edição do plantão --- */
+/* seletor de dia da semana da escala */
+.ed-dias {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--borda);
+  padding-bottom: 12px;
+}
+.ed-dias button {
+  flex: 1; min-width: 74px;
+  border: 1px solid var(--borda); background: var(--branco);
+  border-radius: 9px; padding: 9px 8px;
+  font: inherit; font-size: 13.5px; font-weight: 600;
+  color: var(--texto-fraco); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.ed-dias button:hover { background: var(--azul-suave); }
+.ed-dias button.sel {
+  background: var(--marinho); border-color: var(--marinho); color: var(--branco);
+}
+.ed-dias button .marca-hoje {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--azul);
+}
+.ed-dias button.sel .marca-hoje { color: #9fc7e4; }
+.ed-dias button .preenchidos { font-size: 10.5px; font-weight: 500; opacity: .8; }
+
+.ed-plantao-acoes { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--borda); }
+
 .ed-plantao { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
 .ed-plantao .linha { display: flex; align-items: center; gap: 8px; }
 .ed-plantao .linha .hora {

@@ -122,10 +122,36 @@
     <div class="painel-aba ativa" data-aba="geral">
       <fieldset>
         <legend>Reunião na sede</legend>
-        <label class="linha-toggle">
-          <input type="checkbox" id="edReuniao">
+        <label class="linha-switch">
           <span>Está havendo reunião na sede agora</span>
+          <span class="switch">
+            <input type="checkbox" id="edReuniao">
+            <span class="switch-trilho" aria-hidden="true"></span>
+          </span>
         </label>
+
+        <label class="linha-switch linha-switch-sub">
+          <span>Agendar automaticamente por horário</span>
+          <span class="switch">
+            <input type="checkbox" id="edReuniaoAgendaAtiva">
+            <span class="switch-trilho" aria-hidden="true"></span>
+          </span>
+        </label>
+        <div id="edReuniaoAgendaCampos" class="linha-horarios" hidden>
+          <label class="campo campo-inline">
+            <span>Início</span>
+            <input type="time" id="edReuniaoInicio">
+          </label>
+          <label class="campo campo-inline">
+            <span>Fim</span>
+            <input type="time" id="edReuniaoFim">
+          </label>
+        </div>
+        <p class="dica">
+          Com o agendamento ligado, o aviso "está havendo reunião" liga e desliga sozinho
+          dentro do período — em todas as telas, sem precisar editar na hora. O switch de cima
+          continua funcionando por cima disso, para avisar manualmente fora do período.
+        </p>
       </fieldset>
 
       <fieldset>
@@ -145,8 +171,15 @@
 
     <!-- ---- aba plantão ---- -->
     <div class="painel-aba" data-aba="plantao">
-      <p class="dica">Qualquer pessoa pode alterar — inclusive para repassar o plantão na hora.</p>
+      <p class="dica">
+        A escala é fixada por semestre e vale de segunda a sexta. Qualquer pessoa pode
+        alterar — inclusive para repassar o plantão na hora.
+      </p>
+      <div id="edPlantaoDias" class="ed-dias" role="tablist"></div>
       <div id="edPlantao" class="ed-plantao"></div>
+      <div class="ed-plantao-acoes">
+        <button id="btnCopiarDia" class="btn">Copiar esta escala para os outros dias…</button>
+      </div>
     </div>
 
     <!-- ---- aba ajuda ---- -->

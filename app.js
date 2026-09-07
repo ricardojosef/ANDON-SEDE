@@ -10,6 +10,21 @@ const $ = (id) => document.getElementById(id);
 const STATUS = ["azul", "verde", "amarelo", "vermelho"];
 const CHAVE_LOCAL = "andon-glean";
 
+// A escala de sede é fixada por semestre e vale de segunda a sexta. As chaves
+// seguem o índice de Date.getDay() (1 = segunda … 5 = sexta).
+const DIAS = [
+  { chave: "seg", nome: "Segunda", curto: "Seg", diaSemana: 1 },
+  { chave: "ter", nome: "Terça", curto: "Ter", diaSemana: 2 },
+  { chave: "qua", nome: "Quarta", curto: "Qua", diaSemana: 3 },
+  { chave: "qui", nome: "Quinta", curto: "Qui", diaSemana: 4 },
+  { chave: "sex", nome: "Sexta", curto: "Sex", diaSemana: 5 },
+];
+
+// Dia útil de hoje; no fim de semana cai em segunda, que é o próximo a valer.
+function diaDeHoje(agora = new Date()) {
+  return DIAS.find((d) => d.diaSemana === agora.getDay()) || DIAS[0];
+}
+
 // ---------------------------------------------------------------------------
 // Estado inicial
 // ---------------------------------------------------------------------------
@@ -24,7 +39,10 @@ function eventoPadrao(texto) {
 
 function estadoPadrao() {
   const plantao = {};
-  SLOTS_PLANTAO.forEach(([inicio]) => { plantao[inicio] = ""; });
+  DIAS.forEach(({ chave }) => {
+    plantao[chave] = {};
+    SLOTS_PLANTAO.forEach(([inicio]) => { plantao[chave][inicio] = ""; });
+  });
 
   const membros = [];
   for (let i = 1; i <= MEMBROS_INICIAIS; i++) {
@@ -32,7 +50,13 @@ function estadoPadrao() {
   }
 
   return {
-    reuniao: { ativa: false, atualizadoEm: 0 },
+    reuniao: {
+      ativa: false,
+      atualizadoEm: 0,
+      // Período opcional que liga o aviso sozinho, sem precisar de ninguém
+      // clicando no switch. "ativa" continua valendo como o controle manual.
+      agendamento: { ativo: false, inicio: "", fim: "" },
+    },
     letreiro: { texto: "", modo: "off", exibidoEm: 0 },
     plantao,
     membros,
@@ -49,9 +73,13 @@ function normalizar(bruto) {
   if (!bruto || typeof bruto !== "object") return base;
 
   const est = {
-    reuniao: { ...base.reuniao, ...(bruto.reuniao || {}) },
+    reuniao: {
+      ...base.reuniao,
+      ...(bruto.reuniao || {}),
+      agendamento: { ...base.reuniao.agendamento, ...((bruto.reuniao || {}).agendamento || {}) },
+    },
     letreiro: { ...base.letreiro, ...(bruto.letreiro || {}) },
-    plantao: { ...base.plantao },
+    plantao: base.plantao,
     membros: base.membros,
     eventos: {
       terca: { ...base.eventos.terca, ...((bruto.eventos || {}).terca || {}) },
@@ -62,9 +90,23 @@ function normalizar(bruto) {
   };
 
   if (bruto.plantao) {
-    for (const [inicio] of SLOTS_PLANTAO) {
-      if (typeof bruto.plantao[inicio] === "string") est.plantao[inicio] = bruto.plantao[inicio];
+    // Formato antigo: uma escala única, com os horários na raiz. Aproveita esses
+    // nomes replicando-os em todos os dias, para não perder o que já foi
+    // preenchido antes da escala passar a ser por dia da semana.
+    const ehFormatoAntigo = SLOTS_PLANTAO.some(
+      ([inicio]) => typeof bruto.plantao[inicio] === "string"
+    );
+
+    for (const { chave } of DIAS) {
+      const origem = ehFormatoAntigo ? bruto.plantao : bruto.plantao[chave];
+      if (!origem || typeof origem !== "object") continue;
+      for (const [inicio] of SLOTS_PLANTAO) {
+        if (typeof origem[inicio] === "string") est.plantao[chave][inicio] = origem[inicio];
+      }
     }
+
+    // Sinaliza para regravar no formato novo e apagar a escala antiga da raiz.
+    est._migrarPlantao = ehFormatoAntigo;
   }
 
   if (bruto.membros) {
@@ -204,8 +246,20 @@ function proximoSlotIndice(agora = new Date()) {
 // ---------------------------------------------------------------------------
 // Render
 // ---------------------------------------------------------------------------
+let plantaoMigrado = false;
+
 function aplicarEstado(novo) {
+  const precisaMigrar = novo._migrarPlantao;
+  delete novo._migrarPlantao;
   estado = novo;
+
+  // Escala no formato antigo (única, sem dias): regrava já convertida, uma vez
+  // só, para que o banco não fique preso ao formato anterior.
+  if (precisaMigrar && !plantaoMigrado) {
+    plantaoMigrado = true;
+    gravar("plantao", estado.plantao);
+  }
+
   renderReuniao();
   renderPlantao();
   renderAjuda();
@@ -215,8 +269,25 @@ function aplicarEstado(novo) {
   if (modalAberto()) renderFormularios();
 }
 
+// A reunião aparece ativa se o switch manual estiver ligado OU se um período
+// agendado estiver em curso agora — calculado localmente em cada tela, sem
+// precisar que ninguém grave nada no banco na hora exata em que o período abre.
+function reuniaoEstaAtiva(agora = new Date()) {
+  const r = estado.reuniao;
+  if (r.ativa) return true;
+
+  const ag = r.agendamento;
+  if (!ag || !ag.ativo || !ag.inicio || !ag.fim) return false;
+
+  const min = agora.getHours() * 60 + agora.getMinutes();
+  const ini = paraMinutos(ag.inicio);
+  const fim = paraMinutos(ag.fim);
+  // período pode virar a meia-noite (ex.: 23:00–01:00)
+  return ini <= fim ? (min >= ini && min < fim) : (min >= ini || min < fim);
+}
+
 function renderReuniao() {
-  const ativa = Boolean(estado.reuniao.ativa);
+  const ativa = reuniaoEstaAtiva();
   $("placaReuniao").classList.toggle("ativa", ativa);
   $("placaReuniaoTexto").textContent = ativa
     ? "ESTÁ HAVENDO REUNIÃO NA SEDE"
@@ -229,7 +300,9 @@ function renderPlantao() {
   const iProx = proximoSlotIndice(agora);
   const min = agora.getHours() * 60 + agora.getMinutes();
 
-  const nomeDe = (i) => (i >= 0 ? (estado.plantao[SLOTS_PLANTAO[i][0]] || "").trim() : "");
+  // O painel mostra sempre a escala do dia corrente.
+  const escalaHoje = estado.plantao[diaDeHoje(agora).chave] || {};
+  const nomeDe = (i) => (i >= 0 ? (escalaHoje[SLOTS_PLANTAO[i][0]] || "").trim() : "");
 
   if (iAtual >= 0) {
     const nome = nomeDe(iAtual);
@@ -253,7 +326,7 @@ function renderPlantao() {
   }
 
   $("plantaoGrade").innerHTML = SLOTS_PLANTAO.map(([inicio, fim], i) => {
-    const nome = (estado.plantao[inicio] || "").trim();
+    const nome = (escalaHoje[inicio] || "").trim();
     const classes = [];
     if (i === iAtual) classes.push("atual");
     else if (paraMinutos(fim) <= min && iAtual !== -1) classes.push("passado");
@@ -597,6 +670,7 @@ function tiquetaque() {
   $("relogio").textContent = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   $("data").textContent = agora.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
   renderPlantao();
+  renderReuniao();   // reflete o agendamento de reunião assim que o período abre/fecha
 
   // Recarrega de madrugada: a tela fica ligada por semanas.
   if (agora.getHours() === HORA_RELOAD_DIARIO && agora.getMinutes() === 0 && agora.getSeconds() < 2) {
@@ -743,10 +817,16 @@ let calibNormal = null, calibAlto = null;
 // ---------------------------------------------------------------------------
 const modalAberto = () => !$("modal").hidden;
 let membrosDestravados = false;
+// Ligada enquanto os campos de horário da reunião estão sendo editados, para
+// que a re-renderização não apague o que ainda não foi gravado.
+let editandoHorarioAgenda = false;
+// Dia da semana aberto na aba de escala; o modal sempre abre no dia de hoje.
+let diaEscalaAberto = diaDeHoje().chave;
 
 function abrirModal() {
   $("modal").hidden = false;
   document.body.classList.add("editando");
+  diaEscalaAberto = diaDeHoje().chave;   // abre sempre no dia de hoje
   renderFormularios();
 }
 
@@ -754,13 +834,74 @@ function fecharModal() {
   $("modal").hidden = true;
   document.body.classList.remove("editando");
   membrosDestravados = false;
+  editandoHorarioAgenda = false;
   $("edMembros").hidden = true;
   $("membrosDestravado").hidden = true;
+}
+
+// Um temporizador por slot: digitar em dois campos seguidos não pode fazer o
+// segundo cancelar a gravação pendente do primeiro.
+const temporizadoresSlot = new Map();
+function agendarGravacaoSlot(dia, slot, valor) {
+  const chave = dia + "/" + slot;
+  clearTimeout(temporizadoresSlot.get(chave));
+  temporizadoresSlot.set(chave, setTimeout(() => {
+    temporizadoresSlot.delete(chave);
+    gravar("plantao/" + chave, valor);
+  }, 450));
+}
+
+// Monta o seletor de dias e a escala do dia aberto. O slot atual só ganha
+// destaque quando o dia mostrado é realmente o de hoje.
+function renderEditorPlantao() {
+  const hoje = diaDeHoje().chave;
+  const escala = estado.plantao[diaEscalaAberto] || {};
+
+  $("edPlantaoDias").innerHTML = DIAS.map(({ chave, curto }) => {
+    const doDia = estado.plantao[chave] || {};
+    const preenchidos = SLOTS_PLANTAO.filter(([i]) => (doDia[i] || "").trim()).length;
+    return `<button data-dia="${chave}" class="${chave === diaEscalaAberto ? "sel" : ""}">
+      <span>${curto}</span>
+      ${chave === hoje ? '<span class="marca-hoje">hoje</span>'
+        : `<span class="preenchidos">${preenchidos}/${SLOTS_PLANTAO.length}</span>`}
+    </button>`;
+  }).join("");
+
+  const iAtual = diaEscalaAberto === hoje ? slotAtualIndice() : -1;
+
+  // Preserva o campo em digitação: sem isso, a gravação de um slot redesenharia
+  // a lista e tiraria o cursor de onde o usuário está escrevendo.
+  const focado = document.activeElement;
+  const slotFocado = focado && focado.dataset && focado.dataset.slot ? focado.dataset.slot : null;
+  const posCursor = slotFocado ? focado.selectionStart : 0;
+
+  $("edPlantao").innerHTML = SLOTS_PLANTAO.map(([inicio, fim], i) => `
+    <div class="linha ${i === iAtual ? "atual" : ""}">
+      <span class="hora">${inicio}–${fim}</span>
+      <input type="text" data-slot="${inicio}" placeholder="livre"
+             value="${escapar(escala[inicio] || "")}">
+    </div>`).join("");
+
+  if (slotFocado) {
+    const campo = $("edPlantao").querySelector(`input[data-slot="${slotFocado}"]`);
+    if (campo) {
+      campo.focus();
+      campo.setSelectionRange(posCursor, posCursor);
+    }
+  }
 }
 
 function renderFormularios() {
   // --- geral ---
   $("edReuniao").checked = Boolean(estado.reuniao.ativa);
+
+  const ag = estado.reuniao.agendamento || {};
+  $("edReuniaoAgendaAtiva").checked = Boolean(ag.ativo);
+  $("edReuniaoAgendaCampos").hidden = !ag.ativo;
+  if (!editandoHorarioAgenda) {
+    $("edReuniaoInicio").value = ag.inicio || "";
+    $("edReuniaoFim").value = ag.fim || "";
+  }
   if (document.activeElement !== $("edLetreiroTexto")) {
     $("edLetreiroTexto").value = estado.letreiro.texto || "";
   }
@@ -769,13 +910,7 @@ function renderFormularios() {
   });
 
   // --- plantão ---
-  const iAtual = slotAtualIndice();
-  $("edPlantao").innerHTML = SLOTS_PLANTAO.map(([inicio, fim], i) => `
-    <div class="linha ${i === iAtual ? "atual" : ""}">
-      <span class="hora">${inicio}–${fim}</span>
-      <input type="text" data-slot="${inicio}" placeholder="livre"
-             value="${escapar(estado.plantao[inicio] || "")}">
-    </div>`).join("");
+  renderEditorPlantao();
 
   // --- cadeia de ajuda ---
   $("edAjuda").innerHTML = estado.membros.map((m, i) => `
@@ -916,6 +1051,30 @@ function ligarInterface() {
     gravar("reuniao", { ativa: e.target.checked, atualizadoEm: Date.now() });
   });
 
+  $("edReuniaoAgendaAtiva").addEventListener("change", (e) => {
+    const ativo = e.target.checked;
+    $("edReuniaoAgendaCampos").hidden = !ativo;
+    gravar("reuniao", {
+      agendamento: { ...estado.reuniao.agendamento, ativo },
+    });
+  });
+
+  const gravarHorarioAgenda = debounce(() => {
+    editandoHorarioAgenda = false;
+    gravar("reuniao", {
+      agendamento: {
+        ...estado.reuniao.agendamento,
+        inicio: $("edReuniaoInicio").value,
+        fim: $("edReuniaoFim").value,
+      },
+    });
+  }, 400);
+  // Enquanto os horários estão sendo digitados, o render não pode devolver os
+  // valores antigos por cima: o campo sem foco seria apagado no meio da edição.
+  const marcarEdicaoHorario = () => { editandoHorarioAgenda = true; gravarHorarioAgenda(); };
+  $("edReuniaoInicio").addEventListener("input", marcarEdicaoHorario);
+  $("edReuniaoFim").addEventListener("input", marcarEdicaoHorario);
+
   $("edLetreiroTexto").addEventListener("input", debounce((e) => {
     gravar("letreiro", { texto: e.target.value });
   }, 450));
@@ -934,10 +1093,35 @@ function ligarInterface() {
   });
 
   // --- plantão ---
-  $("edPlantao").addEventListener("input", debounce((e) => {
+  // O dia é lido no disparo (e não no debounce) para que trocar de aba logo
+  // depois de digitar não grave o nome no dia errado.
+  $("edPlantao").addEventListener("input", (e) => {
     const slot = e.target.dataset.slot;
-    if (slot) gravar("plantao/" + slot, e.target.value);
-  }, 450));
+    if (!slot) return;
+    const dia = diaEscalaAberto;
+    const valor = e.target.value;
+    agendarGravacaoSlot(dia, slot, valor);
+  });
+
+  $("edPlantaoDias").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-dia]");
+    if (!btn) return;
+    diaEscalaAberto = btn.dataset.dia;
+    renderEditorPlantao();
+  });
+
+  $("btnCopiarDia").addEventListener("click", () => {
+    const origem = DIAS.find((d) => d.chave === diaEscalaAberto);
+    const outros = DIAS.filter((d) => d.chave !== diaEscalaAberto);
+    if (!confirm(
+      `Copiar a escala de ${origem.nome} para ${outros.map((d) => d.nome).join(", ")}?\n\n`
+      + "O conteúdo atual desses dias será substituído."
+    )) return;
+
+    const plantao = { ...estado.plantao };
+    for (const { chave } of outros) plantao[chave] = { ...estado.plantao[origem.chave] };
+    gravar("plantao", plantao);
+  });
 
   // --- cadeia de ajuda ---
   $("edAjuda").addEventListener("click", (e) => {

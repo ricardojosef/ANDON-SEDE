@@ -99,9 +99,16 @@ Sete slots, das 09:10 às 17:00, com a pausa de 12:00 a 13:30:
 | 11:00–12:00 | 15:10–16:20 |
 | | 16:20–17:00 |
 
-O painel destaca quem está de plantão **agora** e quem vem **a seguir**. Qualquer um pode
-reescrever qualquer slot — inclusive para repassar o plantão a outra pessoa em cima da hora.
-Para mudar a grade, edite `SLOTS_PLANTAO` em [`config.js`](config.js).
+A escala é **fixada por semestre e vale de segunda a sexta** — cada dia tem a sua. Na aba
+**Horário de sede** há um seletor de dia no topo, que já abre no dia de hoje (marcado com
+"hoje"); os outros mostram quantos slots estão preenchidos. O botão **"Copiar esta escala
+para os outros dias"** replica o dia aberto nos demais, útil quando a escala é igual a
+semana toda.
+
+O painel destaca quem está de plantão **agora** e quem vem **a seguir**, sempre lendo a
+escala do dia corrente. Qualquer um pode reescrever qualquer slot — inclusive para repassar
+o plantão a outra pessoa em cima da hora. Para mudar a grade de horários, edite
+`SLOTS_PLANTAO` em [`config.js`](config.js).
 
 ### Cadeia de ajuda
 
@@ -132,6 +139,20 @@ Em **Gerenciar membros**, cada pessoa tem um botão de envio que abre os arquivo
 computador. A foto é recortada em quadrado e reduzida para **400×400** automaticamente no
 navegador, antes de ser salva — cada uma fica em torno de 10–40 KB, então as fotos do grupo
 inteiro cabem folgadamente no plano gratuito do Firebase.
+
+### Reunião na sede
+
+Aba **Geral**. Dois controles, ambos em forma de switch liga/desliga:
+
+- **"Está havendo reunião na sede agora"** — avisa manualmente, na hora. Também dá para
+  alternar clicando direto na placa do topo enquanto o modo de edição está aberto.
+- **"Agendar automaticamente por horário"** — ao ligar, aparecem os campos de **início** e
+  **fim**. Dentro desse período o aviso liga e desliga sozinho, em todas as telas, sem
+  ninguém precisar editar na hora. O período vale todos os dias.
+
+Os dois se combinam: o switch manual funciona **por cima** do agendamento, para avisar de
+uma reunião fora do horário previsto. Ou seja, a placa fica vermelha se o switch manual
+estiver ligado **ou** se o horário atual estiver dentro do período agendado.
 
 ### Letreiro
 

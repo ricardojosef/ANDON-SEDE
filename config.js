@@ -6,8 +6,6 @@
 // funciona normalmente, mas os dados ficam só neste navegador.
 // Veja o passo a passo no README.md.
 // ---------------------------------------------------------------------------
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-
 export const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDJ8cfkl0PYOaD0DG-Fhws-lMyK2tp3-o4",
   authDomain: "andon-sede.firebaseapp.com",
@@ -17,8 +15,8 @@ export const FIREBASE_CONFIG = {
   messagingSenderId: "534532168528",
   appId: "1:534532168528:web:1fe70c653b18ad6067ea55"
 };
-
-const app = initializeApp(FIREBASE_CONFIG);
+// (app.js já inicializa o Firebase a partir desta config — não é preciso
+// chamar initializeApp aqui.)
 
 // Senha simples pedida apenas ao abrir "Gerenciar membros" (renomear, adicionar
 // ou remover pessoas). Trocar a cor/status de alguém NÃO pede senha.
