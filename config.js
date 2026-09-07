@@ -6,16 +6,19 @@
 // funciona normalmente, mas os dados ficam só neste navegador.
 // Veja o passo a passo no README.md.
 // ---------------------------------------------------------------------------
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 
 export const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "", // obrigatório — ex.: https://SEU-PROJETO-default-rtdb.firebaseio.com
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyDJ8cfkl0PYOaD0DG-Fhws-lMyK2tp3-o4",
+  authDomain: "andon-sede.firebaseapp.com",
+  databaseURL: "https://andon-sede-default-rtdb.firebaseio.com",
+  projectId: "andon-sede",
+  storageBucket: "andon-sede.firebasestorage.app",
+  messagingSenderId: "534532168528",
+  appId: "1:534532168528:web:1fe70c653b18ad6067ea55"
 };
+
+const app = initializeApp(FIREBASE_CONFIG);
 
 // Senha simples pedida apenas ao abrir "Gerenciar membros" (renomear, adicionar
 // ou remover pessoas). Trocar a cor/status de alguém NÃO pede senha.
