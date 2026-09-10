@@ -1,0 +1,769 @@
+/* =========================================================================
+   GLean — landing page do processo seletivo
+   ========================================================================= */
+:root {
+  --marinho-900: #071b2e;
+  --marinho-800: #0a2338;
+  --marinho: #0d2c47;
+  --marinho-2: #123a5c;
+  --marinho-3: #1c5580;
+  --azul: #2e8bc0;
+  --azul-claro: #61b3e4;
+  --azul-suave: #e8f2f9;
+  --branco: #ffffff;
+  --papel: #f4f7fa;
+  --borda: #d9e4ee;
+  --texto: #123a5c;
+  --texto-fraco: #5f7d97;
+  --texto-claro: #cbdcea;
+  --texto-claro-2: #a9c4d9;
+
+  --wrap: 1160px;
+  --raio: 16px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 24px;
+  /* `clip` (e não `hidden`) evita rolagem lateral sem criar um contexto de
+     scroll que quebraria o `position: fixed` dos ornamentos. */
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--marinho-900);
+  color: var(--texto);
+  font-family: "Montserrat", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Montserrat também nos elementos de formulário, que não herdam do body. */
+button, input, select, textarea { font: inherit; }
+
+img { max-width: 100%; display: block; }
+
+.wrap {
+  width: min(var(--wrap), 100% - 48px);
+  margin-inline: auto;
+  position: relative;
+  z-index: 1;
+}
+.wrap-estreito { width: min(760px, 100% - 48px); }
+
+/* ====================== ORNAMENTOS DE FUNDO ====================== */
+.fundo-orn {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  /* `position: fixed` escapa do overflow-x do body; o clip-path recorta de
+     fato os orbes e evita rolagem horizontal. */
+  clip-path: inset(0);
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .5;
+}
+.orb-1 {
+  width: 560px; height: 560px;
+  top: -180px; right: -120px;
+  background: radial-gradient(circle at 30% 30%, rgba(46,139,192,.5), transparent 70%);
+}
+.orb-2 {
+  width: 640px; height: 640px;
+  bottom: -260px; left: -200px;
+  background: radial-gradient(circle at 60% 40%, rgba(97,179,228,.32), transparent 70%);
+}
+.anel {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(97, 179, 228, .18);
+}
+.anel-1 { width: 620px; height: 620px; top: 12%; left: -240px; }
+.anel-2 { width: 880px; height: 880px; bottom: -6%; right: -320px; border-color: rgba(97,179,228,.12); }
+
+/* =============================== VIDRO =============================== */
+/* Base do glassmorphism; cada contexto ajusta cor sobre ela. */
+.vidro {
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 10px 40px rgba(3, 16, 28, .28);
+}
+/* Sobre fundo claro o vidro precisa de mais opacidade para ter contraste. */
+.secao:not(.secao-escura) .vidro {
+  background: rgba(255, 255, 255, .72);
+  border-color: rgba(255, 255, 255, .9);
+  box-shadow: 0 10px 36px rgba(18, 58, 92, .09);
+}
+
+/* ================================ HERO ================================ */
+.hero {
+  position: relative;
+  color: var(--branco);
+  overflow: hidden;
+  background:
+    radial-gradient(1100px 620px at 78% 46%, rgba(28, 85, 128, .55), transparent 62%),
+    linear-gradient(160deg, var(--marinho-900) 0%, var(--marinho) 52%, #0f3454 100%);
+  background-color: var(--marinho);
+}
+
+/* brilho suave que segue o mouse (posição vem do GSAP) */
+.hero-brilho {
+  position: absolute;
+  width: 620px; height: 620px;
+  border-radius: 50%;
+  left: var(--mx, 30%); top: var(--my, 40%);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(97,179,228,.20), transparent 62%);
+  filter: blur(28px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s;
+}
+.hero:hover .hero-brilho { opacity: 1; }
+
+@media (min-width: 861px) {
+  .hero {
+    background-image:
+      radial-gradient(900px 560px at 20% 42%, rgba(13,44,71,.72), transparent 70%),
+      url("assets/desktopglean-ps.png");
+    background-size: auto, cover;
+    background-position: center, center right;
+    background-repeat: no-repeat, no-repeat;
+    min-height: min(760px, 100vh);
+    display: flex;
+    align-items: center;
+  }
+}
+
+.hero-conteudo {
+  width: min(var(--wrap), 100% - 48px);
+  margin-inline: auto;
+  padding-block: 56px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-texto { max-width: 500px; }
+.hero-foto-mobile { display: none; }
+
+.hero-logo {
+  height: clamp(26px, 3vw, 32px);
+  width: auto;
+  margin-bottom: 18px;
+  margin-top:-40px
+}
+
+.selo-abertas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  border-radius: 999px;
+  padding: 0.5em 1.2em;
+  font-size: clamp(12px, 1.4vw, 13.5px);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #d3e9f8;
+  background: rgba(97, 179, 228, .13) !important;
+  border-color: rgba(97, 179, 228, .45) !important;
+}
+.ponto-pulsante {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #6fd3a0;
+  box-shadow: 0 0 0 0 rgba(111, 211, 160, .7);
+  animation: pulsa 2s infinite;
+}
+@keyframes pulsa {
+  70%  { box-shadow: 0 0 0 9px rgba(111, 211, 160, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(111, 211, 160, 0); }
+}
+
+.hero h1 {
+  margin: 0.5em 0 0.35em;
+  font-size: clamp(30px, 4.2vw, 52px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(100deg, var(--azul-claro), #9fd6f5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-sub {
+  margin: 0 0 2em;
+  font-size: clamp(15px, 1.9vw, 18px);
+  color: var(--texto-claro);
+  max-width: 27em;
+}
+
+.hero-acoes { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.hero-prazo {
+  margin: 1.6em 0 0;
+  font-size: 14px;
+  color: var(--texto-claro-2);
+}
+.hero-prazo strong { color: #d3e9f8; font-weight: 700; }
+
+/* ============================== BOTÕES ============================== */
+.btn-principal, .btn-secundario {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.95em 2em;
+  font-size: clamp(14px, 1.6vw, 17px);
+  font-weight: 700;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s, background .2s;
+}
+.btn-principal {
+  background: linear-gradient(135deg, var(--azul) 0%, #1f6fa0 100%);
+  color: var(--branco);
+  box-shadow: 0 10px 30px rgba(46, 139, 192, .38);
+}
+/* varredura de brilho no hover */
+.btn-principal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform .7s;
+}
+.btn-principal:hover::after { transform: translateX(120%); }
+.btn-principal:hover { transform: translateY(-2px); box-shadow: 0 14px 38px rgba(46,139,192,.5); }
+
+.btn-secundario {
+  background: rgba(255, 255, 255, .06);
+  color: var(--branco);
+  border: 1.5px solid rgba(255, 255, 255, .4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.btn-secundario:hover { background: rgba(255, 255, 255, .16); transform: translateY(-2px); }
+.btn-grande { padding: 1.1em 2.6em; font-size: clamp(16px, 2vw, 19px); }
+
+/* ============================== SEÇÕES ============================== */
+.secao {
+  padding: clamp(56px, 8vw, 108px) 0;
+  position: relative;
+  background: var(--papel);
+}
+/* separador suave entre claro e escuro */
+.secao:not(.secao-escura)::before,
+.secao:not(.secao-escura)::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 90px;
+  pointer-events: none;
+}
+.secao:not(.secao-escura)::before { top: 0; background: linear-gradient(to bottom, rgba(7,27,46,.10), transparent); }
+.secao:not(.secao-escura)::after { bottom: 0; background: linear-gradient(to top, rgba(7,27,46,.10), transparent); }
+
+.secao-escura {
+  color: var(--branco);
+  background:
+    radial-gradient(760px 420px at 82% 12%, rgba(28,85,128,.42), transparent 66%),
+    linear-gradient(180deg, var(--marinho-900) 0%, var(--marinho) 55%, var(--marinho-800) 100%);
+}
+
+.titulo-secao {
+  margin: 0 0 .35em;
+  font-size: clamp(24px, 3.6vw, 42px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.015em;
+  text-align: center;
+  text-wrap: balance;
+}
+.secao-escura .titulo-secao {
+  background: linear-gradient(120deg, #ffffff 30%, #b6dcf4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.sub-secao {
+  margin: 0 auto clamp(40px, 5vw, 64px);
+  max-width: 46em;
+  text-align: center;
+  color: var(--texto-fraco);
+  font-size: clamp(15px, 1.8vw, 18px);
+  text-wrap: pretty;
+}
+.secao-escura .sub-secao { color: var(--texto-claro-2); }
+
+/* ========================== LINHA DO TEMPO ========================== */
+.linha-tempo {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 860px;
+  position: relative;
+}
+/* trilho vertical; a barra interna cresce conforme o scroll (GSAP) */
+.lt-trilho {
+  position: absolute;
+  left: 27px;
+  top: 8px; bottom: 8px;
+  width: 2px;
+  background: rgba(255, 255, 255, .14);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.lt-progresso {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleY(0);
+  transform-origin: top;
+  background: linear-gradient(180deg, var(--azul-claro), var(--azul));
+  box-shadow: 0 0 14px rgba(97, 179, 228, .8);
+}
+
+.lt-item {
+  position: relative;
+  display: flex;
+  gap: 26px;
+  align-items: flex-start;
+  /* espaçamento generoso: dá à linha do tempo um trecho de scroll suficiente
+     para o trilho crescer de forma perceptível durante a leitura */
+  padding-bottom: clamp(30px, 7vh, 72px);
+}
+.lt-item:last-child { padding-bottom: 0; }
+
+.lt-marco {
+  flex: none;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--branco);
+  background: rgba(13, 44, 71, .9);
+  border: 2px solid rgba(97, 179, 228, .35);
+  position: relative;
+  z-index: 1;
+  transition: border-color .4s, box-shadow .4s, background .4s;
+}
+/* anel externo que pulsa quando o marco fica ativo */
+.lt-marco::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px solid rgba(97, 179, 228, .3);
+  opacity: 0;
+  transform: scale(.85);
+  transition: opacity .45s, transform .45s;
+}
+.lt-item.ativo .lt-marco {
+  background: linear-gradient(135deg, var(--azul) 0%, #1f6fa0 100%);
+  border-color: rgba(159, 214, 245, .9);
+  box-shadow: 0 0 0 6px rgba(46, 139, 192, .18), 0 8px 26px rgba(46, 139, 192, .45);
+}
+.lt-item.ativo .lt-marco::before { opacity: 1; transform: scale(1); }
+
+.lt-cartao {
+  flex: 1;
+  border-radius: var(--raio);
+  padding: 22px 26px;
+  min-width: 0;
+}
+.lt-cartao h3 {
+  margin: 0 0 .35em;
+  font-size: clamp(17px, 2.1vw, 21px);
+  font-weight: 700;
+  color: var(--branco);
+}
+.lt-cartao p { margin: 0; color: var(--texto-claro-2); font-size: 15px; }
+
+/* ============================== CARTÕES ============================== */
+.cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+.cartao {
+  border-radius: var(--raio);
+  padding: 28px 26px;
+  transition: transform .3s, box-shadow .3s;
+}
+.cartao:hover { transform: translateY(-6px); box-shadow: 0 18px 46px rgba(18, 58, 92, .16); }
+.cartao h3 {
+  margin: 0 0 .5em;
+  font-size: clamp(16px, 2vw, 19px);
+  font-weight: 700;
+  color: var(--marinho-3);
+}
+.cartao p { margin: 0; color: var(--texto-fraco); font-size: 15px; }
+
+/* ============================== LOGOS ==============================
+   As logos das parceiras são escuras sobre fundo claro, e a seção tem fundo
+   marinho: cada uma ganha uma placa clara para ficar legível. A altura é fixa
+   e a largura livre, então marcas largas (Embraer) e quadradas (Mercedes)
+   ficam com peso visual parecido. */
+.logos {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 18px);
+}
+.logo-placa {
+  /* branco puro: os arquivos que já vêm com fundo branco próprio (JPG/PNG sem
+     transparência) se fundem com a placa em vez de mostrar um retângulo */
+  background: #fff;
+  border-radius: 12px;
+  padding: clamp(12px, 1.6vw, 18px) clamp(18px, 2.4vw, 28px);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 28px rgba(3, 16, 28, .26);
+  transition: transform .25s, box-shadow .25s;
+}
+.logo-placa img {
+  height: clamp(26px, 3.2vw, 36px);
+  width: auto;
+  object-fit: contain;
+}
+.logo-placa:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(3, 16, 28, .34);
+}
+/* Cada arquivo tem uma proporção e uma margem interna diferentes; a altura é
+   calibrada por logo para todas terem peso visual parecido na fileira. */
+.logo-placa img[alt="Mercedes-Benz"] { height: clamp(52px, 6.4vw, 74px); }
+.logo-placa img[alt="Kaizen Institute"] { height: clamp(30px, 3.8vw, 42px); }
+.logo-placa img[alt="Bosch Rexroth"] { height: clamp(32px, 4vw, 46px); }
+.logo-placa img[alt="Grupo Malwee"] { height: clamp(24px, 3vw, 34px); }
+
+/* "e outras" mantém o formato de pílula translúcida, sem placa branca. */
+.logos-mais {
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 999px;
+  padding: .8em 1.7em;
+  color: var(--texto-claro-2);
+  font-style: italic;
+  font-size: clamp(14px, 1.7vw, 16px);
+  box-shadow: none;
+}
+.logos-mais:hover { transform: none; box-shadow: none; }
+
+/* ============================== MARCAS ============================== */
+/* Usadas na seção "onde estão nossos ex-membros", em texto. */
+.marcas {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.marcas li {
+  border-radius: 999px;
+  padding: .72em 1.6em;
+  font-weight: 700;
+  font-size: clamp(14px, 1.7vw, 16.5px);
+  color: #dceaf5;
+  transition: transform .25s, background .25s, border-color .25s;
+}
+.marcas li:hover {
+  transform: translateY(-3px);
+  background: rgba(97, 179, 228, .18);
+  border-color: rgba(97, 179, 228, .5);
+}
+.marcas-mais { color: var(--texto-claro-2) !important; font-weight: 500 !important; font-style: italic; }
+
+/* ============================ DEPOIMENTOS ============================ */
+.depoimentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.depoimento {
+  margin: 0;
+  border-radius: var(--raio);
+  padding: 30px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: transform .3s, box-shadow .3s;
+}
+.depoimento:hover { transform: translateY(-6px); }
+.depoimento blockquote {
+  margin: 0;
+  font-size: clamp(15px, 1.8vw, 17px);
+  color: var(--texto-fraco);
+  flex: 1;
+}
+.depoimento blockquote::before {
+  content: "\201C";
+  display: block;
+  font-size: 52px;
+  line-height: .6;
+  color: var(--azul);
+  opacity: .5;
+  margin-bottom: .22em;
+}
+.depoimento figcaption { display: flex; flex-direction: column; gap: 2px; }
+.dep-nome { font-weight: 700; font-size: 16px; color: var(--marinho-2); }
+.dep-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--azul);
+}
+.dep-cargo { font-size: 14px; color: var(--texto-fraco); }
+
+/* ================================ FAQ ================================ */
+.faq { display: flex; flex-direction: column; gap: 12px; }
+.faq details {
+  border-radius: 14px;
+  padding: 4px 22px;
+  transition: box-shadow .3s;
+}
+.faq details[open] { box-shadow: 0 14px 40px rgba(18, 58, 92, .13); }
+.faq summary {
+  cursor: pointer;
+  padding: 17px 0;
+  font-weight: 700;
+  font-size: clamp(15px, 1.8vw, 17px);
+  color: var(--marinho-2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: "+";
+  flex: none;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: rgba(46, 139, 192, .12);
+  font-size: 19px;
+  font-weight: 400;
+  color: var(--azul);
+  transition: transform .25s, background .25s;
+}
+.faq details[open] summary::after { transform: rotate(45deg); background: rgba(46,139,192,.22); }
+.faq details p {
+  margin: 0 0 19px;
+  color: var(--texto-fraco);
+  font-size: 15px;
+}
+.faq details p strong { color: var(--marinho-2); }
+
+/* ============================= CTA FINAL ============================= */
+.cta-final {
+  position: relative;
+  overflow: hidden;
+  color: var(--branco);
+  text-align: center;
+  padding: clamp(60px, 8vw, 104px) 0;
+  background:
+    radial-gradient(700px 380px at 50% 0%, rgba(46,139,192,.35), transparent 70%),
+    linear-gradient(135deg, var(--marinho-900) 0%, var(--marinho-3) 100%);
+}
+.cta-brilho {
+  position: absolute;
+  max-width: 100%;
+  width: 760px; height: 760px;
+  border-radius: 50%;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, .09);
+  pointer-events: none;
+}
+.cta-brilho::before {
+  content: "";
+  position: absolute;
+  inset: 90px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .07);
+}
+.cta-final h2 {
+  margin: 0 0 .3em;
+  font-size: clamp(24px, 3.6vw, 42px);
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+.cta-final p {
+  margin: 0 0 2em;
+  color: var(--texto-claro);
+  font-size: clamp(15px, 1.9vw, 19px);
+}
+.cta-prazo {
+  margin: 1.6em 0 0 !important;
+  font-size: 14px !important;
+  color: var(--texto-claro-2) !important;
+}
+.cta-prazo strong { color: #d3e9f8; }
+
+/* ============================== RODAPÉ ============================== */
+.rodape-site {
+  background: var(--marinho-900);
+  color: var(--texto-claro);
+  padding: clamp(46px, 6vw, 76px) 0 28px;
+  position: relative;
+}
+.rodape-topo {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-bottom: 32px;
+}
+.rodape-marca { max-width: 560px; }
+.rodape-logo { height: 54px; width: auto; margin-bottom: 18px; }
+.rodape-marca p { margin: 0; font-size: 15px; }
+
+.rodape-ufsc { display: flex; align-items: center; gap: 14px; flex: none; }
+.brasao-ufsc {
+  width: 56px;
+  height: auto;
+  flex: none;
+  /* O arquivo vem com fundo branco; um respiro claro atrás mantém o brasão
+     legível sobre o rodapé escuro sem parecer um retalho recortado. */
+  background: rgba(255, 255, 255, .92);
+  border-radius: 8px;
+  padding: 6px;
+}
+.rodape-ufsc-texto { font-size: 13px; line-height: 1.4; }
+
+.rodape-baixo {
+  border-top: 1px solid rgba(255, 255, 255, .12);
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #8fabc4;
+}
+.rodape-baixo a { color: #8fabc4; text-decoration: none; }
+.rodape-baixo a:hover { color: var(--azul-claro); text-decoration: underline; }
+
+.rodape-links { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.rodape-social {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: color .2s, transform .2s;
+}
+.rodape-social:hover { color: var(--azul-claro); transform: translateY(-1px); }
+.rodape-social svg { flex: none; }
+/* Em telas estreitas o rótulo some e sobra só o ícone, para caber ao lado do copyright. */
+@media (max-width: 480px) {
+  .rodape-social span { display: none; }
+}
+
+/* ============================== MOBILE ============================== */
+@media (max-width: 860px) {
+  .hero {
+    background-image: none;
+    background:
+      radial-gradient(600px 400px at 50% 18%, rgba(28,85,128,.5), transparent 68%),
+      linear-gradient(170deg, var(--marinho-900) 0%, var(--marinho) 100%);
+    min-height: 100svh;
+    display: block;
+  }
+  .hero-conteudo {
+    padding-block: 0 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding-inline: 24px;
+  }
+  .hero-foto-mobile {
+    display: block;
+    /* Escapa do padding lateral do conteúdo para encostar nas duas bordas da
+       tela. A altura sai da proporção da imagem (height: auto), então ela
+       aparece sempre inteira, sem corte. */
+    width: calc(100% + 48px);
+    /* a regra global `img { max-width: 100% }` travaria a largura antes de a
+       imagem alcançar as bordas da tela */
+    max-width: none;
+    margin-inline: -24px;
+    margin-bottom: -14;
+    height: auto;
+    /* O esmaecido na base evita um corte duro contra a cor sólida da hero. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 85%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0, #000 85%, transparent 100%);
+  }
+  .hero-texto { max-width: none; text-align: center; }
+  .hero-logo { margin-inline: auto; }
+  .hero h1 { font-size: clamp(25px, 7.2vw, 33px); margin: .35em 0 .3em; }
+  .hero-sub {
+    font-size: clamp(14px, 3.6vw, 16px);
+    margin-bottom: 1.3em;
+    margin-inline: auto;
+  }
+  .hero-acoes { justify-content: center; }
+  .btn-principal, .btn-secundario { padding: .8em 1.6em; }
+  .hero-prazo { margin-top: 1.1em; font-size: 13px; }
+
+  .lt-trilho { left: 21px; }
+  .lt-item { gap: 18px; }
+  .lt-marco { width: 44px; height: 44px; font-size: 16px; }
+  .lt-cartao { padding: 18px 20px; }
+
+  .rodape-topo { flex-direction: column; gap: 28px; }
+  .orb-1, .orb-2 { filter: blur(50px); opacity: .38; }
+  .anel-1, .anel-2 { display: none; }
+}
+
+/* Telas muito baixas: encolhe a faixa da foto e esconde o texto de apoio
+   para o conjunto continuar cabendo perto da primeira dobra. */
+@media (max-width: 860px) and (max-height: 720px) {
+  /* A foto continua encostando nas laterais (encolhê-la deixaria bordas duras
+     à vista, já que o esfumaçado existe só na base). O espaço sai de apertar
+     os respiros e reduzir a tipografia, sem esconder o subtítulo. */
+  .hero-sub {
+    font-size: clamp(13px, 3.4vw, 15px);
+    margin-bottom: 1em;
+  }
+  .hero-prazo { margin-top: .8em; }
+  .hero-foto-mobile { margin-bottom: 6px; }
+  .hero-logo { margin-bottom: 10px; }
+  .hero h1 { font-size: clamp(23px, 6.6vw, 30px); }
+}
+
+/* ====================== ACESSIBILIDADE / MOVIMENTO ====================== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ponto-pulsante { animation: none; }
+  .btn-principal:hover, .btn-secundario:hover,
+  .cartao:hover, .depoimento:hover, .marcas li:hover { transform: none; }
+  .btn-principal::after { display: none; }
+  /* o JS já evita as animações; isto garante o estado final visível */
+  [data-anim] { opacity: 1 !important; transform: none !important; }
+  .lt-progresso { transform: scaleY(1); }
+}

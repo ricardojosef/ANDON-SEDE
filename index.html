@@ -1,254 +1,489 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Andon GLean — Sede</title>
-<link rel="icon" href="assets/logo.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-<div id="painel">
-
-  <!-- ================= TOPO ================= -->
-  <header class="topo">
-    <img class="logo" src="assets/logo.png" alt="GLean — Grupo de estudos em Lean">
-
-    <div id="placaReuniao" class="placa-reuniao" role="status" title="No modo de edição, clique para alternar">
-      <span class="placa-bolinha"></span>
-      <span id="placaReuniaoTexto">NÃO ESTÁ HAVENDO REUNIÃO</span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Processo Seletivo GLean, Inscrições até 27/09</title>
+    <meta
+      name="description"
+      content="Inscrições abertas até 27 de setembro para o processo seletivo do GLean, grupo de estudos em Lean da UFSC. Aprenda na prática e construa sua carreira."
+    />
+    <link rel="icon" href="assets/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <!-- ornamentos de fundo, fixos atrás de tudo -->
+    <div class="fundo-orn" aria-hidden="true">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="anel anel-1"></span>
+      <span class="anel anel-2"></span>
     </div>
 
-    <div class="topo-info">
-      <div id="relogio" class="relogio">--:--</div>
-      <div class="topo-sub">
-        <span id="data">—</span>
-        <span id="temperatura" class="temperatura">—</span>
+    <!-- ============================== HERO ============================== -->
+    <header class="hero">
+      <div class="hero-brilho" aria-hidden="true"></div>
+
+      <div class="hero-conteudo">
+        <!-- Só aparece no mobile: a mesma turma, em enquadramento vertical -->
+        <img
+          class="hero-foto-mobile"
+          src="assets/mobileglean-ps.png"
+          alt="Membros do GLean"
+          width="496"
+          height="420"
+          data-anim="foto"
+        />
+
+        <div class="hero-texto">
+          <img
+            class="hero-logo"
+            src="assets/logo-branca-glean.png"
+            alt="GLean, Grupo de estudos em Lean"
+            data-anim="hero"
+          />
+
+          <span class="selo-abertas vidro" data-anim="hero">
+            <span class="ponto-pulsante" aria-hidden="true"></span>
+            Inscrições até 27/09
+          </span>
+
+          <h1 data-anim="titulo">
+            Aprenda <em>Lean</em> com quem é referência há 20 anos.
+          </h1>
+
+          <p class="hero-sub" data-anim="hero">
+            O GLean é o grupo de estudos em Lean da UFSC. Aqui você aprende e aplica
+            melhoria contínua em problemas reais e eleva a sua carreira para um outro patamar.
+          </p>
+
+          <div class="hero-acoes" data-anim="hero">
+            <a
+              class="btn-principal"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSeBeUZwMcKgFPGTu9pNFYapj7EgdNvCjnOBrCiMGWOQZUztjw/viewform?usp=dialog"
+              target="_blank"
+              rel="noopener"
+            >
+              Quero me inscrever
+            </a>
+            <a class="btn-secundario" href="#etapas">Ver as etapas</a>
+          </div>
+
+          <p class="hero-prazo" data-anim="hero">
+            <strong>Encerramento das inscrições:</strong> 27 de setembro
+          </p>
+        </div>
       </div>
-    </div>
-  </header>
-
-  <!-- ================= PLANTÃO ================= -->
-  <section class="cartao plantao">
-    <h2 class="cartao-titulo">Horário de sede</h2>
-
-    <div class="plantao-agora">
-      <span class="rotulo">Agora</span>
-      <strong id="plantaoAgoraNome">—</strong>
-      <span id="plantaoAgoraFaixa" class="faixa">—</span>
-    </div>
-
-    <div class="plantao-proximo">
-      <span class="rotulo">A seguir</span>
-      <strong id="plantaoProximoNome">—</strong>
-      <span id="plantaoProximoFaixa" class="faixa">—</span>
-    </div>
-
-    <ul id="plantaoGrade" class="plantao-grade"></ul>
-  </section>
-
-  <!-- ================= CADEIA DE AJUDA ================= -->
-  <section class="cartao ajuda">
-    <h2 class="cartao-titulo">
-      Cadeia de ajuda
-      <span class="legenda">
-        <i class="ponto vermelho"></i>preciso de ajuda
-        <i class="ponto amarelo"></i>ocupado
-        <i class="ponto azul"></i>disponível
-      </span>
-    </h2>
-    <div id="ajudaGrade" class="ajuda-grade"></div>
-  </section>
-
-  <!-- ================= EVENTOS ================= -->
-  <section class="eventos">
-    <article class="cartao evento" data-dia="terca">
-      <h2 class="cartao-titulo">Terça-feira</h2>
-      <div class="evento-corpo" id="eventoTerca"></div>
-      <canvas class="confete" id="confeteTerca"></canvas>
-    </article>
-    <article class="cartao evento" data-dia="quinta">
-      <h2 class="cartao-titulo">Quinta-feira</h2>
-      <div class="evento-corpo" id="eventoQuinta"></div>
-      <canvas class="confete" id="confeteQuinta"></canvas>
-    </article>
-  </section>
-
-  <!-- ================= RODAPÉ ================= -->
-  <footer class="rodape">
-    <div id="letreiroRodape" class="letreiro-rodape" hidden>
-      <div id="letreiroRodapeTexto" class="letreiro-rodape-texto"></div>
-    </div>
-    <div class="rodape-status">
-      <span id="statusConexao" class="selo">conectando…</span>
-      <span id="statusMic" class="selo">microfone desligado</span>
-      <span id="statusEdicao" class="selo" hidden>última edição: —</span>
-    </div>
-  </footer>
-
-  <button id="btnEditar" class="btn-editar" title="Editar painel (E)">✎<span>Editar</span></button>
-</div>
-
-<!-- ================= SOBREPOSIÇÕES ================= -->
-<div id="alertaVolume" class="alerta-volume" hidden>
-  <div class="alerta-volume-texto">VOLUME ALTO</div>
-</div>
-
-<div id="letreiroCheio" class="letreiro-cheio" hidden>
-  <div id="letreiroCheioTexto"></div>
-</div>
-
-<!-- ================= MODAL DE EDIÇÃO ================= -->
-<div id="modal" class="modal" hidden>
-  <div class="modal-caixa" role="dialog" aria-label="Editar painel">
-    <header class="modal-topo">
-      <h2>Editar painel</h2>
-      <button id="btnFechar" class="btn-fechar" title="Fechar (Esc)">✕</button>
     </header>
 
-    <nav class="abas">
-      <button class="aba ativa" data-aba="geral">Geral</button>
-      <button class="aba" data-aba="plantao">Horário de sede</button>
-      <button class="aba" data-aba="ajuda">Cadeia de ajuda</button>
-      <button class="aba" data-aba="eventos">Eventos</button>
-      <button class="aba" data-aba="volume">Volume</button>
-    </nav>
-
-    <!-- ---- aba geral ---- -->
-    <div class="painel-aba ativa" data-aba="geral">
-      <fieldset>
-        <legend>Reunião na sede</legend>
-        <label class="linha-switch">
-          <span>Está havendo reunião na sede agora</span>
-          <span class="switch">
-            <input type="checkbox" id="edReuniao">
-            <span class="switch-trilho" aria-hidden="true"></span>
-          </span>
-        </label>
-
-        <label class="linha-switch linha-switch-sub">
-          <span>Agendar automaticamente por horário</span>
-          <span class="switch">
-            <input type="checkbox" id="edReuniaoAgendaAtiva">
-            <span class="switch-trilho" aria-hidden="true"></span>
-          </span>
-        </label>
-        <div id="edReuniaoAgendaCampos" class="linha-horarios" hidden>
-          <label class="campo campo-inline">
-            <span>Início</span>
-            <input type="time" id="edReuniaoInicio">
-          </label>
-          <label class="campo campo-inline">
-            <span>Fim</span>
-            <input type="time" id="edReuniaoFim">
-          </label>
-        </div>
-        <p class="dica">
-          Com o agendamento ligado, o aviso "está havendo reunião" liga e desliga sozinho
-          dentro do período — em todas as telas, sem precisar editar na hora. O switch de cima
-          continua funcionando por cima disso, para avisar manualmente fora do período.
+    <!-- ============================== ETAPAS ============================== -->
+    <section class="secao secao-escura" id="etapas">
+      <div class="wrap">
+        <h2 class="titulo-secao" data-anim="sobe">Como funciona o processo</h2>
+        <p class="sub-secao" data-anim="sobe">
+          Quatro etapas para você mostrar quem é e conhecer quem somos.
         </p>
-      </fieldset>
 
-      <fieldset>
-        <legend>Letreiro</legend>
-        <label class="campo">
-          <span>Mensagem</span>
-          <textarea id="edLetreiroTexto" rows="2" placeholder="Ex.: Reunião geral adiada para 15h"></textarea>
-        </label>
-        <div class="linha-radios">
-          <label><input type="radio" name="letreiroModo" value="off"> Desligado</label>
-          <label><input type="radio" name="letreiroModo" value="rodape"> Faixa inferior (contínuo)</label>
-          <label><input type="radio" name="letreiroModo" value="fullscreen"> Tela cheia (1x)</label>
-        </div>
-        <p class="dica">Em "tela cheia", a mensagem ocupa todo o monitor uma única vez (5s) e o painel volta sozinho.</p>
-      </fieldset>
-    </div>
+        <ol class="linha-tempo">
+          <span class="lt-trilho" aria-hidden="true"
+            ><span class="lt-progresso"></span
+          ></span>
 
-    <!-- ---- aba plantão ---- -->
-    <div class="painel-aba" data-aba="plantao">
-      <p class="dica">
-        A escala é fixada por semestre e vale de segunda a sexta. Qualquer pessoa pode
-        alterar — inclusive para repassar o plantão na hora.
-      </p>
-      <div id="edPlantaoDias" class="ed-dias" role="tablist"></div>
-      <div id="edPlantao" class="ed-plantao"></div>
-      <div class="ed-plantao-acoes">
-        <button id="btnCopiarDia" class="btn">Copiar esta escala para os outros dias…</button>
+          <li class="lt-item">
+            <span class="lt-marco" aria-hidden="true"><span>1</span></span>
+            <div class="lt-cartao vidro">
+              <h3>Currículo</h3>
+              <p>
+                Sua inscrição começa aqui. Não esperamos experiência prévia em
+                Lean, queremos entender sua trajetória e o que te move.
+              </p>
+            </div>
+          </li>
+
+          <li class="lt-item">
+            <span class="lt-marco" aria-hidden="true"><span>2</span></span>
+            <div class="lt-cartao vidro">
+              <h3>Relatório A3</h3>
+              <p>
+                Você recebe um problema e estrutura a solução em uma página, no
+                formato A3 que usamos no dia a dia. Enviamos o material de
+                apoio: é para aprender, não para decorar.
+              </p>
+            </div>
+          </li>
+
+          <li class="lt-item">
+            <span class="lt-marco" aria-hidden="true"><span>3</span></span>
+            <div class="lt-cartao vidro">
+              <h3>Dinâmica em grupo</h3>
+              <p>
+                Um desafio prático com outros candidatos. Olhamos como você
+                pensa junto, escuta e constrói com o time.
+              </p>
+            </div>
+          </li>
+
+          <li class="lt-item">
+            <span class="lt-marco" aria-hidden="true"><span>4</span></span>
+            <div class="lt-cartao vidro">
+              <h3>Entrevista</h3>
+              <p>
+                Uma conversa com membros do grupo sobre você, suas expectativas
+                e como o GLean se encaixa nos seus planos.
+              </p>
+            </div>
+          </li>
+        </ol>
       </div>
-    </div>
+    </section>
 
-    <!-- ---- aba ajuda ---- -->
-    <div class="painel-aba" data-aba="ajuda">
-      <p class="dica">Trocar o status de alguém é livre. Renomear, adicionar, remover membros
-        ou alterar fotos pede senha.</p>
-      <div id="edAjuda" class="ed-ajuda"></div>
-      <div class="ed-membros-acoes">
-        <button id="btnGerenciarMembros" class="btn">Gerenciar membros…</button>
-        <span id="membrosDestravado" class="selo ok" hidden>membros destravados</span>
-      </div>
-      <div id="edMembros" class="ed-membros" hidden>
-        <div id="edMembrosLista"></div>
-        <button id="btnAddMembro" class="btn">+ Adicionar membro</button>
-      </div>
-    </div>
-
-    <!-- ---- aba eventos ---- -->
-    <div class="painel-aba" data-aba="eventos">
-      <div id="edEventos" class="ed-eventos"></div>
-    </div>
-
-    <!-- ---- aba volume ---- -->
-    <div class="painel-aba" data-aba="volume">
-      <p class="dica">
-        O microfone é lido pelo navegador desta tela (a da sede). O navegador não fornece
-        decibéis absolutos, por isso o limiar é definido por calibração no próprio ambiente.
-      </p>
-
-      <button id="btnLigarMic" class="btn destaque">Ligar microfone</button>
-
-      <div class="medidor">
-        <div class="medidor-barra"><div id="medidorNivel"></div><div id="medidorLimiar"></div></div>
-        <div class="medidor-valores">
-          <span>nível: <b id="medidorValor">0.00</b></span>
-          <span>limiar: <b id="medidorLimiarValor">0.00</b></span>
-        </div>
-      </div>
-
-      <fieldset>
-        <legend>Calibração em 2 passos</legend>
-        <div class="calib-passos">
-          <button id="btnCalibNormal" class="btn" disabled>1. Medir ambiente normal (5s)</button>
-          <span id="calibNormalValor" class="selo">—</span>
-        </div>
-        <div class="calib-passos">
-          <button id="btnCalibAlto" class="btn" disabled>2. Medir volume alto (5s)</button>
-          <span id="calibAltoValor" class="selo">—</span>
-        </div>
-        <button id="btnCalibAplicar" class="btn destaque" disabled>Aplicar limiar sugerido</button>
-        <p class="dica">
-          Deixe a sala no barulho normal e clique em 1. Depois converse alto / bata palmas e
-          clique em 2. O limiar fica entre os dois valores.
+    <!-- ============================ PARA QUEM É ============================ -->
+    <section class="secao" id="para-quem">
+      <div class="wrap">
+        <h2 class="titulo-secao" data-anim="sobe">Para quem é</h2>
+        <p class="sub-secao" data-anim="sobe">
+          Se você se reconhece em alguma dessas linhas, o processo é para você.
         </p>
-      </fieldset>
 
-      <label class="campo">
-        <span>Ajuste manual do limiar</span>
-        <input type="range" id="edLimiar" min="0.01" max="0.6" step="0.005">
-      </label>
-    </div>
+        <div class="cartoes">
+          <article class="cartao vidro" data-anim="cartao">
+            <h3>A partir da 3ª fase</h3>
+            <p>
+              As inscrições são para quem está da terceira fase em diante, de
+              modo que a entrada no grupo acontece no quarto semestre.
+            </p>
+          </article>
+          <article class="cartao vidro" data-anim="cartao">
+            <h3>Gosta de resolver problemas</h3>
+            <p>
+              Gente que olha uma fila, um desperdício ou um retrabalho e pensa
+              "dá para fazer melhor". Esse incômodo é o começo de tudo.
+            </p>
+          </article>
+          <article class="cartao vidro" data-anim="cartao">
+            <h3>Interesse em Lean e manufatura</h3>
+            <p>
+              Manufatura é o nosso principal campo de estudo, mas não o único: o
+              Lean que praticamos alcança serviços, gestão e processos de
+              qualquer natureza.
+            </p>
+          </article>
+          <article class="cartao vidro" data-anim="cartao">
+            <h3>Qualquer curso da graduação</h3>
+            <p>
+              Não há restrição de curso. A diversidade de formações enriquece os
+              projetos e a forma como o grupo enxerga cada problema.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-    <footer class="modal-rodape">
-      <span class="dica">As alterações aparecem imediatamente em todas as telas.</span>
-      <button id="btnConcluir" class="btn destaque">Concluir</button>
+    <!-- ========================== EMPRESAS PARCEIRAS ========================== -->
+    <section class="secao secao-escura" id="parceiras">
+      <div class="wrap">
+        <h2 class="titulo-secao" data-anim="sobe">Empresas parceiras</h2>
+        <p class="sub-secao" data-anim="sobe">
+          Visitas técnicas, treinamentos e projetos construídos junto com quem
+          pratica Lean na indústria.
+        </p>
+
+        <ul class="logos">
+          <li class="logo-placa" data-anim="marca">
+            <img src="assets/logomercedez.png" alt="Mercedes-Benz" loading="lazy" />
+          </li>
+          <li class="logo-placa" data-anim="marca">
+            <img src="assets/logo_embraer.png" alt="Embraer" loading="lazy" />
+          </li>
+          <li class="logo-placa" data-anim="marca">
+            <img src="assets/logobosch.webp" alt="Bosch" loading="lazy" />
+          </li>
+          <li class="logo-placa" data-anim="marca">
+            <img src="assets/kaizeninstitutelogo.png" alt="Kaizen Institute" loading="lazy" />
+          </li>
+          <li class="logo-placa" data-anim="marca">
+            <img src="assets/rexroth.webp" alt="Bosch Rexroth" loading="lazy" />
+          </li>
+          <li class="logo-placa" data-anim="marca">
+            <img src="assets/logomalwee.jpg" alt="Grupo Malwee" loading="lazy" />
+          </li>
+          <li class="logo-placa logos-mais" data-anim="marca">e outras</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================ DEPOIMENTOS ============================ -->
+    <section class="secao" id="depoimentos">
+      <div class="wrap">
+        <h2 class="titulo-secao" data-anim="sobe">Quem passou por aqui</h2>
+        <p class="sub-secao" data-anim="sobe">
+          O que o grupo deixou para quem já seguiu adiante.
+        </p>
+
+        <div class="depoimentos">
+          <!-- TODO: substituir pelos depoimentos reais -->
+          <figure class="depoimento vidro" data-anim="cartao">
+            <blockquote>
+            Fazer parte da história do GLean é um orgulho e uma experiência que levarei para a vida. É emocionante ver o legado construído ao longo desses 20 anos e saber que cada geração continua transformando e fortalecendo essa história. 💙
+
+            </blockquote>
+            <figcaption>
+              <span class="dep-nome">Anna Valle</span>
+              <span class="dep-tag">Fundadora do GLean</span>
+              <span class="dep-cargo">CEO Flows</span>
+            </figcaption>
+          </figure>
+
+          <figure class="depoimento vidro" data-anim="cartao">
+            <blockquote>
+              Graças ao GLean  pude alcançar o emprego dos meus sonhos. O grupo me capacitou para vencer grandes desafios e hoje colho os frutos do conhecimento adquirido ali.
+            </blockquote>
+            <figcaption>
+              <span class="dep-nome">Henrique Hideki</span>
+              <span class="dep-tag">Ex-membro GLean</span>
+              <span class="dep-cargo">Auxiliar de qualidade corporativa Embraer</span>
+            </figcaption>
+          </figure>
+
+          <figure class="depoimento vidro" data-anim="cartao">
+            <blockquote>
+              O Glean me preparou para chegar no ambiente fabril e saber por onde começar. Aprendi a resolver problemas e desenvolvi uma visão diferenciada.  
+            </blockquote>
+            <figcaption>
+              <span class="dep-nome">Matheus Ueta</span>
+              <span class="dep-tag">Ex-membro GLean</span>
+              <span class="dep-cargo">Estagiário · Produttare Consultoria</span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= ONDE ESTÃO OS EX-MEMBROS ========================= -->
+    <section class="secao secao-escura" id="ex-membros">
+      <div class="wrap">
+        <h2 class="titulo-secao" data-anim="sobe">
+          Onde estão nossos ex-membros
+        </h2>
+        <p class="sub-secao" data-anim="sobe">
+          A rede que você passa a fazer parte no dia em que entra no grupo.
+        </p>
+
+        <ul class="marcas marcas-ex">
+          <li class="vidro" data-anim="marca">WEG</li>
+          <li class="vidro" data-anim="marca">McKinsey &amp; Company</li>
+          <li class="vidro" data-anim="marca">BMW</li>
+          <li class="vidro" data-anim="marca">EloGroup</li>
+          <li class="vidro" data-anim="marca">GE</li>
+          <li class="vidro" data-anim="marca">Intelbras</li>
+          <li class="vidro" data-anim="marca">Bosch</li>
+          <li class="vidro" data-anim="marca">Porsche Consulting</li>
+          <li class="vidro" data-anim="marca">Grupo Malwee</li>
+          <li class="vidro" data-anim="marca">BTG Pactual</li>
+          <li class="vidro" data-anim="marca">Embraer</li>
+          <li class="vidro" data-anim="marca">PicPay</li>
+          <li class="vidro" data-anim="marca">P&amp;G</li>
+          <li class="vidro" data-anim="marca">Amazon</li>
+          <li class="vidro" data-anim="marca">O Boticário</li>
+          <li class="vidro" data-anim="marca">Bosch Rexroth</li>
+          <li class="vidro" data-anim="marca">Kaizen Institute</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================ FAQ ================================ -->
+    <section class="secao" id="faq">
+      <div class="wrap wrap-estreito">
+        <h2 class="titulo-secao" data-anim="sobe">Dúvidas frequentes</h2>
+
+        <div class="faq">
+          <details class="vidro" data-anim="sobe">
+            <summary>
+              Preciso saber alguma coisa de Lean para me inscrever?
+            </summary>
+            <p>
+              Não. A maior parte das pessoas chega sem nunca ter ouvido falar de
+              A3, kanban ou kaizen. A formação acontece dentro do grupo.
+            </p>
+          </details>
+
+          <details class="vidro" data-anim="sobe">
+            <summary>De quais cursos vocês aceitam inscrições?</summary>
+            <p>
+              De todos. O GLean é um grupo do departamento de Engenharia de
+              Produção, mas o curso
+              <strong>não é um critério considerado</strong> na seleção:
+              qualquer estudante da graduação pode se inscrever, de qualquer
+              curso.
+            </p>
+          </details>
+
+          <details class="vidro" data-anim="sobe">
+            <summary>Em que fase da graduação eu preciso estar?</summary>
+            <p>
+              A partir da 3ª fase, de forma que a entrada no grupo acontece no
+              quarto semestre.
+            </p>
+          </details>
+
+          <details class="vidro" data-anim="sobe">
+            <summary>Qual é a carga horária esperada?</summary>
+            <p>
+              Além dos encontros do grupo, cada membro assume um horário de sede
+              e participa dos projetos em andamento. A rotina é compatível com a
+              graduação, mas exige constância.
+            </p>
+          </details>
+
+          <details class="vidro" data-anim="sobe">
+            <summary>O grupo é remunerado?</summary>
+            <p>
+              A participação no grupo em si não é remunerada. Os membros, porém,
+              desenvolvem
+              <strong
+                >projetos de verão e de inverno, que são remunerados</strong
+              >. Ao longo do semestre também podem surgir projetos que, conforme
+              a disponibilidade de cada um, podem ser remunerados.
+            </p>
+          </details>
+
+          <details class="vidro" data-anim="sobe">
+            <summary>Até quando posso me inscrever?</summary>
+            <p>
+              As inscrições vão até <strong>27 de setembro</strong>. Depois
+              dessa data o formulário é encerrado.
+            </p>
+          </details>
+
+          <details class="vidro" data-anim="sobe">
+            <summary>Como sei se fui aprovado em cada etapa?</summary>
+            <p>
+              Avisamos por e-mail a cada fase, no endereço informado na
+              inscrição. Fique de olho também na caixa de spam.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== CHAMADA FINAL ============================== -->
+    <section class="cta-final">
+      <div class="cta-brilho" aria-hidden="true"></div>
+      <div class="wrap">
+        <h2 data-anim="sobe">As inscrições estão abertas</h2>
+        <p data-anim="sobe">O primeiro passo é só enviar seu currículo.</p>
+        <a
+          class="btn-principal btn-grande"
+          data-anim="sobe"
+          href="https://docs.google.com/forms/d/e/1FAIpQLSeBeUZwMcKgFPGTu9pNFYapj7EgdNvCjnOBrCiMGWOQZUztjw/viewform?usp=dialog"
+          target="_blank"
+          rel="noopener"
+        >
+          Fazer minha inscrição
+        </a>
+        <p class="cta-prazo" data-anim="sobe">
+          Inscrições encerram em <strong>27 de setembro</strong>
+        </p>
+      </div>
+    </section>
+
+    <!-- ========================== SOBRE O GLEAN (final) ========================== -->
+    <footer class="rodape-site" id="sobre">
+      <div class="wrap">
+        <div class="rodape-topo">
+          <div class="rodape-marca">
+            <img
+              class="rodape-logo"
+              src="assets/logo-branca-glean.png"
+              alt="GLean, Grupo de estudos em Lean"
+            />
+            <p>
+              O GLean é o grupo de estudos em Lean da Universidade Federal de
+              Santa Catarina, vinculado ao departamento de Engenharia de
+              Produção. Estudamos e aplicamos melhoria contínua em problemas
+              reais, formando pessoas que levam essa cultura para onde forem.
+            </p>
+          </div>
+
+          <div class="rodape-ufsc">
+            <img
+              class="brasao-ufsc"
+              src="assets/brasaoufsc.webp"
+              alt="Brasão da UFSC"
+            />
+            <span class="rodape-ufsc-texto">
+              Universidade Federal<br />de Santa Catarina
+            </span>
+          </div>
+        </div>
+
+        <div class="rodape-baixo">
+          <span
+            >© <span id="ano">2026</span> GLean, Grupo de estudos em Lean</span
+          >
+          <div class="rodape-links">
+            <a
+              class="rodape-social"
+              href="https://www.instagram.com/glean.ufsc"
+              target="_blank"
+              rel="noopener"
+              aria-label="GLean no Instagram"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle
+                  cx="17.2"
+                  cy="6.8"
+                  r="1.1"
+                  fill="currentColor"
+                  stroke="none"
+                />
+              </svg>
+              <span>Instagram</span>
+            </a>
+            <a
+              class="rodape-social"
+              href="https://www.linkedin.com/company/glean/"
+              target="_blank"
+              rel="noopener"
+              aria-label="GLean no LinkedIn"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3.5a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 20h-3.37v-5.9c0-1.41-.03-3.22-1.96-3.22-1.97 0-2.27 1.54-2.27 3.12V20H9.47V8.5h3.24v1.57h.05c.45-.85 1.56-1.75 3.21-1.75 3.43 0 4.06 2.26 4.06 5.2V20Z"
+                />
+              </svg>
+              <span>LinkedIn</span>
+            </a>
+            <a href="andon/">Andon da sede</a>
+          </div>
+        </div>
+      </div>
     </footer>
-  </div>
-</div>
 
-<script type="module" src="app.js"></script>
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="site.js"></script>
+  </body>
 </html>
