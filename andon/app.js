@@ -25,6 +25,23 @@ function diaDeHoje(agora = new Date()) {
   return DIAS.find((d) => d.diaSemana === agora.getDay()) || DIAS[0];
 }
 
+// Títulos dos três blocos de evento, por dia da semana. O bloco da esquerda é
+// sempre o dia corrente; os dois da direita são os próximos compromissos.
+// Índice = Date.getDay() (0 = domingo … 6 = sábado).
+const ROTULOS_EVENTOS = {
+  1: ["Eventos do dia", "Terça-feira", "Quinta-feira"],        // segunda
+  2: ["Eventos do dia", "Amanhã", "Quinta-feira"],             // terça
+  3: ["Eventos do dia", "Amanhã", "Sexta-feira"],              // quarta
+  4: ["Eventos do dia", "Amanhã", "Semana que vem"],           // quinta
+  5: ["Eventos do dia", "Próxima terça-feira", "Próxima quinta-feira"], // sexta
+};
+// Sábado e domingo caem no mesmo rótulo de segunda, que é o próximo dia útil.
+const ROTULOS_FIM_DE_SEMANA = ["Eventos do dia", "Terça-feira", "Quinta-feira"];
+
+function rotulosEventos(agora = new Date()) {
+  return ROTULOS_EVENTOS[agora.getDay()] || ROTULOS_FIM_DE_SEMANA;
+}
+
 // ---------------------------------------------------------------------------
 // Estado inicial
 // ---------------------------------------------------------------------------
@@ -60,7 +77,11 @@ function estadoPadrao() {
     letreiro: { texto: "", modo: "off", exibidoEm: 0 },
     plantao,
     membros,
-    eventos: { terca: eventoPadrao(""), quinta: eventoPadrao("") },
+    eventos: {
+      hoje: eventoPadrao(""),
+      proximo1: eventoPadrao(""),
+      proximo2: eventoPadrao(""),
+    },
     volume: { limiar: 0.12, calibradoEm: 0 },
     atualizadoEm: 0,
   };
@@ -81,9 +102,20 @@ function normalizar(bruto) {
     letreiro: { ...base.letreiro, ...(bruto.letreiro || {}) },
     plantao: base.plantao,
     membros: base.membros,
+    // O formato antigo tinha blocos fixos "terca"/"quinta"; eles viram os dois
+    // blocos de próximos compromissos, para não perder o que já estava escrito.
     eventos: {
-      terca: { ...base.eventos.terca, ...((bruto.eventos || {}).terca || {}) },
-      quinta: { ...base.eventos.quinta, ...((bruto.eventos || {}).quinta || {}) },
+      hoje: { ...base.eventos.hoje, ...((bruto.eventos || {}).hoje || {}) },
+      proximo1: {
+        ...base.eventos.proximo1,
+        ...((bruto.eventos || {}).terca || {}),
+        ...((bruto.eventos || {}).proximo1 || {}),
+      },
+      proximo2: {
+        ...base.eventos.proximo2,
+        ...((bruto.eventos || {}).quinta || {}),
+        ...((bruto.eventos || {}).proximo2 || {}),
+      },
     },
     volume: { ...base.volume, ...(bruto.volume || {}) },
     atualizadoEm: bruto.atualizadoEm || 0,
@@ -361,23 +393,20 @@ function cartaoMembro(m) {
 function renderAjuda() {
   const grade = $("ajudaGrade");
 
-  // A seção mostra quem precisa de ajuda: vermelhos e amarelos sempre; os azuis
-  // (disponíveis para ajudar) entram como apoio, e só até o espaço permitir.
+  // Quem precisa de ajuda (vermelho) ao lado de quem pode ajudar (azul). Sem
+  // ninguém em azul, entram verdes e amarelos como alternativa de contato.
   const porStatus = (s) => estado.membros.filter((m) => m.status === s);
-  const alerta = [...porStatus("vermelho"), ...porStatus("amarelo")];
+  const alerta = porStatus("vermelho");
   const azuis = porStatus("azul");
+  const apoio = azuis.length ? azuis : [...porStatus("verde"), ...porStatus("amarelo")];
 
-  if (!alerta.length && !azuis.length) {
+  if (!alerta.length && !apoio.length) {
     grade.innerHTML = `<p class="ajuda-tudo-bem">Ninguém precisando de ajuda agora
       <span>a cadeia de ajuda está tranquila</span></p>`;
     return;
   }
 
-  grade.innerHTML =
-    alerta.map(cartaoMembro).join("") +
-    (azuis.length
-      ? `<div class="ajuda-apoio">Disponíveis para ajudar</div>` + azuis.map(cartaoMembro).join("")
-      : "");
+  grade.innerHTML = alerta.map(cartaoMembro).join("") + apoio.map(cartaoMembro).join("");
 
   ajustarApoio(grade);
 
@@ -386,20 +415,21 @@ function renderAjuda() {
   // caso em que a primeira medição aconteceu cedo demais.
   const fotos = [...grade.querySelectorAll("img.m-foto")];
   if (fotos.length) {
+    const totalEsperado = alerta.length + apoio.length;
     Promise.all(fotos.map((img) => (img.decode ? img.decode().catch(() => {}) : Promise.resolve())))
       .then(() => requestAnimationFrame(() => {
-        // Refaz o encaixe sobre a marcação atual; se azuis foram descartados
-        // por uma medição precoce, o render completo os traz de volta.
-        if (grade.querySelectorAll(".membro.st-azul").length < azuis.length) renderAjuda();
+        // Refaz o encaixe sobre a marcação atual; se alguém foi descartado por
+        // uma medição precoce, o render completo o traz de volta.
+        if (grade.querySelectorAll(".membro").length < totalEsperado) renderAjuda();
         else ajustarApoio(grade);
       }));
   }
 }
 
 // Encaixa a grade na altura disponível. Encolher um pouco os cartões é melhor
-// que descartar gente, então essa é a primeira tentativa; os azuis (apoio,
-// dispensável) só saem quando o encolhimento já não resolve, e o corte final
-// garante que ninguém apareça pela metade.
+// que descartar gente, então essa é a primeira tentativa; o apoio (que vem
+// depois dos vermelhos) só sai quando o encolhimento já não resolve, e o corte
+// final garante que ninguém apareça pela metade.
 function ajustarApoio(grade) {
   const cabe = () => grade.scrollHeight <= grade.clientHeight + 1;
   const base = grade.clientHeight;
@@ -414,20 +444,17 @@ function ajustarApoio(grade) {
     if (cabe()) return;
   }
 
-  // 2) ainda não coube: devolve o tamanho cheio e descarta os azuis do fim
+  // 2) ainda não coube: devolve o tamanho cheio e descarta do fim para o
+  //    começo, preservando os vermelhos (que vêm primeiro na marcação)
   escalar(1);
-  const apoio = grade.querySelector(".ajuda-apoio");
-  if (apoio) {
-    let ultimo = grade.lastElementChild;
-    while (ultimo && ultimo !== apoio && !cabe()) {
-      ultimo.remove();
-      ultimo = grade.lastElementChild;
-    }
-    if (grade.lastElementChild === apoio) apoio.remove();
-    if (cabe()) return;
+  let ultimo = grade.lastElementChild;
+  while (ultimo && !ultimo.classList.contains("st-vermelho") && !cabe()) {
+    ultimo.remove();
+    ultimo = grade.lastElementChild;
   }
+  if (cabe()) return;
 
-  // 3) só vermelhos e amarelos restaram e ainda não cabem: encolhe sem limite
+  // 3) só vermelhos restaram e ainda não cabem: encolhe sem limite
   for (let i = 0, f = 1; i < 12 && !cabe(); i++) {
     f *= 0.88;
     escalar(f);
@@ -441,10 +468,21 @@ const FONTES = {
   display: '"Impact", "Haettenschweiler", sans-serif',
 };
 
+// Os três blocos, na ordem em que aparecem na tela.
+const BLOCOS_EVENTO = ["hoje", "proximo1", "proximo2"];
+// "hoje" -> "Hoje", "proximo1" -> "Proximo1": sufixo dos ids no HTML.
+const idDoBloco = (b) => b[0].toUpperCase() + b.slice(1);
+
 function renderEventos() {
-  for (const dia of ["terca", "quinta"]) {
+  // Os títulos acompanham o dia da semana; o conteúdo é sempre o mesmo campo.
+  const rotulos = rotulosEventos();
+  $("tituloHoje").textContent = rotulos[0];
+  $("tituloProximo1").textContent = rotulos[1];
+  $("tituloProximo2").textContent = rotulos[2];
+
+  for (const dia of BLOCOS_EVENTO) {
     const ev = estado.eventos[dia];
-    const alvo = $("evento" + (dia === "terca" ? "Terca" : "Quinta"));
+    const alvo = $("evento" + idDoBloco(dia));
     const url = (ev.imagem || "").trim();
 
     if (url) {
@@ -606,7 +644,7 @@ function escolherArquivo(accept = "image/*") {
 // ---------------------------------------------------------------------------
 const confetes = {};
 function confete(dia, ligar) {
-  const canvas = $("confete" + (dia === "terca" ? "Terca" : "Quinta"));
+  const canvas = $("confete" + idDoBloco(dia));
   const atual = confetes[dia];
 
   if (!ligar) {
@@ -665,12 +703,22 @@ function novaPeca(canvas, cores, espalhar) {
 // ---------------------------------------------------------------------------
 // Relógio, data e temperatura
 // ---------------------------------------------------------------------------
+let diaSemanaAtual = new Date().getDay();
+
 function tiquetaque() {
   const agora = new Date();
   $("relogio").textContent = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   $("data").textContent = agora.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
   renderPlantao();
   renderReuniao();   // reflete o agendamento de reunião assim que o período abre/fecha
+
+  // Na virada do dia os rótulos dos eventos mudam (ex.: "Terça-feira" vira
+  // "Amanhã"), mesmo antes do reload de madrugada.
+  if (agora.getDay() !== diaSemanaAtual) {
+    diaSemanaAtual = agora.getDay();
+    renderEventos();
+    if (modalAberto()) renderFormularios();
+  }
 
   // Recarrega de madrugada: a tela fica ligada por semanas.
   if (agora.getHours() === HORA_RELOAD_DIARIO && agora.getMinutes() === 0 && agora.getSeconds() < 2) {
@@ -926,11 +974,14 @@ function renderFormularios() {
   if (membrosDestravados) renderListaMembros();
 
   // --- eventos ---
-  $("edEventos").innerHTML = ["terca", "quinta"].map((dia) => {
+  // Os rótulos do editor acompanham os da tela, para o gestor saber qual bloco
+  // está editando no dia de hoje.
+  const rotulosEd = rotulosEventos();
+  $("edEventos").innerHTML = BLOCOS_EVENTO.map((dia, i) => {
     const ev = estado.eventos[dia];
     return `
     <fieldset data-dia="${dia}">
-      <legend>${dia === "terca" ? "Terça" : "Quinta"}</legend>
+      <legend>${escapar(rotulosEd[i])}</legend>
       <label class="campo">
         <span>Texto</span>
         <textarea rows="2" data-c="texto">${escapar(ev.texto || "")}</textarea>

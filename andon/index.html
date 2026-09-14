@@ -57,25 +57,37 @@
       Cadeia de ajuda
       <span class="legenda">
         <i class="ponto vermelho"></i>preciso de ajuda
-        <i class="ponto amarelo"></i>ocupado
         <i class="ponto azul"></i>disponível
+        <i class="ponto verde"></i>tranquilo
+        <i class="ponto amarelo"></i>ocupado
       </span>
     </h2>
     <div id="ajudaGrade" class="ajuda-grade"></div>
   </section>
 
-  <!-- ================= EVENTOS ================= -->
+  <!-- ================= EVENTOS =================
+       Três blocos: o da esquerda é sempre o dia corrente; os dois da direita
+       são os próximos compromissos. Os títulos mudam conforme o dia da semana
+       (ver ROTULOS_EVENTOS em app.js). -->
   <section class="eventos">
-    <article class="cartao evento" data-dia="terca">
-      <h2 class="cartao-titulo">Terça-feira</h2>
-      <div class="evento-corpo" id="eventoTerca"></div>
-      <canvas class="confete" id="confeteTerca"></canvas>
+    <article class="cartao evento evento-hoje" data-dia="hoje">
+      <h2 class="cartao-titulo" id="tituloHoje">Eventos do dia</h2>
+      <div class="evento-corpo" id="eventoHoje"></div>
+      <canvas class="confete" id="confeteHoje"></canvas>
     </article>
-    <article class="cartao evento" data-dia="quinta">
-      <h2 class="cartao-titulo">Quinta-feira</h2>
-      <div class="evento-corpo" id="eventoQuinta"></div>
-      <canvas class="confete" id="confeteQuinta"></canvas>
-    </article>
+
+    <div class="eventos-proximos">
+      <article class="cartao evento" data-dia="proximo1">
+        <h2 class="cartao-titulo" id="tituloProximo1">—</h2>
+        <div class="evento-corpo" id="eventoProximo1"></div>
+        <canvas class="confete" id="confeteProximo1"></canvas>
+      </article>
+      <article class="cartao evento" data-dia="proximo2">
+        <h2 class="cartao-titulo" id="tituloProximo2">—</h2>
+        <div class="evento-corpo" id="eventoProximo2"></div>
+        <canvas class="confete" id="confeteProximo2"></canvas>
+      </article>
+    </div>
   </section>
 
   <!-- ================= RODAPÉ ================= -->

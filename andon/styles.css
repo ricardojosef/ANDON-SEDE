@@ -293,6 +293,7 @@ body.editando .placa-reuniao { cursor: pointer; box-shadow: 0 0 0 3px var(--azul
 }
 
 .membro.st-azul    { --cor: var(--st-azul);    --fundo: #eaf4fb; }
+.membro.st-verde   { --cor: var(--st-verde);   --fundo: #eaf7f1; }
 .membro.st-amarelo { --cor: var(--st-amarelo); --fundo: #fdf5e3; }
 .membro.st-vermelho{ --cor: var(--st-vermelho);--fundo: #fdeceb; }
 
@@ -312,7 +313,9 @@ body.editando .placa-reuniao { cursor: pointer; box-shadow: 0 0 0 3px var(--azul
   --nome: clamp(10px, calc(var(--h) * 0.056), 18px);
   --largura: clamp(84px, 10vw, 154px);
 }
-.membro.st-azul {
+/* Azul e verde são apoio: mesmo porte, menor que o dos vermelhos. */
+.membro.st-azul,
+.membro.st-verde {
   --foto: clamp(28px, calc(var(--h) * 0.15), 66px);
   --nome: clamp(9px, calc(var(--h) * 0.044), 15px);
   --largura: clamp(70px, 7.5vw, 112px);
@@ -320,21 +323,6 @@ body.editando .placa-reuniao { cursor: pointer; box-shadow: 0 0 0 3px var(--azul
 }
 @keyframes alerta-suave {
   50% { background: #fbdbd8; }
-}
-
-/* Faixa de "quem está disponível", separando os azuis do bloco de alerta. */
-.ajuda-apoio {
-  width: 100%;
-  display: flex; align-items: center; gap: 0.7em;
-  font-size: clamp(9px, 1.25vh, 14px);
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--texto-fraco);
-  margin-top: 0.2em;
-}
-.ajuda-apoio::after {
-  content: ""; flex: 1; height: 1px; background: var(--borda);
 }
 
 .ajuda-tudo-bem {
@@ -365,7 +353,16 @@ body.editando .placa-reuniao { cursor: pointer; box-shadow: 0 0 0 3px var(--azul
   gap: var(--gap);
   min-height: 0;
 }
+/* Coluna da direita partida em dois: os próximos compromissos. */
+.eventos-proximos {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--gap);
+  min-height: 0;
+}
 .evento { position: relative; }
+/* Os cartões de cima e de baixo são menores, então o texto encolhe junto. */
+.eventos-proximos .cartao-titulo { font-size: clamp(11px, 1.5vh, 17px); }
 .evento-corpo {
   flex: 1; min-height: 0;
   display: flex; align-items: center; justify-content: center;
@@ -695,7 +692,8 @@ input[type=color] { width: 46px; height: 34px; padding: 2px; border: 1px solid v
 .ed-imagem .ed-imagem-info { flex: 1; min-width: 0; font-size: 12.5px; color: var(--texto-fraco); }
 
 /* --- edição de eventos --- */
-.ed-eventos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+/* Três blocos: acomoda em 2 ou 3 colunas conforme a largura do modal. */
+.ed-eventos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 .ed-eventos .grupo-controles { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
 .ed-eventos .grupo-controles .campo { flex: 1; min-width: 90px; margin-bottom: 0; }
 .ed-eventos .checks { display: flex; gap: 14px; margin-top: 10px; font-size: 14px; }
