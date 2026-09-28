@@ -761,6 +761,24 @@ const mic = {
 
 let acimaDesde = 0, abaixoDesde = 0, alertaLigado = false;
 
+// Áudio do alarme: criado uma única vez, em loop enquanto o alerta estiver
+// ligado (para de fato chamar atenção, não só um bipe único).
+const alarmeAudio = new Audio("alarme-andon.mp3");
+alarmeAudio.loop = true;
+
+function tocarAlarme() {
+  // O navegador só libera áudio depois de alguma interação do usuário na
+  // página; se ainda não houve nenhuma, o play() falha silenciosamente e o
+  // som volta a tocar normalmente após o primeiro clique/toque.
+  alarmeAudio.currentTime = 0;
+  alarmeAudio.play().catch(() => {});
+}
+
+function pararAlarme() {
+  alarmeAudio.pause();
+  alarmeAudio.currentTime = 0;
+}
+
 async function ligarMicrofone() {
   if (mic.ativo) return true;
   try {
@@ -822,6 +840,7 @@ function avaliarAlerta() {
     if (!alertaLigado && agora - acimaDesde > 2000) {   // 2s acima para ligar
       alertaLigado = true;
       $("alertaVolume").hidden = false;
+      tocarAlarme();
     }
   } else {
     acimaDesde = 0;
@@ -829,6 +848,7 @@ function avaliarAlerta() {
     if (alertaLigado && agora - abaixoDesde > 3000) {   // 3s abaixo para desligar
       alertaLigado = false;
       $("alertaVolume").hidden = true;
+      pararAlarme();
     }
   }
 }
