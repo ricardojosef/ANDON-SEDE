@@ -3,478 +3,1400 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Processo Seletivo GLean, Inscrições até 27/09</title>
+    <title>Treinamento Aberto GLean, 12/11</title>
     <meta
       name="description"
-      content="Inscrições abertas até 27 de setembro para o processo seletivo do GLean, grupo de estudos em Lean da UFSC. Aprenda na prática e construa sua carreira."
+      content="Treinamento Aberto do GLean em 12/11: uma introdução ao pensamento Lean para estudantes da graduação da UFSC. Aberto a todos, sem pré-requisito."
     />
+    <meta property="og:title" content="E se o problema for o jeito que você pensa? | Treinamento Aberto GLean" />
+    <meta property="og:description" content="Uma introdução ao pensamento Lean. 12/11, 18h30. Aberto a todos, sem pré-requisito." />
+    <meta property="og:image" content="assets/desktopglean-ps.png" />
+    <meta name="theme-color" content="#0b3b5f" />
     <link rel="icon" href="assets/favicon_glean.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300..900&display=swap"
     />
-    <link rel="stylesheet" href="site.css" />
+    <style>
+      /* =====================================================================
+         GLean — landing page do Treinamento Aberto
+         Paleta e tipografia tiradas do post de divulgação (Montserrat,
+         marinho #0b3b5f, ciano #5cc4e9, tons do iceberg).
+         ===================================================================== */
+      :root {
+        --marinho-900: #052238;
+        --marinho-800: #082d4a;
+        --marinho: #0b3b5f;
+        --marinho-2: #124a72;
+        --facet-1: #1a5f89;
+        --facet-2: #1c7498;
+        --ciano: #5cc4e9;
+        --ciano-forte: #2c8faf;
+        --gelo: #e9f4fa;
+        --branco: #ffffff;
+        --papel: #f3f8fb;
+        --texto: #0b3b5f;
+        --texto-fraco: #557a96;
+        --texto-claro: #d6e6f1;
+        --texto-claro-2: #a8c6dc;
+
+        --wrap: 1160px;
+        --raio: 18px;
+        --suave: cubic-bezier(.22, 1, .36, 1);
+      }
+
+      * { box-sizing: border-box; }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 72px;
+        overflow-x: clip;
+      }
+
+      body {
+        margin: 0;
+        background: var(--marinho);
+        color: var(--texto);
+        font-family: "Montserrat", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      img { max-width: 100%; display: block; }
+      a { color: inherit; }
+
+      .wrap {
+        width: min(var(--wrap), 100% - 48px);
+        margin-inline: auto;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ============================ BARRA FIXA ============================ */
+      /* Aparece depois que a hero sai da tela, para a inscrição estar sempre a
+         um clique. */
+      .barra {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 50;
+        transform: translateY(-110%);
+        transition: transform .55s var(--suave);
+        background: rgba(5, 34, 56, .72);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        backdrop-filter: blur(14px) saturate(140%);
+        border-bottom: 1px solid rgba(255, 255, 255, .08);
+      }
+      .barra.visivel { transform: none; }
+      .barra .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        height: 62px;
+      }
+      .barra img { height: 24px; width: auto; }
+      .barra-info {
+        margin-left: auto;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--texto-claro-2);
+      }
+      .barra .btn-principal { padding: .6em 1.4em; font-size: 14px; }
+      @media (max-width: 600px) { .barra-info { display: none; } }
+
+      /* ============================== BOTÕES ============================== */
+      .btn-principal, .btn-secundario {
+        display: inline-flex;
+        align-items: center;
+        gap: .6em;
+        border-radius: 999px;
+        padding: .95em 2em;
+        font-size: clamp(14px, 1.6vw, 17px);
+        font-weight: 700;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow .25s, background .25s, color .25s;
+      }
+      .btn-principal {
+        background: var(--ciano);
+        color: var(--marinho-900);
+        box-shadow: 0 10px 30px rgba(92, 196, 233, .32);
+      }
+      .btn-principal::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
+        transform: translateX(-120%);
+        transition: transform .8s var(--suave);
+      }
+      .btn-principal:hover::after { transform: translateX(120%); }
+      .btn-principal:hover { box-shadow: 0 14px 40px rgba(92, 196, 233, .5); }
+      .btn-principal svg { transition: transform .3s var(--suave); }
+      .btn-principal:hover svg { transform: translateX(3px); }
+
+      .btn-secundario {
+        background: rgba(255, 255, 255, .06);
+        color: var(--branco);
+        border: 1.5px solid rgba(255, 255, 255, .38);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+      }
+      .btn-secundario:hover { background: rgba(255, 255, 255, .15); }
+      .btn-grande { padding: 1.1em 2.6em; font-size: clamp(16px, 2vw, 19px); }
+
+      :focus-visible { outline: 3px solid var(--ciano); outline-offset: 3px; }
+
+      /* =============================== VIDRO =============================== */
+      .vidro {
+        background: rgba(255, 255, 255, .06);
+        border: 1px solid rgba(255, 255, 255, .13);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        backdrop-filter: blur(14px) saturate(140%);
+        box-shadow: 0 10px 40px rgba(3, 16, 28, .25);
+      }
+
+      /* ================================ HERO ================================ */
+      .hero {
+        position: relative;
+        color: var(--branco);
+        overflow: hidden;
+        isolation: isolate;
+        background:
+          radial-gradient(760px 600px at 76% 52%, rgba(28,116,152,.42), transparent 66%),
+          linear-gradient(160deg, var(--marinho-900) 0%, var(--marinho) 58%);
+      }
+      /* grade de pontos sutil, mais visível atrás da ilustração */
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-image: radial-gradient(rgba(255, 255, 255, .09) 1.2px, transparent 1.6px);
+        background-size: 26px 26px;
+        -webkit-mask-image: radial-gradient(ellipse 60% 70% at 72% 50%, #000 0, transparent 75%);
+        mask-image: radial-gradient(ellipse 60% 70% at 72% 50%, #000 0, transparent 75%);
+      }
+      .hero-brilho {
+        position: absolute;
+        width: 620px; height: 620px;
+        border-radius: 50%;
+        left: var(--mx, 30%); top: var(--my, 40%);
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, rgba(92,196,233,.18), transparent 62%);
+        filter: blur(28px);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .6s;
+        z-index: -1;
+      }
+      .hero:hover .hero-brilho { opacity: 1; }
+
+      @media (min-width: 861px) {
+        .hero {
+          min-height: min(820px, 100svh);
+          display: flex;
+          align-items: center;
+        }
+      }
+
+      .hero-conteudo {
+        width: min(var(--wrap), 100% - 48px);
+        margin-inline: auto;
+        padding-block: 80px 72px;
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+        gap: clamp(24px, 4vw, 56px);
+        align-items: center;
+      }
+      .hero-texto { max-width: 560px; }
+
+      .hero-ilu { will-change: transform; }
+      .ilu { display: block; width: 100%; max-width: 600px; height: auto; margin-left: auto; overflow: visible; }
+      .ilu text { font-family: "Montserrat", sans-serif; }
+
+      .hero-logo {
+        height: clamp(42px, 4.6vw, 58px);
+        width: auto;
+        margin-bottom: clamp(22px, 3vw, 34px);
+      }
+
+      .hero-sobretitulo {
+        margin: 0;
+        font-size: clamp(26px, 3.4vw, 40px);
+        font-weight: 800;
+        line-height: 1.02;
+        letter-spacing: -.01em;
+        text-transform: uppercase;
+      }
+      .hero-meta {
+        margin: .7em 0 0;
+        font-size: clamp(14px, 1.6vw, 17px);
+        font-weight: 600;
+        color: var(--texto-claro);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .2em .55em;
+      }
+      .hero-meta .sep { color: var(--ciano); }
+
+      .hero h1 {
+        margin: clamp(26px, 4vw, 40px) 0 .3em;
+        font-size: clamp(34px, 4.6vw, 58px);
+        line-height: 1.04;
+        font-weight: 800;
+        letter-spacing: -.02em;
+      }
+      .hero h1 em { font-style: normal; color: var(--ciano); }
+      /* máscara das palavras para a entrada palavra por palavra (GSAP) */
+      /* o respiro vertical evita que acentos (ê) e descendentes (p, q, j) sejam
+         cortados pela máscara */
+      .palavra { display: inline-block; overflow: hidden; vertical-align: top; padding: .12em 0 .16em; margin: -.12em 0 -.16em; }
+      .palavra > span { display: inline-block; will-change: transform; }
+
+      .hero-sub {
+        margin: 0 0 .7em;
+        font-size: clamp(17px, 2vw, 22px);
+        font-weight: 500;
+        color: var(--texto-claro);
+      }
+      .hero-desc {
+        margin: 0 0 1.9em;
+        max-width: 33em;
+        font-size: clamp(15px, 1.6vw, 17px);
+        color: var(--texto-claro-2);
+      }
+      .hero-desc strong { color: var(--branco); font-weight: 700; }
+      .hero-acoes { display: flex; gap: 14px; flex-wrap: wrap; }
+      .hero-nota {
+        margin: 1.5em 0 0;
+        font-size: 14px;
+        color: var(--texto-claro-2);
+      }
+      .hero-nota strong { color: var(--branco); }
+
+      .rolar {
+        position: absolute;
+        left: 50%; bottom: 22px;
+        transform: translateX(-50%);
+        width: 24px; height: 38px;
+        border: 2px solid rgba(255, 255, 255, .35);
+        border-radius: 14px;
+      }
+      .rolar::after {
+        content: "";
+        position: absolute;
+        left: 50%; top: 7px;
+        width: 4px; height: 8px;
+        margin-left: -2px;
+        border-radius: 2px;
+        background: var(--ciano);
+        animation: rolar 1.8s var(--suave) infinite;
+      }
+      @keyframes rolar {
+        0% { transform: translateY(0); opacity: 1; }
+        80% { transform: translateY(12px); opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      /* ============================== SEÇÕES ============================== */
+      .secao {
+        padding: clamp(64px, 9vw, 120px) 0;
+        position: relative;
+        background: var(--papel);
+        overflow: hidden;
+      }
+      .secao-escura {
+        color: var(--branco);
+        background:
+          radial-gradient(760px 420px at 85% 10%, rgba(28,116,152,.32), transparent 66%),
+          linear-gradient(180deg, var(--marinho) 0%, var(--marinho-800) 100%);
+      }
+
+      .rotulo {
+        display: inline-flex;
+        align-items: center;
+        gap: .6em;
+        margin: 0 0 1em;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--ciano-forte);
+      }
+      .rotulo::before { content: ""; width: 28px; height: 2px; background: currentColor; border-radius: 2px; }
+      .secao-escura .rotulo { color: var(--ciano); }
+
+      .titulo-secao {
+        margin: 0 0 .45em;
+        font-size: clamp(26px, 3.8vw, 46px);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -.02em;
+        text-wrap: balance;
+      }
+      .titulo-secao em { font-style: normal; color: var(--ciano-forte); }
+      .secao-escura .titulo-secao em { color: var(--ciano); }
+      .sub-secao {
+        margin: 0 0 clamp(36px, 5vw, 60px);
+        max-width: 44em;
+        color: var(--texto-fraco);
+        font-size: clamp(15px, 1.8vw, 18px);
+        text-wrap: pretty;
+      }
+      .secao-escura .sub-secao { color: var(--texto-claro-2); }
+      .centro { text-align: center; }
+      .centro .sub-secao { margin-inline: auto; }
+
+      /* ========================== SOBRE O EVENTO ========================== */
+      .evento-grade {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: clamp(36px, 6vw, 80px);
+        align-items: center;
+      }
+      .evento-texto p {
+        margin: 0 0 1.1em;
+        font-size: clamp(15px, 1.7vw, 17px);
+        color: var(--texto-fraco);
+      }
+      .evento-texto p strong { color: var(--marinho); }
+      .evento-texto .destaque {
+        font-size: clamp(17px, 2vw, 20px);
+        font-weight: 600;
+        color: var(--marinho);
+        border-left: 3px solid var(--ciano);
+        padding-left: 1em;
+      }
+
+      .iceberg-painel {
+        position: relative;
+        border-radius: 24px;
+        padding: clamp(18px, 3vw, 32px) clamp(8px, 2vw, 20px) 8px;
+        background:
+          radial-gradient(420px 260px at 50% 0%, rgba(92,196,233,.14), transparent 70%),
+          var(--marinho);
+        box-shadow: 0 30px 70px rgba(11, 59, 95, .28);
+        overflow: hidden;
+      }
+      .iceberg { width: 100%; height: auto; overflow: visible; }
+      .iceberg text { font-family: "Montserrat", sans-serif; }
+
+      /* ========================= O QUE VAMOS EXPLORAR ========================= */
+      .ciclo {
+        list-style: none;
+        margin: 0 0 clamp(48px, 7vw, 80px);
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        position: relative;
+      }
+      .ciclo-trilho {
+        position: absolute;
+        top: 27px;
+        left: 10%; right: 10%;
+        height: 2px;
+        background: rgba(255, 255, 255, .14);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .ciclo-progresso {
+        display: block;
+        width: 100%; height: 100%;
+        transform-origin: left;
+        background: linear-gradient(90deg, var(--ciano-forte), var(--ciano));
+        box-shadow: 0 0 14px rgba(92, 196, 233, .8);
+      }
+      .ciclo-passo {
+        position: relative;
+        text-align: center;
+        padding: 0 8px;
+      }
+      .ciclo-marco {
+        width: 56px; height: 56px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 18px;
+        background: var(--marinho);
+        border: 2px solid rgba(92, 196, 233, .35);
+        position: relative;
+        z-index: 1;
+        transition: background .4s, border-color .4s, box-shadow .4s, color .4s;
+      }
+      .ciclo-passo.ativo .ciclo-marco {
+        background: var(--ciano);
+        color: var(--marinho-900);
+        border-color: var(--gelo);
+        box-shadow: 0 0 0 7px rgba(92, 196, 233, .16), 0 10px 28px rgba(92, 196, 233, .4);
+      }
+      .ciclo-passo strong { display: block; font-size: clamp(15px, 1.6vw, 17px); }
+      .ciclo-passo small { display: block; margin-top: .3em; font-size: 13.5px; color: var(--texto-claro-2); line-height: 1.45; }
+      .ciclo-volta {
+        display: block;
+        margin: 10px auto 0;
+        color: var(--ciano);
+      }
+
+      .temas {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        max-width: 980px;
+        margin-inline: auto;
+      }
+      .kata-passos {
+        margin: 1em 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: kata;
+        display: grid;
+        gap: 8px;
+      }
+      .kata-passos li {
+        counter-increment: kata;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14.5px;
+        font-weight: 600;
+        color: var(--texto-claro);
+      }
+      .kata-passos li::before {
+        content: counter(kata);
+        flex: none;
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 800;
+        background: rgba(92, 196, 233, .16);
+        color: var(--ciano);
+      }
+      .tema {
+        border-radius: var(--raio);
+        padding: 30px 28px;
+        position: relative;
+        overflow: hidden;
+      }
+      .tema-num {
+        position: absolute;
+        top: 10px; right: 18px;
+        font-size: 64px;
+        font-weight: 800;
+        line-height: 1;
+        color: rgba(92, 196, 233, .1);
+      }
+      .icone {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 20px;
+        background: rgba(92, 196, 233, .14);
+        color: var(--ciano);
+      }
+      .tema h3 { margin: 0 0 .45em; font-size: clamp(17px, 2vw, 20px); font-weight: 700; line-height: 1.3; }
+      .tema p { margin: 0; color: var(--texto-claro-2); font-size: 15px; }
+
+      /* ============================ PARA QUEM É ============================ */
+      .publico {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+      }
+      .cartao {
+        border-radius: var(--raio);
+        padding: 30px 26px;
+        background: var(--branco);
+        border: 1px solid #dde9f2;
+        box-shadow: 0 10px 36px rgba(11, 59, 95, .07);
+        transition: box-shadow .3s;
+      }
+      .cartao:hover { box-shadow: 0 20px 50px rgba(11, 59, 95, .15); }
+      .cartao .icone { background: rgba(44, 143, 175, .1); color: var(--ciano-forte); }
+      .cartao h3 { margin: 0 0 .5em; font-size: clamp(16px, 1.9vw, 19px); font-weight: 700; color: var(--marinho); line-height: 1.3; }
+      .cartao p { margin: 0; color: var(--texto-fraco); font-size: 15px; }
+
+      .selos {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: clamp(32px, 4vw, 48px);
+      }
+      .selo {
+        display: inline-flex;
+        align-items: center;
+        gap: .55em;
+        padding: .65em 1.3em;
+        border-radius: 999px;
+        background: var(--marinho);
+        color: var(--branco);
+        font-weight: 600;
+        font-size: 14.5px;
+      }
+      .selo svg { color: var(--ciano); flex: none; }
+
+      /* ========================== SOBRE O GLEAN ========================== */
+      .glean-grade {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(36px, 6vw, 80px);
+        align-items: center;
+      }
+      .glean-logo { height: clamp(40px, 5vw, 54px); width: auto; margin-bottom: 26px; }
+      .glean-texto p { margin: 0 0 1em; color: var(--texto-claro); font-size: clamp(15px, 1.7vw, 17px); }
+      .numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .numero {
+        border-radius: var(--raio);
+        padding: 24px 22px;
+      }
+      .numero:first-child { grid-column: 1 / -1; }
+      .numero b {
+        display: block;
+        font-size: clamp(36px, 5vw, 56px);
+        font-weight: 800;
+        line-height: 1;
+        color: var(--ciano);
+        letter-spacing: -.02em;
+      }
+      .numero span { display: block; margin-top: .5em; font-size: 14.5px; color: var(--texto-claro-2); }
+      /* o "20" é o destaque do cartão; "anos" acompanha menor, na mesma linha de base */
+      .numero .numero-anos {
+        display: flex;
+        align-items: baseline;
+        gap: .2em;
+        font-size: clamp(26px, 3.2vw, 38px);
+      }
+      .numero .numero-grande {
+        display: inline-block;
+        margin: 0;
+        font-size: clamp(88px, 12vw, 144px);
+        line-height: .85;
+        letter-spacing: -.04em;
+        color: var(--ciano);
+        font-variant-numeric: tabular-nums;
+      }
+      .numero strong { color: var(--branco); }
+
+      .parceiras { margin-top: clamp(56px, 8vw, 96px); }
+      .parceiras-titulo {
+        margin: 0 0 24px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--texto-claro-2);
+      }
+      .faixa {
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+      }
+      .faixa-trilho {
+        display: flex;
+        width: max-content;
+        gap: 18px;
+        list-style: none;
+        margin: 0; padding: 4px 0;
+      }
+      .logo-placa {
+        flex: none;
+        height: 76px;
+        padding: 0 28px;
+        background: #fff;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+      }
+      .logo-placa img { height: 34px; width: auto; object-fit: contain; }
+      /* Mercedes e Malwee vêm com muita margem branca no arquivo: o recorte
+         (object-fit: cover) descarta essa sobra e amplia a marca na placa. */
+      .logo-placa img[alt="Mercedes-Benz"] { width: 116px; height: 72px; object-fit: cover; }
+      .logo-placa img[alt="Kaizen Institute"] { height: 40px; }
+      .logo-placa img[alt="Bosch Rexroth"] { height: 44px; }
+      .logo-placa img[alt="Grupo Malwee"] { width: 220px; height: 42px; object-fit: cover; }
+
+      /* ============================ INSCREVA-SE ============================ */
+      .inscricao {
+        position: relative;
+        overflow: hidden;
+        color: var(--branco);
+        text-align: center;
+        padding: clamp(72px, 10vw, 128px) 0;
+        background:
+          radial-gradient(700px 380px at 50% 0%, rgba(92,196,233,.28), transparent 70%),
+          linear-gradient(160deg, var(--marinho-900) 0%, var(--marinho) 55%, var(--facet-1) 100%);
+      }
+      .aneis { position: absolute; left: 50%; top: 50%; pointer-events: none; }
+      .aneis span {
+        position: absolute;
+        left: 50%; top: 50%;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, .08);
+        transform: translate(-50%, -50%);
+      }
+      .aneis span:nth-child(1) { width: 520px; height: 520px; }
+      .aneis span:nth-child(2) { width: 820px; height: 820px; }
+      .aneis span:nth-child(3) { width: 1120px; height: 1120px; border-color: rgba(255,255,255,.05); }
+
+      .inscricao h2 {
+        margin: 0 0 .35em;
+        font-size: clamp(30px, 5vw, 58px);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -.02em;
+      }
+      .inscricao h2 em { font-style: normal; color: var(--ciano); }
+      .inscricao-sub {
+        margin: 0 auto 2.2em;
+        max-width: 34em;
+        color: var(--texto-claro);
+        font-size: clamp(15px, 1.9vw, 19px);
+      }
+
+      .detalhes {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        max-width: 820px;
+        margin: 0 auto 36px;
+        padding: 0;
+        list-style: none;
+        text-align: left;
+      }
+      .detalhes li {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-radius: 16px;
+        padding: 18px 20px;
+      }
+      .detalhes .icone { width: 44px; height: 44px; margin: 0; flex: none; border-radius: 12px; }
+      .detalhes small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-claro-2); }
+      .detalhes b { display: block; font-size: 16px; font-weight: 700; line-height: 1.3; }
+
+      .contagem {
+        display: flex;
+        justify-content: center;
+        gap: clamp(10px, 2vw, 18px);
+        margin: 0 0 40px;
+      }
+      .contagem div {
+        min-width: clamp(66px, 10vw, 90px);
+        padding: 14px 8px 12px;
+        border-radius: 14px;
+      }
+      .contagem b {
+        display: block;
+        font-size: clamp(26px, 4vw, 40px);
+        font-weight: 800;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .contagem span { display: block; margin-top: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-claro-2); }
+      .contagem-fim { margin: 0 0 40px; font-weight: 700; color: var(--ciano); }
+
+      .inscricao-insta {
+        margin: 2em 0 0;
+        font-size: 14.5px;
+        color: var(--texto-claro-2);
+      }
+      .inscricao-insta a { color: var(--ciano); font-weight: 700; text-decoration: none; }
+      .inscricao-insta a:hover { text-decoration: underline; }
+
+      /* ============================== RODAPÉ ============================== */
+      .rodape {
+        background: var(--marinho-900);
+        color: var(--texto-claro);
+        padding: clamp(46px, 6vw, 72px) 0 28px;
+      }
+      .rodape-topo {
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding-bottom: 32px;
+      }
+      .rodape-marca { max-width: 520px; }
+      .rodape-logo { height: 44px; width: auto; margin-bottom: 16px; }
+      .rodape-marca p { margin: 0; font-size: 14.5px; color: var(--texto-claro-2); }
+      .rodape-ufsc { display: flex; align-items: center; gap: 14px; flex: none; }
+      .brasao-ufsc {
+        width: 56px; height: auto;
+        background: rgba(255, 255, 255, .92);
+        border-radius: 8px;
+        padding: 6px;
+      }
+      .rodape-ufsc span { font-size: 13px; line-height: 1.4; }
+      .rodape-baixo {
+        border-top: 1px solid rgba(255, 255, 255, .12);
+        padding-top: 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #86a6c0;
+      }
+      .rodape-links { display: flex; align-items: center; gap: 20px; }
+      .rodape-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #86a6c0;
+        text-decoration: none;
+        transition: color .2s;
+      }
+      .rodape-links a:hover { color: var(--ciano); }
+      @media (max-width: 480px) { .rodape-links a span { display: none; } }
+
+      /* ============================== RESPONSIVO ============================== */
+      @media (max-width: 1000px) {
+        .publico { grid-template-columns: repeat(2, 1fr); }
+        .temas { grid-template-columns: 1fr; max-width: 640px; }
+      }
+
+      @media (max-width: 860px) {
+        .hero {
+          background:
+            radial-gradient(520px 420px at 50% 22%, rgba(28,116,152,.45), transparent 68%),
+            linear-gradient(180deg, var(--marinho-900) 0%, var(--marinho) 60%);
+          min-height: 100svh;
+        }
+        .hero::before {
+          -webkit-mask-image: radial-gradient(ellipse 80% 40% at 50% 22%, #000 0, transparent 75%);
+          mask-image: radial-gradient(ellipse 80% 40% at 50% 22%, #000 0, transparent 75%);
+        }
+        .rolar { display: none; }
+        .hero-conteudo { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 28px 24px 44px; width: 100%; }
+        .hero-ilu { order: -1; }
+        .ilu { max-width: 360px; margin: 0 auto; }
+        .hero-desc { margin-inline: auto; }
+        .hero-texto { max-width: none; text-align: center; }
+        .hero-logo { margin-inline: auto; margin-bottom: 18px; }
+        .hero-meta, .hero-acoes { justify-content: center; }
+        .hero h1 { margin-top: .6em; font-size: clamp(30px, 8.4vw, 42px); }
+        .hero-sub { margin-bottom: 1.4em; }
+
+        .evento-grade, .glean-grade { grid-template-columns: 1fr; }
+
+        /* o ciclo vira uma lista vertical com o trilho à esquerda */
+        .ciclo { grid-template-columns: 1fr; gap: 22px; max-width: 520px; margin-inline: auto; }
+        .ciclo-trilho { top: 8px; bottom: 8px; left: 27px; right: auto; width: 2px; height: auto; }
+        .ciclo-progresso { transform-origin: top; }
+        .ciclo-passo { display: grid; grid-template-columns: 56px 1fr; column-gap: 18px; text-align: left; padding: 0; }
+        .ciclo-marco { margin: 0; grid-row: span 2; }
+        .ciclo-passo strong { align-self: end; }
+        .ciclo-volta { display: none; }
+
+        .detalhes { grid-template-columns: 1fr; max-width: 420px; }
+        .rodape-topo { flex-direction: column; gap: 28px; }
+      }
+
+      @media (max-width: 560px) {
+        .publico { grid-template-columns: 1fr; }
+        .numeros { grid-template-columns: 1fr; }
+        .hero-acoes a { flex: 1 1 100%; justify-content: center; }
+        .logo-placa { height: 64px; padding: 0 20px; }
+        .logo-placa img[alt="Mercedes-Benz"] { width: 98px; height: 60px; }
+        .logo-placa img[alt="Grupo Malwee"] { width: 184px; height: 36px; }
+      }
+
+      /* ====================== ACESSIBILIDADE / MOVIMENTO ====================== */
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .rolar::after { animation: none; }
+        .btn-principal::after { display: none; }
+        .faixa-trilho { flex-wrap: wrap; justify-content: center; width: auto; }
+        .faixa-trilho [aria-hidden="true"] { display: none; }
+        .faixa { -webkit-mask-image: none; mask-image: none; }
+      }
+    </style>
   </head>
   <body>
-    <!-- ornamentos de fundo, fixos atrás de tudo -->
-    <div class="fundo-orn" aria-hidden="true">
-      <span class="orb orb-1"></span>
-      <span class="orb orb-2"></span>
-      <span class="anel anel-1"></span>
-      <span class="anel anel-2"></span>
-    </div>
+    <!-- ============================ BARRA FIXA ============================ -->
+    <nav class="barra" aria-label="Atalho de inscrição">
+      <div class="wrap">
+        <a href="#topo" aria-label="Voltar ao início">
+          <img src="assets/logo-branca-glean.png" alt="GLean" />
+        </a>
+        <span class="barra-info">Treinamento Aberto · 12/11 · 18h30</span>
+        <a class="btn-principal" href="https://forms.gle/T7nugwBmBWSiAtbBA" target="_blank" rel="noopener">
+          Inscreva-se
+        </a>
+      </div>
+    </nav>
 
     <!-- ============================== HERO ============================== -->
-    <header class="hero">
+    <header class="hero" id="topo">
       <div class="hero-brilho" aria-hidden="true"></div>
 
       <div class="hero-conteudo">
-        <!-- Só aparece no mobile: a mesma turma, em enquadramento vertical -->
-        <img
-          class="hero-foto-mobile"
-          src="assets/mobileglean-ps.png"
-          alt="Membros do GLean"
-          width="496"
-          height="420"
-          data-anim="foto"
-        />
-
         <div class="hero-texto">
           <img
             class="hero-logo"
             src="assets/logo-branca-glean.png"
-            alt="GLean, Grupo de estudos em Lean"
+            alt="GLean, Grupo de Estudos em Lean da UFSC"
             data-anim="hero"
           />
 
-          <span class="selo-abertas vidro" data-anim="hero">
-            <span class="ponto-pulsante" aria-hidden="true"></span>
-            Inscrições até 27/09
-          </span>
+          <p class="hero-sobretitulo" data-anim="hero">Treinamento<br />aberto</p>
+          <p class="hero-meta" data-anim="hero">
+            <span>12/11</span><span class="sep">·</span><span>18h30 às 21h</span
+            ><span class="sep">·</span><span>Gratuito na UFSC</span>
+          </p>
 
           <h1 data-anim="titulo">
-            Aprenda <em>Lean</em> com quem é referência há 20 anos.
+            E se o problema for <em>o jeito que você pensa?</em>
           </h1>
 
-          <p class="hero-sub" data-anim="hero">
-            O GLean é o grupo de estudos em Lean da UFSC. Aqui você aprende e aplica
-            melhoria contínua em problemas reais e eleva a sua carreira para um outro patamar.
+          <p class="hero-sub" data-anim="hero">Uma introdução ao pensamento Lean</p>
+          <p class="hero-desc" data-anim="hero">
+            Quer aprender a resolver problemas como um engenheiro da Toyota?
+            <strong> Participe do treinamento</strong> e aprenda mais sobre a habilidade mais procurada do mercado: resolução de problemas.
           </p>
 
           <div class="hero-acoes" data-anim="hero">
-            <a
-              class="btn-principal"
-              href="https://docs.google.com/forms/d/e/1FAIpQLSeBeUZwMcKgFPGTu9pNFYapj7EgdNvCjnOBrCiMGWOQZUztjw/viewform?usp=dialog"
-              target="_blank"
-              rel="noopener"
-            >
+            <a class="btn-principal" href="https://forms.gle/T7nugwBmBWSiAtbBA" target="_blank" rel="noopener">
               Quero me inscrever
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </a>
-            <a class="btn-secundario" href="#etapas">Ver as etapas</a>
+            <a class="btn-secundario" href="#evento">Sobre o evento</a>
           </div>
 
-          <p class="hero-prazo" data-anim="hero">
-            <strong>Encerramento das inscrições:</strong> 27 de setembro
+          <p class="hero-nota" data-anim="hero">
+            Aberto a todos · <strong>Sem pré-requisito</strong>
           </p>
         </div>
+
+        <!-- Ilustração: a roda do PDCA subindo a rampa da melhoria contínua,
+             travada pelo calço do padrão; em volta, as ideias do treinamento
+             (gemba, 5 porquês, condição-alvo do Kata). -->
+        <div class="hero-ilu" aria-hidden="true">
+          <svg class="ilu" viewBox="0 0 600 560">
+            <defs>
+              <radialGradient id="ilu-brilho">
+                <stop offset="0" stop-color="#5cc4e9" stop-opacity=".26" />
+                <stop offset="1" stop-color="#5cc4e9" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="ilu-rampa" gradientUnits="userSpaceOnUse" x1="0" y1="330" x2="0" y2="620">
+                <stop offset="0" stop-color="#1c7498" />
+                <stop offset="1" stop-color="#0b3b5f" stop-opacity="0" />
+              </linearGradient>
+              <linearGradient id="ilu-fade-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="150" y2="0">
+                <stop offset="0" stop-color="#000" />
+                <stop offset="1" stop-color="#fff" />
+              </linearGradient>
+              <mask id="ilu-fade" maskUnits="userSpaceOnUse" x="-50" y="0" width="1100" height="760">
+                <rect x="-50" y="0" width="1100" height="760" fill="url(#ilu-fade-grad)" />
+              </mask>
+            </defs>
+
+            <circle cx="300" cy="290" r="250" fill="url(#ilu-brilho)" />
+            <circle class="ilu-orbita" cx="300" cy="290" r="250" fill="none" stroke="#5cc4e9" stroke-opacity=".25" stroke-width="1.5" stroke-dasharray="3 11" />
+
+            <g class="ilu-faiscas" fill="#5cc4e9">
+              <circle cx="232" cy="64" r="3" />
+              <circle cx="372" cy="40" r="2.5" />
+              <circle cx="26" cy="214" r="3" />
+              <circle cx="584" cy="300" r="2.5" />
+              <circle cx="190" cy="232" r="2" />
+            </g>
+
+            <!-- rampa da melhoria contínua -->
+            <!-- a rampa passa da borda do SVG (overflow visível) até sair da
+                 tela pela direita; à esquerda ela nasce esmaecida -->
+            <g class="ilu-rampa" mask="url(#ilu-fade)">
+              <polygon points="0,508 1000,235 1000,700 0,700" fill="url(#ilu-rampa)" />
+              <line class="ilu-rampa-linha" x1="0" y1="508" x2="1000" y2="235" stroke="#5cc4e9" stroke-width="3" />
+              <text transform="translate(206 475) rotate(-15.26)" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="2" fill="#e9f4fa" opacity=".85">MELHORIA CONTÍNUA →</text>
+            </g>
+
+            <!-- calço do padrão -->
+            <g class="ilu-calco">
+              <polygon points="137,471 224,447 213,409" fill="#e9f4fa" />
+              <path d="M178 446 L150 416" stroke="#e9f4fa" stroke-width="2" />
+              <text x="146" y="410" text-anchor="end" font-size="15" font-weight="700" fill="#ffffff">padrão</text>
+            </g>
+
+            <!-- roda do PDCA -->
+            <g class="ilu-roda-pos" transform="translate(283 285)">
+              <g class="ilu-roda">
+                <circle r="138" fill="#0b3b5f" stroke="#e9f4fa" stroke-width="6" />
+                <path d="M0,-130 A130,130 0 0 1 130,0 L34,0 A34,34 0 0 0 0,-34 Z" fill="#5cc4e9" />
+                <path d="M130,0 A130,130 0 0 1 0,130 L0,34 A34,34 0 0 0 34,0 Z" fill="#2c8faf" />
+                <path d="M0,130 A130,130 0 0 1 -130,0 L-34,0 A34,34 0 0 0 0,34 Z" fill="#1c7498" />
+                <path d="M-130,0 A130,130 0 0 1 0,-130 L0,-34 A34,34 0 0 0 -34,0 Z" fill="#1a5f89" />
+                <g stroke="#0b3b5f" stroke-width="6">
+                  <line x1="0" y1="-134" x2="0" y2="134" />
+                  <line x1="-134" y1="0" x2="134" y2="0" />
+                </g>
+                <g text-anchor="middle">
+                  <text x="58" y="-50" font-size="46" font-weight="800" fill="#052238">P</text>
+                  <text x="58" y="-30" font-size="12" font-weight="700" fill="#052238">Planejar</text>
+                  <text x="58" y="72" font-size="46" font-weight="800" fill="#ffffff">D</text>
+                  <text x="58" y="92" font-size="12" font-weight="700" fill="#e9f4fa">Fazer</text>
+                  <text x="-58" y="72" font-size="46" font-weight="800" fill="#ffffff">C</text>
+                  <text x="-58" y="92" font-size="12" font-weight="700" fill="#e9f4fa">Checar</text>
+                  <text x="-58" y="-50" font-size="46" font-weight="800" fill="#ffffff">A</text>
+                  <text x="-58" y="-30" font-size="12" font-weight="700" fill="#e9f4fa">Agir</text>
+                </g>
+                <circle r="30" fill="#e9f4fa" />
+                <circle r="9" fill="#0b3b5f" />
+              </g>
+            </g>
+
+            <!-- post-its -->
+            <g class="ilu-postit" transform="translate(40 46) rotate(-8)">
+              <rect width="62" height="62" rx="4" fill="#5cc4e9" />
+              <g stroke="#052238" stroke-opacity=".45" stroke-width="3" stroke-linecap="round">
+                <line x1="12" y1="20" x2="50" y2="20" /><line x1="12" y1="32" x2="44" y2="32" /><line x1="12" y1="44" x2="34" y2="44" />
+              </g>
+            </g>
+            <g class="ilu-postit" transform="translate(114 30) rotate(7)">
+              <rect width="62" height="62" rx="4" fill="#e9f4fa" />
+              <g stroke="#052238" stroke-opacity=".4" stroke-width="3" stroke-linecap="round">
+                <line x1="12" y1="20" x2="48" y2="20" /><line x1="12" y1="32" x2="50" y2="32" /><line x1="12" y1="44" x2="30" y2="44" />
+              </g>
+            </g>
+            <g class="ilu-postit" transform="translate(72 118) rotate(3)">
+              <rect width="62" height="62" rx="4" fill="#2c8faf" />
+              <g stroke="#ffffff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round">
+                <line x1="12" y1="20" x2="46" y2="20" /><line x1="12" y1="32" x2="50" y2="32" /><line x1="12" y1="44" x2="38" y2="44" />
+              </g>
+            </g>
+
+            <!-- lupa: ir ao gemba -->
+            <g class="ilu-lupa" transform="translate(70 292)">
+              <circle r="26" fill="#5cc4e9" fill-opacity=".14" stroke="#e9f4fa" stroke-width="6" />
+              <line x1="19" y1="19" x2="40" y2="40" stroke="#e9f4fa" stroke-width="8" stroke-linecap="round" />
+              <text y="-40" text-anchor="middle" font-size="13" font-weight="700" fill="#a8c6dc">gemba</text>
+            </g>
+
+            <!-- 5 porquês até a causa raiz -->
+            <g class="ilu-bolha" transform="translate(400 130)">
+              <polygon points="16,30 10,50 32,34" fill="#0b3b5f" stroke="#5cc4e9" stroke-width="2" stroke-linejoin="round" />
+              <rect width="96" height="38" rx="19" fill="#0b3b5f" stroke="#5cc4e9" stroke-width="2" />
+              <text x="48" y="25" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Por quê?</text>
+            </g>
+            <g class="ilu-bolha" transform="translate(445 82)">
+              <polygon points="16,30 10,50 32,34" fill="#0b3b5f" stroke="#5cc4e9" stroke-width="2" stroke-linejoin="round" />
+              <rect width="96" height="38" rx="19" fill="#0b3b5f" stroke="#5cc4e9" stroke-width="2" />
+              <text x="48" y="25" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Por quê?</text>
+            </g>
+            <g class="ilu-bolha" transform="translate(478 34)">
+              <polygon points="16,30 10,50 32,34" fill="#5cc4e9" />
+              <rect width="116" height="38" rx="19" fill="#5cc4e9" />
+              <text x="58" y="25" text-anchor="middle" font-size="15" font-weight="800" fill="#052238">causa raiz!</text>
+            </g>
+
+            <!-- condição-alvo do Kata -->
+            <g class="ilu-alvo" transform="translate(535 238)">
+              <circle r="34" fill="#0b3b5f" stroke="#e9f4fa" stroke-width="4" />
+              <circle r="21" fill="none" stroke="#5cc4e9" stroke-width="4" />
+              <circle r="8" fill="#5cc4e9" />
+              <g class="ilu-flecha" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <line x1="0" y1="0" x2="44" y2="-44" stroke="#e9f4fa" stroke-width="4" />
+                <path d="M34 -50 L46 -46 L50 -34" stroke="#5cc4e9" stroke-width="4" />
+              </g>
+              <text y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#a8c6dc">condição-alvo</text>
+            </g>
+          </svg>
+        </div>
       </div>
+
+      <span class="rolar" aria-hidden="true"></span>
     </header>
 
-    <!-- ============================== ETAPAS ============================== -->
-    <section class="secao secao-escura" id="etapas">
-      <div class="wrap">
-        <h2 class="titulo-secao" data-anim="sobe">Como funciona o processo</h2>
-        <p class="sub-secao" data-anim="sobe">
-          Quatro etapas para você mostrar quem é e conhecer quem somos.
-        </p>
-
-        <ol class="linha-tempo">
-          <span class="lt-trilho" aria-hidden="true"
-            ><span class="lt-progresso"></span
-          ></span>
-
-          <li class="lt-item">
-            <span class="lt-marco" aria-hidden="true"><span>1</span></span>
-            <div class="lt-cartao vidro">
-              <h3>Currículo</h3>
-              <p>
-                Sua inscrição começa aqui. Não esperamos experiência prévia em
-                Lean, queremos entender sua trajetória e o que te move.
-              </p>
-            </div>
-          </li>
-
-          <li class="lt-item">
-            <span class="lt-marco" aria-hidden="true"><span>2</span></span>
-            <div class="lt-cartao vidro">
-              <h3>Relatório A3</h3>
-              <p>
-                Você recebe um problema e estrutura a solução em uma página, no
-                formato A3 que usamos no dia a dia. Enviamos o material de
-                apoio: é para aprender, não para decorar.
-              </p>
-            </div>
-          </li>
-
-          <li class="lt-item">
-            <span class="lt-marco" aria-hidden="true"><span>3</span></span>
-            <div class="lt-cartao vidro">
-              <h3>Dinâmica em grupo</h3>
-              <p>
-                Um desafio prático com outros candidatos. Olhamos como você
-                pensa junto, escuta e constrói com o time.
-              </p>
-            </div>
-          </li>
-
-          <li class="lt-item">
-            <span class="lt-marco" aria-hidden="true"><span>4</span></span>
-            <div class="lt-cartao vidro">
-              <h3>Entrevista</h3>
-              <p>
-                Uma conversa com membros do grupo sobre você, suas expectativas
-                e como o GLean se encaixa nos seus planos.
-              </p>
-            </div>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ============================ PARA QUEM É ============================ -->
-    <section class="secao" id="para-quem">
-      <div class="wrap">
-        <h2 class="titulo-secao" data-anim="sobe">Para quem é</h2>
-        <p class="sub-secao" data-anim="sobe">
-          Se você se reconhece em alguma dessas linhas, o processo é para você.
-        </p>
-
-        <div class="cartoes">
-          <article class="cartao vidro" data-anim="cartao">
-            <h3>A partir da 3ª fase</h3>
-            <p>
-              As inscrições são para quem está da terceira fase em diante, de
-              modo que a entrada no grupo acontece no quarto semestre.
+    <main>
+      <!-- ========================== SOBRE O EVENTO ========================== -->
+      <section class="secao" id="evento">
+        <div class="wrap evento-grade">
+          <div class="evento-texto">
+            <p class="rotulo" data-anim="sobe">Sobre o evento</p>
+            <h2 class="titulo-secao" data-anim="sobe">
+              Quantas vezes o problema <em>voltou logo depois?</em>
+            </h2>
+            <p class="destaque" data-anim="sobe">
+              Muitas vezes, o que falta não é esforço nem ferramenta, mas método.
             </p>
-          </article>
-          <article class="cartao vidro" data-anim="cartao">
-            <h3>Gosta de resolver problemas</h3>
-            <p>
-              Gente que olha uma fila, um desperdício ou um retrabalho e pensa
-              "dá para fazer melhor". Esse incômodo é o começo de tudo.
+            <p data-anim="sobe">
+              No coração da Filosofia Lean está o <strong>pensamento científico</strong>:
+              observar a realidade, levantar hipóteses, testar, aprender com os
+              resultados e recomeçar. É esse jeito de pensar que transforma
+              problemas em oportunidades de melhoria contínua.
             </p>
-          </article>
-          <article class="cartao vidro" data-anim="cartao">
-            <h3>Interesse em Lean e manufatura</h3>
-            <p>
-              Manufatura é o nosso principal campo de estudo, mas não o único: o
-              Lean que praticamos alcança serviços, gestão e processos de
-              qualquer natureza.
+            <p data-anim="sobe">
+              O <strong>GLean</strong> te convida para o seu Treinamento Aberto de
+              2026.2, pensado para quem nunca teve contato com o Lean ou quer
+              entender o que está por trás das ferramentas.
             </p>
-          </article>
-          <article class="cartao vidro" data-anim="cartao">
-            <h3>Qualquer curso da graduação</h3>
-            <p>
-              Não há restrição de curso. A diversidade de formações enriquece os
-              projetos e a forma como o grupo enxerga cada problema.
-            </p>
-          </article>
+          </div>
+
+          <!-- Ilustração do post: as ferramentas são só a ponta; o pensamento
+               é o que fica submerso e sustenta tudo. -->
+          <div class="iceberg-painel" data-anim="painel">
+            <svg class="iceberg" viewBox="0 0 640 420" role="img" aria-labelledby="iceberg-titulo">
+              <title id="iceberg-titulo">Iceberg: as ferramentas são a ponta visível; o pensamento, submerso, sustenta tudo.</title>
+              <defs>
+                <clipPath id="sob-agua" clipPathUnits="userSpaceOnUse">
+                  <rect class="agua-revela" x="0" y="122" width="640" height="300" />
+                </clipPath>
+              </defs>
+
+              <g class="ib-flutua">
+                <g class="ib-bolhas" fill="#5cc4e9">
+                  <circle cx="120" cy="330" r="4" opacity=".35" />
+                  <circle cx="540" cy="300" r="3" opacity=".3" />
+                  <circle cx="560" cy="370" r="5" opacity=".25" />
+                  <circle cx="90" cy="250" r="3" opacity=".3" />
+                </g>
+
+                <g class="ib-corpo" clip-path="url(#sob-agua)">
+                  <polygon fill="#1c7498" points="262,120 342,120 448,160 498,222 484,292 416,350 302,370 186,342 132,274 142,200 196,150" />
+                  <polygon fill="#1a5f89" points="262,120 300,120 318,148 286,236 228,352 186,342 132,274 142,200 196,150" />
+                  <text x="318" y="252" text-anchor="middle" fill="#ffffff" font-size="36" font-weight="800">pensamento</text>
+                  <text x="318" y="282" text-anchor="middle" fill="#d6e6f1" font-size="17" font-weight="500">o que sustenta tudo</text>
+                </g>
+
+                <g class="ib-ponta">
+                  <polygon fill="#e9f4fa" points="262,120 300,70 318,82 342,120" />
+                </g>
+                <g class="ib-rotulo">
+                  <path d="M330 96 L364 84" stroke="#ffffff" stroke-width="2" fill="none" />
+                  <text x="372" y="90" fill="#ffffff" font-size="21" font-weight="700">ferramentas</text>
+                </g>
+              </g>
+
+              <line class="ib-linha" x1="24" y1="121" x2="616" y2="121" stroke="#2c8faf" stroke-width="3" stroke-dasharray="11 9" />
+            </svg>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ========================== EMPRESAS PARCEIRAS ========================== -->
-    <section class="secao secao-escura" id="parceiras">
-      <div class="wrap">
-        <h2 class="titulo-secao" data-anim="sobe">Empresas parceiras</h2>
-        <p class="sub-secao" data-anim="sobe">
-          Visitas técnicas, treinamentos e projetos construídos junto com quem
-          pratica Lean na indústria.
-        </p>
+      <!-- ========================= O QUE VAMOS EXPLORAR ========================= -->
+      <section class="secao secao-escura" id="programa">
+        <div class="wrap">
+          <div class="centro">
+            <p class="rotulo" data-anim="sobe">O que vamos explorar</p>
+            <h2 class="titulo-secao" data-anim="sobe">
+              Pensar como cientista, <em>agir como Lean</em>
+            </h2>
+            <p class="sub-secao" data-anim="sobe">
+              O ciclo que está por trás de toda melhoria contínua e o Kata de
+              Melhoria, a rotina que transforma esse ciclo em hábito.
+            </p>
+          </div>
 
-        <ul class="logos">
-          <li class="logo-placa" data-anim="marca">
-            <img src="assets/logomercedez.png" alt="Mercedes-Benz" loading="lazy" />
-          </li>
-          <li class="logo-placa" data-anim="marca">
-            <img src="assets/logo_embraer.png" alt="Embraer" loading="lazy" />
-          </li>
-          <li class="logo-placa" data-anim="marca">
-            <img src="assets/logobosch.webp" alt="Bosch" loading="lazy" />
-          </li>
-          <li class="logo-placa" data-anim="marca">
-            <img src="assets/kaizeninstitutelogo.png" alt="Kaizen Institute" loading="lazy" />
-          </li>
-          <li class="logo-placa" data-anim="marca">
-            <img src="assets/rexroth.webp" alt="Bosch Rexroth" loading="lazy" />
-          </li>
-          <li class="logo-placa" data-anim="marca">
-            <img src="assets/logomalwee.jpg" alt="Grupo Malwee" loading="lazy" />
-          </li>
-          <li class="logo-placa logos-mais" data-anim="marca">e outras</li>
-        </ul>
-      </div>
-    </section>
+          <ol class="ciclo">
+            <span class="ciclo-trilho" aria-hidden="true"><span class="ciclo-progresso"></span></span>
+            <li class="ciclo-passo">
+              <span class="ciclo-marco" aria-hidden="true">1</span>
+              <strong>Observar</strong>
+              <small>a realidade como ela é</small>
+            </li>
+            <li class="ciclo-passo">
+              <span class="ciclo-marco" aria-hidden="true">2</span>
+              <strong>Levantar hipóteses</strong>
+              <small>sobre as causas</small>
+            </li>
+            <li class="ciclo-passo">
+              <span class="ciclo-marco" aria-hidden="true">3</span>
+              <strong>Testar</strong>
+              <small>na prática, em pequena escala</small>
+            </li>
+            <li class="ciclo-passo">
+              <span class="ciclo-marco" aria-hidden="true">4</span>
+              <strong>Aprender</strong>
+              <small>com os resultados</small>
+            </li>
+            <li class="ciclo-passo">
+              <span class="ciclo-marco" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16" /><path d="M3 21v-5h5" /></svg>
+              </span>
+              <strong>Recomeçar</strong>
+              <small>e melhorar de novo</small>
+            </li>
+          </ol>
 
-    <!-- ============================ DEPOIMENTOS ============================ -->
-    <section class="secao" id="depoimentos">
-      <div class="wrap">
-        <h2 class="titulo-secao" data-anim="sobe">Quem passou por aqui</h2>
-        <p class="sub-secao" data-anim="sobe">
-          O que o grupo deixou para quem já seguiu adiante.
-        </p>
-
-        <div class="depoimentos">
-          <!-- TODO: substituir pelos depoimentos reais -->
-          <figure class="depoimento vidro" data-anim="cartao">
-            <blockquote>
-            Fazer parte da história do GLean é um orgulho e uma experiência que levarei para a vida. É emocionante ver o legado construído ao longo desses 20 anos e saber que cada geração continua transformando e fortalecendo essa história. 💙
-
-            </blockquote>
-            <figcaption>
-              <span class="dep-nome">Anna Valle</span>
-              <span class="dep-tag">Fundadora do GLean</span>
-              <span class="dep-cargo">CEO Flows</span>
-            </figcaption>
-          </figure>
-
-          <figure class="depoimento vidro" data-anim="cartao">
-            <blockquote>
-              Graças ao GLean  pude alcançar o emprego dos meus sonhos. O grupo me capacitou para vencer grandes desafios e hoje colho os frutos do conhecimento adquirido ali.
-            </blockquote>
-            <figcaption>
-              <span class="dep-nome">Henrique Hideki</span>
-              <span class="dep-tag">Ex-membro GLean</span>
-              <span class="dep-cargo">Auxiliar de qualidade corporativa Embraer</span>
-            </figcaption>
-          </figure>
-
-          <figure class="depoimento vidro" data-anim="cartao">
-            <blockquote>
-              O Glean me preparou para chegar no ambiente fabril e saber por onde começar. Aprendi a resolver problemas e desenvolvi uma visão diferenciada.  
-            </blockquote>
-            <figcaption>
-              <span class="dep-nome">Matheus Ueta</span>
-              <span class="dep-tag">Ex-membro GLean</span>
-              <span class="dep-cargo">Estagiário · Produttare Consultoria</span>
-            </figcaption>
-          </figure>
+          <div class="temas">
+            <article class="tema vidro" data-anim="cartao">
+              <span class="tema-num" aria-hidden="true">01</span>
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+              </span>
+              <h3>Vá aonde as coisas acontecem</h3>
+              <p>
+                Por que ir ao local onde o trabalho acontece vale mais do que
+                achismos, e o que muda quando você observa antes de opinar.
+              </p>
+            </article>
+            <article class="tema vidro" data-anim="cartao">
+              <span class="tema-num" aria-hidden="true">02</span>
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg>
+              </span>
+              <h3>Faça as perguntas certas</h3>
+              <p>
+                Como questionar o problema até chegar à causa raiz, em vez de
+                tratar só o sintoma e vê-lo voltar.
+              </p>
+            </article>
+            <article class="tema vidro" data-anim="cartao">
+              <span class="tema-num" aria-hidden="true">03</span>
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6" /><path d="M10 3v6.5L4.6 18.3A1.8 1.8 0 0 0 6.1 21h11.8a1.8 1.8 0 0 0 1.5-2.7L14 9.5V3" /><path d="M7.5 15h9" /></svg>
+              </span>
+              <h3>Cada solução é um experimento</h3>
+              <p>
+                Como o ciclo PDCA ajuda a tratar cada ideia como uma hipótese a
+                ser testada, medida e aprendida.
+              </p>
+            </article>
+            <article class="tema vidro" data-anim="cartao">
+              <span class="tema-num" aria-hidden="true">04</span>
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>
+              </span>
+              <h3>Kata de Melhoria</h3>
+              <p>
+                A rotina do Toyota Kata para praticar o pensamento científico até
+                ele virar hábito, em quatro passos:
+              </p>
+              <ol class="kata-passos">
+                <li>Entender a direção ou o desafio</li>
+                <li>Compreender a condição atual</li>
+                <li>Estabelecer a próxima condição-alvo</li>
+                <li>Experimentar rumo a ela, um passo por vez</li>
+              </ol>
+            </article>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ========================= ONDE ESTÃO OS EX-MEMBROS ========================= -->
-    <section class="secao secao-escura" id="ex-membros">
-      <div class="wrap">
-        <h2 class="titulo-secao" data-anim="sobe">
-          Onde estão nossos ex-membros
-        </h2>
-        <p class="sub-secao" data-anim="sobe">
-          A rede que você passa a fazer parte no dia em que entra no grupo.
-        </p>
-
-        <ul class="marcas marcas-ex">
-          <li class="vidro" data-anim="marca">WEG</li>
-          <li class="vidro" data-anim="marca">McKinsey &amp; Company</li>
-          <li class="vidro" data-anim="marca">BMW</li>
-          <li class="vidro" data-anim="marca">EloGroup</li>
-          <li class="vidro" data-anim="marca">GE</li>
-          <li class="vidro" data-anim="marca">Intelbras</li>
-          <li class="vidro" data-anim="marca">Bosch</li>
-          <li class="vidro" data-anim="marca">Porsche Consulting</li>
-          <li class="vidro" data-anim="marca">Grupo Malwee</li>
-          <li class="vidro" data-anim="marca">BTG Pactual</li>
-          <li class="vidro" data-anim="marca">Embraer</li>
-          <li class="vidro" data-anim="marca">PicPay</li>
-          <li class="vidro" data-anim="marca">P&amp;G</li>
-          <li class="vidro" data-anim="marca">Amazon</li>
-          <li class="vidro" data-anim="marca">O Boticário</li>
-          <li class="vidro" data-anim="marca">Bosch Rexroth</li>
-          <li class="vidro" data-anim="marca">Kaizen Institute</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ================================ FAQ ================================ -->
-    <section class="secao" id="faq">
-      <div class="wrap wrap-estreito">
-        <h2 class="titulo-secao" data-anim="sobe">Dúvidas frequentes</h2>
-
-        <div class="faq">
-          <details class="vidro" data-anim="sobe">
-            <summary>
-              Preciso saber alguma coisa de Lean para me inscrever?
-            </summary>
-            <p>
-              Não. A maior parte das pessoas chega sem nunca ter ouvido falar de
-              A3, kanban ou kaizen. A formação acontece dentro do grupo.
+      <!-- ============================ PARA QUEM É ============================ -->
+      <section class="secao" id="para-quem">
+        <div class="wrap">
+          <div class="centro">
+            <p class="rotulo" data-anim="sobe">Para quem é</p>
+            <h2 class="titulo-secao" data-anim="sobe">
+              Só precisa de <em>curiosidade</em>
+            </h2>
+            <p class="sub-secao" data-anim="sobe">
+              Para quem gosta de resolver problemas e não se contenta com o
+              "sempre foi assim". Não é preciso nenhum conhecimento prévio: se
+              você se reconhece em alguma dessas linhas, esse treinamento é para você.
             </p>
-          </details>
+          </div>
 
-          <details class="vidro" data-anim="sobe">
-            <summary>De quais cursos vocês aceitam inscrições?</summary>
-            <p>
-              De todos. O GLean é um grupo do departamento de Engenharia de
-              Produção, mas o curso
-              <strong>não é um critério considerado</strong> na seleção:
-              qualquer estudante da graduação pode se inscrever, de qualquer
-              curso.
-            </p>
-          </details>
+          <div class="publico">
+            <article class="cartao" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6L20 9.3l-4 4.1.9 5.6-4.9-2.7-4.9 2.7.9-5.6-4-4.1 5.4-.7Z" /></svg>
+              </span>
+              <h3>Nunca ouviu falar de Lean</h3>
+              <p>Começamos do zero, com exemplos do dia a dia. É o ponto de partida ideal.</p>
+            </article>
+            <article class="cartao" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4Z" /></svg>
+              </span>
+              <h3>Quer ir além das ferramentas</h3>
+              <p>Já viu 5S, kanban ou A3 e quer entender a lógica que faz tudo isso funcionar.</p>
+            </article>
+            <article class="cartao" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z" /><path d="M6 12v5c3 2 9 2 12 0v-5" /></svg>
+              </span>
+              <h3>De qualquer curso</h3>
+              <p>Engenharias, administração, saúde, computação... o pensamento Lean serve para todo mundo.</p>
+            </article>
+            <article class="cartao" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6" /><path d="M10 22h4" /><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2Z" /></svg>
+              </span>
+              <h3>Gosta de questionar o óbvio</h3>
+              <p>Se o "sempre foi assim" te incomoda, você vai se sentir em casa.</p>
+            </article>
+          </div>
 
-          <details class="vidro" data-anim="sobe">
-            <summary>Em que fase da graduação eu preciso estar?</summary>
-            <p>
-              A partir da 3ª fase, de forma que a entrada no grupo acontece no
-              quarto semestre.
-            </p>
-          </details>
-
-          <details class="vidro" data-anim="sobe">
-            <summary>Qual é a carga horária esperada?</summary>
-            <p>
-              Considerando atividadesdo grupo, reuniões, estudo, leituras, a carga horária esperada média é 27h semanais
-            </p>
-          </details>
-
-          <details class="vidro" data-anim="sobe">
-            <summary>O grupo é remunerado?</summary>
-            <p>
-              A participação no grupo em si não é remunerada. Os membros, porém,
-              desenvolvem
-              <strong
-                >projetos de verão e de inverno, que são remunerados</strong
-              >. Ao longo do semestre também podem surgir projetos que, conforme
-              a disponibilidade de cada um, podem ser remunerados.
-            </p>
-          </details>
-
-          <details class="vidro" data-anim="sobe">
-            <summary>Até quando posso me inscrever?</summary>
-            <p>
-              As inscrições vão até <strong>27 de setembro</strong>. Depois
-              dessa data o formulário é encerrado.
-            </p>
-          </details>
-
-          <details class="vidro" data-anim="sobe">
-            <summary>Como sei se fui aprovado em cada etapa?</summary>
-            <p>
-              Avisamos por e-mail a cada fase, no endereço informado na
-              inscrição. Fique de olho também na caixa de spam.
-            </p>
-          </details>
+          <div class="selos">
+            <span class="selo" data-anim="selo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              Aberto a todos
+            </span>
+            <span class="selo" data-anim="selo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              Sem pré-requisito
+            </span>
+            <span class="selo" data-anim="selo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              Qualquer fase da graduação
+            </span>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ============================== CHAMADA FINAL ============================== -->
-    <section class="cta-final">
-      <div class="cta-brilho" aria-hidden="true"></div>
-      <div class="wrap">
-        <h2 data-anim="sobe">As inscrições estão abertas</h2>
-        <p data-anim="sobe">O primeiro passo é só enviar seu currículo.</p>
-        <a
-          class="btn-principal btn-grande"
-          data-anim="sobe"
-          href="https://docs.google.com/forms/d/e/1FAIpQLSeBeUZwMcKgFPGTu9pNFYapj7EgdNvCjnOBrCiMGWOQZUztjw/viewform?usp=dialog"
-          target="_blank"
-          rel="noopener"
-        >
-          Fazer minha inscrição
-        </a>
-        <p class="cta-prazo" data-anim="sobe">
-          Inscrições encerram em <strong>27 de setembro</strong>
-        </p>
-      </div>
-    </section>
+      <!-- ========================== SOBRE O GLEAN ========================== -->
+      <section class="secao secao-escura" id="glean">
+        <div class="wrap">
+          <div class="glean-grade">
+            <div class="glean-texto">
+              <p class="rotulo" data-anim="sobe">Sobre o GLean</p>
+              <img class="glean-logo" src="assets/logo-branca-glean.png" alt="GLean" data-anim="sobe" />
+              <h2 class="titulo-secao" data-anim="sobe">
+                Grupo de Estudos em <em>Lean</em> da UFSC
+              </h2>
+              <p data-anim="sobe">
+                Vinculado ao departamento de Engenharia de Produção, o GLean estuda
+                e aplica melhoria contínua em problemas reais, formando pessoas que
+                levam essa cultura para onde forem.
+              </p>
+              <p data-anim="sobe">
+                O Treinamento Aberto é a forma que encontramos de dividir com toda a
+                universidade um pouco do que aprendemos em duas décadas de prática.
+              </p>
+            </div>
 
-    <!-- ========================== SOBRE O GLEAN (final) ========================== -->
-    <footer class="rodape-site" id="sobre">
+            <div class="numeros">
+              <div class="numero vidro" data-anim="cartao">
+                <b class="numero-anos"><span class="numero-grande" data-contar="20">20</span> anos</b>
+                <span>sendo <strong>referência em Lean</strong> dentro da UFSC.</span>
+              </div>
+              <div class="numero vidro" data-anim="cartao">
+                <b>Indústria</b>
+                <span>Visitas técnicas, treinamentos e projetos com empresas parceiras.</span>
+              </div>
+              <div class="numero vidro" data-anim="cartao">
+                <b>Rede</b>
+                <span>Ex-membros em WEG, McKinsey, BMW, Embraer, Amazon e outras.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="parceiras">
+            <p class="parceiras-titulo" data-anim="sobe">Empresas parceiras</p>
+            <div class="faixa" data-anim="sobe">
+              <ul class="faixa-trilho">
+                <li class="logo-placa"><img src="assets/logomercedez.png" alt="Mercedes-Benz" loading="lazy" /></li>
+                <li class="logo-placa"><img src="assets/logo_embraer.png" alt="Embraer" loading="lazy" /></li>
+                <li class="logo-placa"><img src="assets/logobosch.webp" alt="Bosch" loading="lazy" /></li>
+                <li class="logo-placa"><img src="assets/kaizeninstitutelogo.png" alt="Kaizen Institute" loading="lazy" /></li>
+                <li class="logo-placa"><img src="assets/rexroth.webp" alt="Bosch Rexroth" loading="lazy" /></li>
+                <li class="logo-placa"><img src="assets/logomalwee.jpg" alt="Grupo Malwee" loading="lazy" /></li>
+                <!-- cópia para o loop contínuo da faixa -->
+                <li class="logo-placa" aria-hidden="true"><img src="assets/logomercedez.png" alt="Mercedes-Benz" loading="lazy" /></li>
+                <li class="logo-placa" aria-hidden="true"><img src="assets/logo_embraer.png" alt="Embraer" loading="lazy" /></li>
+                <li class="logo-placa" aria-hidden="true"><img src="assets/logobosch.webp" alt="Bosch" loading="lazy" /></li>
+                <li class="logo-placa" aria-hidden="true"><img src="assets/kaizeninstitutelogo.png" alt="Kaizen Institute" loading="lazy" /></li>
+                <li class="logo-placa" aria-hidden="true"><img src="assets/rexroth.webp" alt="Bosch Rexroth" loading="lazy" /></li>
+                <li class="logo-placa" aria-hidden="true"><img src="assets/logomalwee.jpg" alt="Grupo Malwee" loading="lazy" /></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ INSCREVA-SE ============================ -->
+      <section class="inscricao" id="inscricao">
+        <div class="aneis" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="wrap">
+          <p class="rotulo" data-anim="sobe" style="color: var(--ciano)">Inscreva-se</p>
+          <h2 data-anim="sobe">Venha <em>pensar diferente</em> com a gente</h2>
+          <p class="inscricao-sub" data-anim="sobe">
+            Traga suas perguntas, suas curiosidades e a vontade de questionar o
+            óbvio. Esperamos você!
+          </p>
+
+          <ul class="detalhes">
+            <li class="vidro" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+              </span>
+              <span><small>Data</small><b>Quinta, 12/11/2026</b></span>
+            </li>
+            <li class="vidro" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+              </span>
+              <span><small>Horário</small><b>18h30 às 21h</b></span>
+            </li>
+            <li class="vidro" data-anim="cartao">
+              <span class="icone" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+              </span>
+              <span><small>Local</small><b>A definir, UFSC</b></span>
+            </li>
+          </ul>
+
+          <div class="contagem" id="contagem" data-anim="sobe" aria-label="Contagem regressiva para o treinamento">
+            <div class="vidro"><b data-c="d">--</b><span>dias</span></div>
+            <div class="vidro"><b data-c="h">--</b><span>horas</span></div>
+            <div class="vidro"><b data-c="m">--</b><span>min</span></div>
+            <div class="vidro"><b data-c="s">--</b><span>seg</span></div>
+          </div>
+
+          <a
+            class="btn-principal btn-grande"
+            data-anim="sobe"
+            href="https://forms.gle/T7nugwBmBWSiAtbBA"
+            target="_blank"
+            rel="noopener"
+          >
+            Fazer minha inscrição
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
+
+          <p class="inscricao-insta" data-anim="sobe">
+            Para mais informações, fique de olho no nosso Instagram:
+            <a href="https://www.instagram.com/glean.ufsc" target="_blank" rel="noopener">@glean.ufsc</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================== RODAPÉ ============================== -->
+    <footer class="rodape">
       <div class="wrap">
         <div class="rodape-topo">
           <div class="rodape-marca">
-            <img
-              class="rodape-logo"
-              src="assets/logo-branca-glean.png"
-              alt="GLean, Grupo de estudos em Lean"
-            />
+            <img class="rodape-logo" src="assets/logo-branca-glean.png" alt="GLean, Grupo de Estudos em Lean" />
             <p>
-              O GLean é o grupo de estudos em Lean da Universidade Federal de
-              Santa Catarina, vinculado ao departamento de Engenharia de
-              Produção. Estudamos e aplicamos melhoria contínua em problemas
-              reais, formando pessoas que levam essa cultura para onde forem.
+              Grupo de Estudos em Lean da Universidade Federal de Santa Catarina,
+              vinculado ao departamento de Engenharia de Produção.
             </p>
           </div>
-
           <div class="rodape-ufsc">
-            <img
-              class="brasao-ufsc"
-              src="assets/brasaoufsc.webp"
-              alt="Brasão da UFSC"
-            />
-            <span class="rodape-ufsc-texto">
-              Universidade Federal<br />de Santa Catarina
-            </span>
+            <img class="brasao-ufsc" src="assets/brasaoufsc.webp" alt="Brasão da UFSC" />
+            <span>Universidade Federal<br />de Santa Catarina</span>
           </div>
         </div>
 
         <div class="rodape-baixo">
-          <span
-            >© <span id="ano">2026</span> GLean, Grupo de estudos em Lean</span
-          >
+          <span>© <span id="ano">2026</span> GLean, Grupo de Estudos em Lean</span>
           <div class="rodape-links">
-            <a
-              class="rodape-social"
-              href="https://www.instagram.com/glean.ufsc"
-              target="_blank"
-              rel="noopener"
-              aria-label="GLean no Instagram"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="5" />
-                <circle cx="12" cy="12" r="4" />
-                <circle
-                  cx="17.2"
-                  cy="6.8"
-                  r="1.1"
-                  fill="currentColor"
-                  stroke="none"
-                />
-              </svg>
+            <a href="https://www.instagram.com/glean.ufsc" target="_blank" rel="noopener" aria-label="GLean no Instagram">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" /></svg>
               <span>Instagram</span>
             </a>
-            <a
-              class="rodape-social"
-              href="https://www.linkedin.com/company/glean/"
-              target="_blank"
-              rel="noopener"
-              aria-label="GLean no LinkedIn"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3.5a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 20h-3.37v-5.9c0-1.41-.03-3.22-1.96-3.22-1.97 0-2.27 1.54-2.27 3.12V20H9.47V8.5h3.24v1.57h.05c.45-.85 1.56-1.75 3.21-1.75 3.43 0 4.06 2.26 4.06 5.2V20Z"
-                />
-              </svg>
+            <a href="https://www.linkedin.com/company/glean/" target="_blank" rel="noopener" aria-label="GLean no LinkedIn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3.5a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 20h-3.37v-5.9c0-1.41-.03-3.22-1.96-3.22-1.97 0-2.27 1.54-2.27 3.12V20H9.47V8.5h3.24v1.57h.05c.45-.85 1.56-1.75 3.21-1.75 3.43 0 4.06 2.26 4.06 5.2V20Z" /></svg>
               <span>LinkedIn</span>
             </a>
-          <!-- > <a href="andon/">Andon da sede</a> -->
           </div>
         </div>
       </div>
@@ -482,6 +1404,311 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="site.js"></script>
+    <script>
+      /* =====================================================================
+         GLean — animações do Treinamento Aberto (GSAP + ScrollTrigger)
+         ===================================================================== */
+      (function () {
+        "use strict";
+
+        document.getElementById("ano").textContent = new Date().getFullYear();
+
+        /* ------------------------------------------------------------------
+           Contagem regressiva (independe do GSAP)
+           ------------------------------------------------------------------ */
+        var alvo = new Date("2026-11-12T18:30:00-03:00").getTime();
+        var contagem = document.getElementById("contagem");
+        var campos = {};
+        contagem.querySelectorAll("[data-c]").forEach(function (b) { campos[b.dataset.c] = b; });
+
+        function doisDigitos(n) { return n < 10 ? "0" + n : String(n); }
+        function atualizaContagem() {
+          var falta = Math.max(0, alvo - Date.now());
+          if (!falta) {
+            var aviso = document.createElement("p");
+            aviso.className = "contagem-fim";
+            aviso.textContent = "O treinamento já começou. Até a próxima edição!";
+            contagem.replaceWith(aviso);
+            clearInterval(relogio);
+            return;
+          }
+          var s = Math.floor(falta / 1000);
+          campos.d.textContent = doisDigitos(Math.floor(s / 86400));
+          campos.h.textContent = doisDigitos(Math.floor((s % 86400) / 3600));
+          campos.m.textContent = doisDigitos(Math.floor((s % 3600) / 60));
+          campos.s.textContent = doisDigitos(s % 60);
+        }
+        var relogio = setInterval(atualizaContagem, 1000);
+        atualizaContagem();
+
+        /* ------------------------------------------------------------------
+           Barra fixa: aparece quando a hero sai da tela
+           ------------------------------------------------------------------ */
+        var barra = document.querySelector(".barra");
+        var hero = document.querySelector(".hero");
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (e) {
+            barra.classList.toggle("visivel", !e[0].isIntersecting);
+          }, { rootMargin: "-120px 0px 0px 0px" }).observe(hero);
+        }
+
+        var reduzirMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var temGsap = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
+
+        // Sem GSAP (CDN bloqueado) ou com movimento reduzido, a página fica
+        // estática e completamente legível: nada depende da animação.
+        if (!temGsap || reduzirMovimento) {
+          document.querySelectorAll(".ciclo-passo").forEach(function (p) { p.classList.add("ativo"); });
+          return;
+        }
+
+        gsap.registerPlugin(ScrollTrigger);
+        var suave = "power3.out";
+        var expo = "expo.out";
+
+        /* ------------------------------------------------------------------
+           1) Título dividido em palavras, cada uma sob uma máscara
+           ------------------------------------------------------------------ */
+        function dividePalavras(el) {
+          Array.prototype.slice.call(el.childNodes).forEach(function (no) {
+            if (no.nodeType === 3) {
+              var frag = document.createDocumentFragment();
+              no.textContent.split(/(\s+)/).forEach(function (parte) {
+                if (!parte) return;
+                if (/^\s+$/.test(parte)) { frag.appendChild(document.createTextNode(" ")); return; }
+                var mascara = document.createElement("span");
+                mascara.className = "palavra";
+                var dentro = document.createElement("span");
+                dentro.textContent = parte;
+                mascara.appendChild(dentro);
+                frag.appendChild(mascara);
+              });
+              no.replaceWith(frag);
+            } else if (no.nodeType === 1) {
+              dividePalavras(no);
+            }
+          });
+        }
+        var titulo = document.querySelector('[data-anim="titulo"]');
+        dividePalavras(titulo);
+
+        /* ------------------------------------------------------------------
+           2) Entrada da hero
+           ------------------------------------------------------------------ */
+        var entrada = gsap.timeline({ defaults: { ease: expo } });
+        entrada
+          .from('.hero [data-anim="hero"]:nth-child(-n+3)', {
+            opacity: 0, y: 26, duration: 1.2, stagger: .1,
+          }, 0.2)
+          .from(".palavra > span", {
+            yPercent: 115, duration: 1.3, stagger: .055,
+          }, 0.45)
+          .from('.hero-sub, .hero-desc, .hero-acoes, .hero-nota', {
+            opacity: 0, y: 22, duration: 1.1, stagger: .12,
+          }, 0.95)
+          .from(".rolar", { opacity: 0, duration: 1 }, 1.4);
+
+        /* Ilustração: a rampa se desenha, a roda do PDCA sobe rolando (o
+           deslocamento segue a inclinação e o giro corresponde à distância
+           percorrida), o calço do padrão trava a roda e as ideias surgem
+           em volta. */
+        var ilu = gsap.timeline({ defaults: { ease: expo }, delay: .2 });
+        ilu
+          .from(".ilu-orbita", { scale: .6, opacity: 0, transformOrigin: "50% 50%", duration: 1.6 }, 0)
+          .from(".ilu-rampa-linha", { scaleX: 0, transformOrigin: "0% 50%", duration: 1.2, ease: "power2.inOut" }, 0.1)
+          .from(".ilu-rampa polygon, .ilu-rampa text", { opacity: 0, duration: 1 }, 0.5)
+          .from(".ilu-roda-pos", { x: 109, y: 332, opacity: 0, duration: 1.8, ease: "power3.out" }, 0.5)
+          .from(".ilu-roda", { rotation: -73, transformOrigin: "50% 50%", duration: 1.8, ease: "power3.out" }, 0.5)
+          .from(".ilu-calco", { y: -60, opacity: 0, duration: .8, ease: "bounce.out" }, 1.9)
+          .from(".ilu-postit", { opacity: 0, scale: .4, transformOrigin: "50% 50%", duration: .9, stagger: .1, ease: "back.out(2)" }, 1.4)
+          .from(".ilu-lupa", { opacity: 0, x: -30, duration: 1 }, 1.6)
+          .from(".ilu-bolha", { opacity: 0, scale: .3, transformOrigin: "0% 100%", duration: .7, stagger: .28, ease: "back.out(2.2)" }, 1.8)
+          .from(".ilu-alvo", { opacity: 0, scale: .5, transformOrigin: "50% 50%", duration: .8, ease: "back.out(2)" }, 2.3)
+          .from(".ilu-flecha", { x: 40, y: -40, opacity: 0, duration: .45, ease: "power4.in" }, 2.8)
+          .from(".ilu-faiscas circle", { opacity: 0, scale: 0, transformOrigin: "50% 50%", duration: .6, stagger: .08 }, 2);
+
+        // movimento contínuo depois da entrada
+        ilu.add(function () {
+          gsap.to(".ilu-roda", { rotation: "+=360", duration: 40, ease: "none", repeat: -1 });
+          gsap.to(".ilu-orbita", { rotation: 360, transformOrigin: "50% 50%", duration: 90, ease: "none", repeat: -1 });
+          gsap.utils.toArray(".ilu-postit, .ilu-bolha, .ilu-lupa, .ilu-alvo").forEach(function (el, i) {
+            gsap.to(el, { y: "-=7", duration: 2.4 + (i % 3) * .5, ease: "sine.inOut", yoyo: true, repeat: -1, delay: i * .2 });
+          });
+          gsap.to(".ilu-faiscas circle", {
+            opacity: .2, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: -1, stagger: { each: .35, from: "random" },
+          });
+        });
+
+        // parallax: a ilustração sobe mais devagar e o texto se dissolve ao rolar
+        var mm = gsap.matchMedia();
+        mm.add("(min-width: 861px)", function () {
+          gsap.to(".hero-ilu", {
+            yPercent: -10, ease: "none",
+            scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true },
+          });
+          gsap.to(".hero-texto", {
+            y: -80, opacity: 0, ease: "none",
+            scrollTrigger: { trigger: ".hero", start: "40% top", end: "bottom top", scrub: true },
+          });
+        });
+
+        /* ------------------------------------------------------------------
+           3) Revelações genéricas no scroll
+           ------------------------------------------------------------------ */
+        gsap.utils.toArray('[data-anim="sobe"]').forEach(function (el) {
+          gsap.from(el, {
+            opacity: 0, y: 36, duration: 1.1, ease: expo,
+            scrollTrigger: { trigger: el, start: "top 88%" },
+          });
+        });
+
+        // cartões entram em cascata dentro de cada grupo
+        document.querySelectorAll(".temas, .publico, .numeros, .detalhes").forEach(function (grupo) {
+          gsap.from(grupo.querySelectorAll('[data-anim="cartao"]'), {
+            opacity: 0, y: 50, duration: 1.1, ease: expo, stagger: .1,
+            scrollTrigger: { trigger: grupo, start: "top 85%" },
+          });
+        });
+
+        gsap.from('[data-anim="selo"]', {
+          opacity: 0, y: 16, scale: .92, duration: .7, ease: "back.out(1.7)", stagger: .08,
+          scrollTrigger: { trigger: ".selos", start: "top 92%" },
+        });
+
+        // contador numérico
+        gsap.utils.toArray("[data-contar]").forEach(function (el) {
+          var obj = { v: 0 };
+          gsap.to(obj, {
+            v: +el.dataset.contar, duration: 2, ease: "power2.out",
+            onUpdate: function () { el.textContent = Math.round(obj.v); },
+            scrollTrigger: { trigger: el, start: "top 88%" },
+          });
+        });
+
+        /* ------------------------------------------------------------------
+           4) Iceberg: a linha d'água se estende, a ponta surge e o corpo
+              submerso é revelado conforme a leitura avança
+           ------------------------------------------------------------------ */
+        var painel = document.querySelector(".iceberg-painel");
+        gsap.from(painel, {
+          opacity: 0, y: 60, scale: .96, duration: 1.3, ease: expo,
+          scrollTrigger: { trigger: painel, start: "top 85%" },
+        });
+
+        var ib = gsap.timeline({
+          defaults: { ease: suave },
+          scrollTrigger: { trigger: painel, start: "top 78%" },
+        });
+        ib.from(".ib-linha", { scaleX: 0, transformOrigin: "50% 50%", duration: 1.2, ease: "power2.inOut" }, 0.2)
+          .from(".ib-ponta", { y: 50, opacity: 0, duration: 1, transformOrigin: "50% 100%" }, 0.7)
+          .from(".ib-rotulo", { x: -14, opacity: 0, duration: .8 }, 1.3)
+          .from(".agua-revela", { attr: { height: 0 }, duration: 1.6, ease: "power2.inOut" }, 1.1)
+          .from(".ib-corpo text", { opacity: 0, y: 12, duration: .9, stagger: .15 }, 2.1);
+
+        // flutuação contínua e bolhas subindo
+        gsap.to(".ib-flutua", { y: -6, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: -1 });
+        gsap.utils.toArray(".ib-bolhas circle").forEach(function (c, i) {
+          gsap.to(c, {
+            y: -90 - i * 15, opacity: 0, duration: 4 + i, ease: "sine.in",
+            repeat: -1, delay: i * 1.1,
+          });
+        });
+
+        /* ------------------------------------------------------------------
+           5) Ciclo do pensamento científico: o trilho preenche no scroll e
+              cada marco acende quando é alcançado
+           ------------------------------------------------------------------ */
+        var passos = gsap.utils.toArray(".ciclo-passo");
+        mm.add({ largo: "(min-width: 861px)", estreito: "(max-width: 860px)" }, function (ctx) {
+          var largo = ctx.conditions.largo;
+          gsap.set(".ciclo-progresso", largo ? { scaleX: 0, scaleY: 1 } : { scaleY: 0, scaleX: 1 });
+
+          var tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: ".ciclo",
+              start: largo ? "top 72%" : "top 65%",
+              end: largo ? "bottom 45%" : "bottom 55%",
+              scrub: .6,
+            },
+          });
+          tl.to(".ciclo-progresso", largo ? { scaleX: 1, ease: "none", duration: 1 } : { scaleY: 1, ease: "none", duration: 1 }, 0);
+          passos.forEach(function (p, i) {
+            ScrollTrigger.create({
+              trigger: largo ? ".ciclo" : p,
+              start: largo ? "top " + (72 - i * 6) + "%" : "top 62%",
+              onEnter: function () { p.classList.add("ativo"); },
+              onLeaveBack: function () { p.classList.remove("ativo"); },
+            });
+          });
+
+          gsap.from(".ciclo-passo", {
+            opacity: 0, y: largo ? 30 : 0, x: largo ? 0 : -24, duration: .9, ease: expo, stagger: .1,
+            scrollTrigger: { trigger: ".ciclo", start: "top 85%" },
+          });
+        });
+
+        /* ------------------------------------------------------------------
+           6) Faixa de parceiras em loop contínuo, desacelera no hover
+           ------------------------------------------------------------------ */
+        var faixa = gsap.to(".faixa-trilho", { xPercent: -50, duration: 32, ease: "none", repeat: -1 });
+        var faixaEl = document.querySelector(".faixa");
+        faixaEl.addEventListener("mouseenter", function () { gsap.to(faixa, { timeScale: .2, duration: .6 }); });
+        faixaEl.addEventListener("mouseleave", function () { gsap.to(faixa, { timeScale: 1, duration: .6 }); });
+
+        /* ------------------------------------------------------------------
+           7) Inscrição: anéis respiram e a seção ganha um leve zoom de entrada
+           ------------------------------------------------------------------ */
+        gsap.to(".aneis span", {
+          scale: 1.06, opacity: .5, duration: 4, ease: "sine.inOut", yoyo: true, repeat: -1, stagger: .8,
+        });
+        gsap.from(".aneis", {
+          scale: .7, ease: "none",
+          scrollTrigger: { trigger: ".inscricao", start: "top bottom", end: "center center", scrub: true },
+        });
+
+        /* ------------------------------------------------------------------
+           8) Mouse: brilho que segue o cursor, inclinação nos cartões e
+              botões magnéticos
+           ------------------------------------------------------------------ */
+        if (window.matchMedia("(pointer: fine)").matches) {
+          var brilho = document.querySelector(".hero-brilho");
+          var px = gsap.quickTo(brilho, "--mx", { duration: .8, ease: "power2.out" });
+          var py = gsap.quickTo(brilho, "--my", { duration: .8, ease: "power2.out" });
+          hero.addEventListener("mousemove", function (e) {
+            var r = hero.getBoundingClientRect();
+            px(((e.clientX - r.left) / r.width) * 100 + "%");
+            py(((e.clientY - r.top) / r.height) * 100 + "%");
+          });
+
+          document.querySelectorAll(".tema, .cartao, .numero").forEach(function (c) {
+            gsap.set(c, { transformPerspective: 900 });
+            var rx = gsap.quickTo(c, "rotationX", { duration: .5, ease: "power2.out" });
+            var ry = gsap.quickTo(c, "rotationY", { duration: .5, ease: "power2.out" });
+            var ty = gsap.quickTo(c, "y", { duration: .5, ease: "power2.out" });
+            c.addEventListener("mousemove", function (e) {
+              var r = c.getBoundingClientRect();
+              rx(((e.clientY - r.top) / r.height - .5) * -7);
+              ry(((e.clientX - r.left) / r.width - .5) * 7);
+            });
+            c.addEventListener("mouseenter", function () { ty(-6); });
+            c.addEventListener("mouseleave", function () { rx(0); ry(0); ty(0); });
+          });
+
+          document.querySelectorAll(".btn-principal, .btn-secundario").forEach(function (b) {
+            var mx = gsap.quickTo(b, "x", { duration: .4, ease: "power3.out" });
+            var my = gsap.quickTo(b, "y", { duration: .4, ease: "power3.out" });
+            b.addEventListener("mousemove", function (e) {
+              var r = b.getBoundingClientRect();
+              mx((e.clientX - r.left - r.width / 2) * .18);
+              my((e.clientY - r.top - r.height / 2) * .3);
+            });
+            b.addEventListener("mouseleave", function () { mx(0); my(0); });
+          });
+        }
+
+        // imagens carregando depois mudam alturas; recalcula os gatilhos
+        window.addEventListener("load", function () { ScrollTrigger.refresh(); });
+      })();
+    </script>
   </body>
 </html>
