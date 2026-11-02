@@ -48,12 +48,23 @@ O modo de teste expira em 30 dias. Antes disso, vá em **Realtime Database → R
 {
   "rules": {
     "andon": { ".read": true, ".write": true },
+    "cuckoo": {
+      "sessoes": {
+        "$codigo": {
+          ".read": true,
+          ".write": true,
+          ".validate": "$codigo.matches(/^[A-Z0-9]{5}$/)"
+        }
+      }
+    },
     "$outros": { ".read": false, ".write": false }
   }
 }
 ```
 
-Isso libera leitura e escrita apenas no nó `/andon`, que é o que o painel usa. É deliberadamente
+Isso libera leitura e escrita apenas no nó `/andon`, que é o que o painel usa, e nas sessões
+do timer [`/cuckoo`](cuckoo/) — uma por código. A lista de sessões em si não pode ser lida:
+só entra quem tem o código ou o link. É deliberadamente
 aberto: o grupo decidiu que qualquer membro pode editar sem login. As chaves em `config.js`
 **não são segredo** — chaves web do Firebase são identificadores públicos, e a proteção real
 vem justamente destas regras. Não guarde nada sensível neste banco.

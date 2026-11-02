@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cuckoo</title>
+<link rel="icon" href="../assets/favicon_glean.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+  /* =======================================================================
+     Cuckoo — timer com sessões compartilhadas
+     ======================================================================= */
+  :root {
+    --fundo-0: #0e2038;
+    --fundo-1: #16305c;
+    --circulo-a: #2e5a9e;
+    --circulo-b: #4c82cc;
+    --texto: #f3efe4;
+    --fraco: rgba(243, 239, 228, .55);
+    --fraco-forte: rgba(243, 239, 228, .8);
+    --destaque: #f0c577;
+    --destaque-fraco: rgba(240, 197, 119, .35);
+    --painel: #142a4c;
+    --perigo: #e2836b;
+    --ok: #7fd6a4;
+    --timer-0: #241c3b;
+    --timer-1: #3a2e5c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--fundo-0);
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  button, input { font: inherit; }
+
+  #app { position: fixed; inset: 0; color: var(--texto); overflow: hidden; }
+
+  .tela {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(.98);
+    transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .tela.ativa {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition: opacity .45s ease, transform .45s ease, visibility 0s linear 0s;
+  }
+  #inicio { background: radial-gradient(120% 90% at 50% 30%, var(--fundo-1) 0%, var(--fundo-0) 70%); }
+  #tela-timer {
+    flex-direction: column;
+    gap: 28px;
+    background: radial-gradient(120% 90% at 50% 30%, var(--timer-1) 0%, var(--timer-0) 70%);
+  }
+
+  /* ----------------------------- INÍCIO ----------------------------- */
+  #constelacao { position: relative; width: min(94vw, 640px); height: min(80vh, 640px); }
+
+  .circulo {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: radial-gradient(circle at 32% 28%, var(--circulo-b), var(--circulo-a));
+    color: var(--texto);
+    font-weight: 500;
+    line-height: 1;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+    transform: translate(-50%, -50%) scale(.6);
+    opacity: 0;
+    animation: surgir .5s cubic-bezier(.22, 1.2, .36, 1) forwards;
+    transition: box-shadow .2s ease, filter .2s ease;
+  }
+  .circulo:hover { filter: brightness(1.08); box-shadow: 0 8px 22px rgba(0, 0, 0, .32); }
+  .circulo:active { filter: brightness(1.15); box-shadow: 0 0 0 6px var(--destaque-fraco); }
+  .circulo b { font-weight: 600; line-height: 1; }
+  .circulo small { font-weight: 400; opacity: .75; line-height: 1; }
+  @keyframes surgir { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+  .icone-btn {
+    position: absolute;
+    top: calc(18px + env(safe-area-inset-top));
+    width: 40px; height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--fraco);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color .2s ease, background .2s ease;
+  }
+  .icone-btn:hover { color: var(--fraco-forte); background: rgba(255, 255, 255, .06); }
+  .icone-btn svg { width: 20px; height: 20px; }
+  #ajustes-btn { right: calc(18px + env(safe-area-inset-right)); }
+
+  /* Botão de sessão: fica acima das duas telas, para que quem está numa
+     sessão sempre saiba disso (inclusive com o timer rodando). */
+  #sessao-btn {
+    position: absolute;
+    z-index: 5;
+    top: calc(18px + env(safe-area-inset-top));
+    left: calc(18px + env(safe-area-inset-left));
+    height: 40px;
+    padding: 0 14px 0 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    background: transparent;
+    color: var(--fraco);
+    font-size: .9rem;
+    cursor: pointer;
+    transition: color .2s ease, background .2s ease, border-color .2s ease;
+  }
+  #sessao-btn:hover { color: var(--fraco-forte); background: rgba(255, 255, 255, .06); }
+  #sessao-btn svg { width: 19px; height: 19px; flex: none; }
+  #sessao-btn.em-sessao {
+    color: var(--texto);
+    background: rgba(240, 197, 119, .1);
+    border-color: rgba(240, 197, 119, .3);
+  }
+  #sessao-btn .codigo { font-weight: 600; letter-spacing: .08em; }
+  #sessao-btn .pessoas { color: var(--fraco-forte); }
+  .ponto-vivo {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 0 rgba(127, 214, 164, .6);
+    animation: pulsar 2s infinite;
+    flex: none;
+  }
+  .ponto-vivo.desconectado { background: var(--perigo); animation: none; }
+  @keyframes pulsar {
+    70% { box-shadow: 0 0 0 8px rgba(127, 214, 164, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(127, 214, 164, 0); }
+  }
+
+  /* ----------------------------- TIMER ----------------------------- */
+  #contador {
+    font-size: clamp(4.2rem, 20vw, 9.5rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+    transition: color .3s ease, transform .3s ease;
+  }
+  #contador.acabando { color: var(--destaque); transform: scale(1.05); }
+
+  #acoes-timer { display: flex; align-items: center; gap: 6px; }
+  #acoes-timer button {
+    background: none;
+    border: none;
+    color: var(--fraco);
+    font-size: .95rem;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 20px;
+    transition: color .2s ease, background .2s ease;
+  }
+  #acoes-timer button:hover { color: var(--fraco-forte); background: rgba(255, 255, 255, .06); }
+  #acoes-timer .divisor { width: 1px; height: 14px; background: rgba(255, 255, 255, .15); }
+  #aviso-sessao-timer { margin: -14px 0 0; font-size: .85rem; color: var(--fraco); text-align: center; }
+
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+
+  /* ----------------------------- PAINÉIS ----------------------------- */
+  .sobreposicao {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: rgba(8, 16, 30, .6);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility 0s linear .25s;
+  }
+  .sobreposicao.aberta { opacity: 1; visibility: visible; transition: opacity .25s ease, visibility 0s linear 0s; }
+
+  .painel {
+    background: var(--painel);
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: min(420px, 100%);
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+    transform: translateY(8px);
+    transition: transform .25s ease;
+  }
+  .sobreposicao.aberta .painel { transform: translateY(0); }
+  .painel h2 { margin: 0 0 16px; font-size: 1.15rem; font-weight: 600; }
+  .painel p { margin: 0 0 18px; color: var(--fraco-forte); font-size: .92rem; line-height: 1.5; }
+  .painel .nota { color: var(--fraco); font-size: .85rem; }
+
+  #lista-ajustes { display: flex; flex-direction: column; gap: 12px; }
+  .linha-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .linha-ajuste label { color: var(--fraco-forte); font-size: .95rem; }
+  .linha-ajuste span { display: flex; align-items: center; gap: 6px; color: var(--fraco); font-size: .85rem; }
+
+  .campo {
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 10px;
+    color: var(--texto);
+    font-size: .95rem;
+    padding: 8px 10px;
+  }
+  .linha-ajuste .campo { width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .acoes-painel { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .botao {
+    font-size: .9rem;
+    border-radius: 20px;
+    padding: 10px 18px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--fraco-forte);
+    transition: filter .2s ease, color .2s ease, background .2s ease;
+  }
+  .botao:hover { color: var(--texto); }
+  .botao:disabled { opacity: .5; cursor: default; }
+  .botao.principal { background: var(--destaque); color: #23180a; font-weight: 600; }
+  .botao.principal:hover { filter: brightness(1.06); }
+  .botao.contorno { border: 1px solid rgba(255, 255, 255, .18); }
+  .botao.contorno:hover { background: rgba(255, 255, 255, .06); }
+  .botao.perigo { color: var(--perigo); }
+  .botao.largo { width: 100%; padding: 12px 18px; font-size: .95rem; }
+
+  .separador {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 14px;
+    color: var(--fraco);
+    font-size: .8rem;
+  }
+  .separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, .12); }
+
+  .linha-codigo { display: flex; gap: 8px; }
+  .linha-codigo .campo {
+    flex: 1;
+    min-width: 0;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    font-weight: 600;
+    text-align: center;
+  }
+  .linha-codigo .campo::placeholder { letter-spacing: .05em; font-weight: 400; text-transform: none; }
+
+  .erro { margin: 12px 0 0 !important; color: var(--perigo) !important; font-size: .85rem !important; }
+
+  .codigo-grande {
+    margin: 4px 0 6px;
+    font-size: 2.6rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: var(--destaque);
+    text-align: center;
+  }
+  .pessoas-sessao { text-align: center; margin-bottom: 20px !important; }
+  .linha-link { display: flex; gap: 8px; }
+  .linha-link .campo { flex: 1; min-width: 0; font-size: .85rem; color: var(--fraco-forte); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001s !important; transition-duration: .001s !important; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <button id="sessao-btn" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+    <span id="sessao-rotulo">sessão</span>
+  </button>
+
+  <section id="inicio" class="tela ativa">
+    <div id="constelacao"></div>
+    <button id="ajustes-btn" class="icone-btn" aria-label="Editar tempos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    </button>
+  </section>
+
+  <section id="tela-timer" class="tela">
+    <div id="contador">00:00</div>
+    <p id="aviso-sessao-timer" hidden>todos na sessão veem este mesmo tempo</p>
+    <div id="acoes-timer">
+      <button id="reiniciar-btn">reiniciar</button>
+      <span class="divisor" aria-hidden="true"></span>
+      <button id="voltar-btn">voltar</button>
+    </div>
+  </section>
+
+  <!-- Editar tempos -->
+  <div id="ajustes" class="sobreposicao">
+    <div class="painel" role="dialog" aria-modal="true" aria-labelledby="ajustes-titulo">
+      <h2 id="ajustes-titulo">Editar tempos</h2>
+      <p id="ajustes-nota-sessao" class="nota" hidden>Os tempos valem para todos da sessão.</p>
+      <div id="lista-ajustes"></div>
+      <div class="acoes-painel">
+        <button id="ajustes-fechar" class="botao">Fechar</button>
+        <button id="ajustes-salvar" class="botao principal">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sessão compartilhada -->
+  <div id="painel-sessao" class="sobreposicao">
+    <div class="painel" role="dialog" aria-modal="true" aria-labelledby="sessao-titulo">
+
+      <div id="sessao-fora">
+        <h2 id="sessao-titulo">Sessão compartilhada</h2>
+        <p>
+          Todos que entram na mesma sessão veem o mesmo tempo passando. Qualquer pessoa da
+          sessão pode iniciar, reiniciar ou encerrar o timer.
+        </p>
+        <button id="criar-btn" class="botao principal largo">Criar nova sessão</button>
+        <div class="separador">ou entre com um código</div>
+        <form id="entrar-form" class="linha-codigo">
+          <input id="codigo-campo" class="campo" maxlength="5" autocomplete="off" autocapitalize="characters"
+                 spellcheck="false" placeholder="código" aria-label="Código da sessão">
+          <button id="entrar-btn" class="botao contorno" type="submit">Entrar</button>
+        </form>
+        <p id="sessao-erro" class="erro" hidden></p>
+      </div>
+
+      <div id="sessao-dentro" hidden>
+        <h2>Você está na sessão</h2>
+        <div id="sessao-codigo" class="codigo-grande">—</div>
+        <p id="sessao-pessoas" class="pessoas-sessao">—</p>
+        <div class="linha-link">
+          <input id="sessao-link" class="campo" readonly aria-label="Link da sessão">
+          <button id="copiar-btn" class="botao contorno">Copiar link</button>
+        </div>
+        <p class="nota" style="margin-top: 12px">Envie o link ou o código para quem vai acompanhar o tempo.</p>
+      </div>
+
+      <div class="acoes-painel">
+        <button id="sair-btn" class="botao perigo" hidden>Sair da sessão</button>
+        <button id="sessao-fechar" class="botao">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  const $ = (id) => document.getElementById(id);
+
+  const DURACOES_PADRAO = [1, 2, 5, 10, 15, 20, 25, 30, 45, 60];
+  const CHAVE_LOCAL = "cuckoo-duracoes";
+  const CAMINHO = "cuckoo/sessoes/";
+  // Sem letras/números que se confundem ao ditar o código (0/O, 1/I/L).
+  const ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const RE_CODIGO = /^[A-Z0-9]{5}$/;
+  const ID_CLIENTE = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+  // ---------------------------------------------------------------------------
+  // Estado
+  // ---------------------------------------------------------------------------
+  // O timer é sempre descrito por "quando começou" e não por "quanto falta":
+  // assim cada tela calcula o restante sozinha e todas mostram o mesmo número.
+  let duracoesLocais = carregarDuracoesLocais();
+  let timerLocal = { ativo: false, minutos: 0, inicio: 0 };
+
+  // Sessão atual (null fora de sessão).
+  //   codigo, dados (o nó do banco), desligar[] (cancela os listeners)
+  let sessao = null;
+  let fb = null;              // { db, m } depois que o Firebase carrega
+  let desvioServidor = 0;     // relógio do servidor - relógio local, em ms
+  let conectado = true;
+
+  function carregarDuracoesLocais() {
+    try {
+      const salvo = JSON.parse(localStorage.getItem(CHAVE_LOCAL) || "null");
+      if (Array.isArray(salvo) && salvo.length === DURACOES_PADRAO.length) return limparDuracoes(salvo);
+    } catch {}
+    return DURACOES_PADRAO.slice();
+  }
+
+  // O banco pode devolver listas como objetos; também garante 1..180 min.
+  function limparDuracoes(bruto) {
+    const lista = Array.isArray(bruto) ? bruto : Object.values(bruto || {});
+    if (lista.length !== DURACOES_PADRAO.length) return DURACOES_PADRAO.slice();
+    return lista.map((v) => Math.min(180, Math.max(1, parseInt(v, 10) || 1)));
+  }
+
+  const duracoesAtuais = () => (sessao && sessao.dados ? limparDuracoes(sessao.dados.duracoes) : duracoesLocais);
+  const timerAtual = () => (sessao ? (sessao.dados && sessao.dados.timer) || {} : timerLocal);
+  const agora = () => Date.now() + (sessao ? desvioServidor : 0);
+
+  // ---------------------------------------------------------------------------
+  // Constelação: círculos sem sobreposição, maiores para tempos maiores
+  // ---------------------------------------------------------------------------
+  function posicionarCirculos(duracoes, larg, alt) {
+    const lado = Math.min(larg, alt);
+    const minR = lado * .095, maxR = lado * .235;
+    const menor = Math.min(...duracoes), maior = Math.max(...duracoes);
+    const n = duracoes.length;
+    const cx = larg / 2, cy = alt / 2;
+    const espalhar = lado / 2.5;
+    const achatar = alt >= larg ? 1 : .72;
+
+    // Ponto de partida em espiral (ângulo áureo), depois afasta quem se toca.
+    const itens = duracoes.map((v, i) => {
+      const t = maior === menor ? .5 : (v - menor) / (maior - menor);
+      const ang = i * 2.399963;
+      const dist = Math.sqrt(i + 1) * espalhar / Math.sqrt(n) * .85;
+      return {
+        valor: v,
+        r: minR + (maxR - minR) * Math.sqrt(t),
+        x: cx + Math.cos(ang) * dist,
+        y: cy + Math.sin(ang) * dist * achatar,
+      };
+    });
+
+    const folga = lado * .018;
+    for (let passo = 0; passo < 300; passo++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const a = itens[i], b = itens[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const d = Math.hypot(dx, dy) || .0001;
+          const minimo = a.r + b.r + folga;
+          if (d < minimo) {
+            const empurra = (minimo - d) / 2;
+            a.x -= dx / d * empurra; a.y -= dy / d * empurra;
+            b.x += dx / d * empurra; b.y += dy / d * empurra;
+          }
+        }
+      }
+      for (const it of itens) {
+        it.x = Math.max(it.r + 6, Math.min(larg - it.r - 6, it.x));
+        it.y = Math.max(it.r + 6, Math.min(alt - it.r - 6, it.y));
+      }
+    }
+    return itens;
+  }
+
+  let constelacaoDesenhada = "";
+  function desenharConstelacao(forcar = false) {
+    const caixa = $("constelacao").getBoundingClientRect();
+    if (caixa.width < 10 || caixa.height < 10) return;
+    const duracoes = duracoesAtuais();
+    const assinatura = duracoes.join(",") + "@" + Math.round(caixa.width) + "x" + Math.round(caixa.height);
+    if (!forcar && assinatura === constelacaoDesenhada) return;
+    constelacaoDesenhada = assinatura;
+
+    $("constelacao").innerHTML = "";
+    posicionarCirculos(duracoes, caixa.width, caixa.height).forEach((it, i) => {
+      const btn = document.createElement("button");
+      btn.className = "circulo";
+      Object.assign(btn.style, {
+        width: it.r * 2 + "px", height: it.r * 2 + "px",
+        left: it.x + "px", top: it.y + "px",
+        animationDelay: i * 35 + "ms",
+      });
+      btn.innerHTML = `<b style="font-size:${Math.max(13, it.r * .42)}px">${it.valor}</b>`
+        + `<small style="font-size:${Math.max(9, it.r * .19)}px">min</small>`;
+      btn.setAttribute("aria-label", `Iniciar timer de ${it.valor} ${it.valor === 1 ? "minuto" : "minutos"}`);
+      btn.addEventListener("click", () => iniciar(it.valor));
+      $("constelacao").appendChild(btn);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Timer
+  // ---------------------------------------------------------------------------
+  async function iniciar(minutos) {
+    destravarAudio();
+    const novo = { ativo: true, minutos, inicio: 0 };
+    if (sessao) {
+      novo.inicio = fb.m.serverTimestamp();
+      await gravarTimer(novo);
+    } else {
+      novo.inicio = Date.now();
+      timerLocal = novo;
+      tique();
+    }
+  }
+
+  function reiniciar() {
+    const t = timerAtual();
+    if (!t.minutos) return;
+    iniciar(t.minutos);
+  }
+
+  async function encerrar() {
+    if (sessao) await gravarTimer({ ...timerAtual(), ativo: false });
+    else { timerLocal = { ...timerLocal, ativo: false }; tique(); }
+  }
+
+  async function gravarTimer(timer) {
+    try {
+      await fb.m.set(fb.m.ref(fb.db, CAMINHO + sessao.codigo + "/timer"), timer);
+    } catch (err) {
+      console.error(err);
+      alert("Não foi possível atualizar a sessão. Verifique a conexão.");
+    }
+  }
+
+  let telaAtual = "inicio";
+  function mostrarTela(nome) {
+    if (nome === telaAtual) return;
+    telaAtual = nome;
+    $("inicio").classList.toggle("ativa", nome === "inicio");
+    $("tela-timer").classList.toggle("ativa", nome === "timer");
+    $("ajustes-btn").hidden = nome !== "inicio";
+    if (nome === "inicio") {
+      document.title = "Cuckoo";
+      requestAnimationFrame(() => desenharConstelacao(true));
+    }
+  }
+
+  function desenharContador(segundos) {
+    const texto = String(Math.floor(segundos / 60)).padStart(2, "0") + ":" + String(segundos % 60).padStart(2, "0");
+    if ($("contador").textContent !== texto) {
+      $("contador").textContent = texto;
+      document.title = texto + " · Cuckoo";
+    }
+  }
+
+  // Roda várias vezes por segundo e decide a tela a partir do estado: é isso
+  // que mantém todos da sessão sincronizados, inclusive quem entra no meio.
+  let fimJaTocado = 0;
+  let segurarAte = 0;
+  function tique() {
+    const t = timerAtual();
+    const fim = t.ativo && typeof t.inicio === "number" ? t.inicio + t.minutos * 60000 : 0;
+    const restante = fim - agora();
+
+    if (fim && restante > 0) {
+      segurarAte = 0;
+      $("contador").classList.remove("acabando");
+      desenharContador(Math.ceil(restante / 1000));
+      mostrarTela("timer");
+      return;
+    }
+
+    // Acabou com a tela do timer aberta: toca o cuco e segura o 00:00 um
+    // instante. Quem chega depois que acabou (ou volta muito tempo depois a
+    // uma aba esquecida) vai direto para o início, sem alarme atrasado.
+    if (fim && fim !== fimJaTocado && telaAtual === "timer" && restante > -5000) {
+      fimJaTocado = fim;
+      desenharContador(0);
+      $("contador").classList.add("acabando");
+      tocarSino();
+      segurarAte = performance.now() + 1300;
+      return;
+    }
+
+    if (performance.now() < segurarAte) return;
+    $("contador").classList.remove("acabando");
+    mostrarTela("inicio");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Som: sino suave de 5 notas (Web Audio)
+  // ---------------------------------------------------------------------------
+  let audio = null;
+  // O navegador só libera som depois de um gesto do usuário. Quem entra por
+  // link talvez nunca clique num círculo, então qualquer toque na página serve.
+  function destravarAudio() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    if (!audio) audio = new Ctx();
+    if (audio.state === "suspended") audio.resume();
+    try {
+      const osc = audio.createOscillator(), ganho = audio.createGain();
+      ganho.gain.value = 0;
+      osc.connect(ganho); ganho.connect(audio.destination);
+      osc.start(); osc.stop(audio.currentTime + .01);
+    } catch {}
+    return audio;
+  }
+  ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, destravarAudio, { passive: true }));
+
+  function tocarSino() {
+    if (!audio) return;
+    const notas = [523.25, 587.33, 659.25, 783.99, 880];
+    const t0 = audio.currentTime + .02;
+    notas.forEach((freq, i) => {
+      const osc = audio.createOscillator(), ganho = audio.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const ini = t0 + i * .13;
+      ganho.gain.setValueAtTime(0, ini);
+      ganho.gain.linearRampToValueAtTime(.16, ini + .02);
+      ganho.gain.exponentialRampToValueAtTime(.0001, ini + .16);
+      osc.connect(ganho); ganho.connect(audio.destination);
+      osc.start(ini); osc.stop(ini + .18);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Firebase (carregado só quando alguém usa sessões)
+  // ---------------------------------------------------------------------------
+  async function carregarFirebase() {
+    if (fb) return fb;
+    // O Firebase é o mesmo do Andon da sede, então a configuração fica num
+    // lugar só. É carregada aqui (e não no topo) para que o timer sem sessão
+    // funcione mesmo se este arquivo não puder ser lido.
+    const [{ FIREBASE_CONFIG }, { initializeApp }, m] = await Promise.all([
+      import("../andon/config.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"),
+    ]);
+    const db = m.getDatabase(initializeApp(FIREBASE_CONFIG));
+    fb = { db, m };
+
+    // O tempo é contado pelo relógio do servidor, não pelo de cada aparelho:
+    // um celular adiantado 40s ainda mostra o mesmo número que os outros.
+    m.onValue(m.ref(db, ".info/serverTimeOffset"), (s) => { desvioServidor = s.val() || 0; });
+
+    // Presença: ao reconectar, o servidor já apagou a marca (onDisconnect),
+    // então ela é refeita.
+    m.onValue(m.ref(db, ".info/connected"), (s) => {
+      conectado = Boolean(s.val());
+      if (conectado && sessao) marcarPresenca();
+      desenharSessao();
+    });
+    return fb;
+  }
+
+  function marcarPresenca() {
+    const { m, db } = fb;
+    const ref = m.ref(db, CAMINHO + sessao.codigo + "/presenca/" + ID_CLIENTE);
+    m.onDisconnect(ref).remove();
+    m.set(ref, true).catch(() => {});
+  }
+
+  function gerarCodigo() {
+    let c = "";
+    for (let i = 0; i < 5; i++) c += ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
+    return c;
+  }
+
+  function mensagemDeErro(err) {
+    if (String(err && (err.code || err.message)).toLowerCase().includes("permission")) {
+      return "O banco ainda não libera as sessões do Cuckoo (falta a regra do nó \"cuckoo\" no Firebase).";
+    }
+    return "Não foi possível conectar. Verifique a internet e tente de novo.";
+  }
+
+  async function criarSessao() {
+    mostrarErro("");
+    $("criar-btn").disabled = true;
+    try {
+      const { m, db } = await carregarFirebase();
+      for (let tentativa = 0; tentativa < 6; tentativa++) {
+        const codigo = gerarCodigo();
+        const ref = m.ref(db, CAMINHO + codigo);
+        if ((await m.get(ref)).exists()) continue;
+        // A sessão nasce com os tempos de quem criou e com o timer que já
+        // estiver rodando aqui, para não interromper ninguém.
+        await m.set(ref, {
+          criadaEm: m.serverTimestamp(),
+          duracoes: duracoesLocais,
+          timer: timerLocal.ativo
+            ? { ...timerLocal, inicio: timerLocal.inicio + desvioServidor }
+            : { ativo: false, minutos: 0, inicio: 0 },
+        });
+        await entrarSessao(codigo);
+        return;
+      }
+      mostrarErro("Não foi possível gerar um código livre. Tente de novo.");
+    } catch (err) {
+      console.error(err);
+      mostrarErro(mensagemDeErro(err));
+    } finally {
+      $("criar-btn").disabled = false;
+    }
+  }
+
+  async function entrarSessao(codigo) {
+    codigo = String(codigo || "").trim().toUpperCase();
+    if (!RE_CODIGO.test(codigo)) { mostrarErro("O código tem 5 letras ou números."); return false; }
+    if (sessao && sessao.codigo === codigo) return true;
+    mostrarErro("");
+    $("entrar-btn").disabled = true;
+
+    try {
+      const { m, db } = await carregarFirebase();
+      const ref = m.ref(db, CAMINHO + codigo);
+      const snap = await m.get(ref);
+      if (!snap.exists()) { mostrarErro(`A sessão ${codigo} não existe ou já foi encerrada.`); return false; }
+
+      sairSessao({ manterEndereco: true });
+      sessao = { codigo, dados: snap.val(), desligar: [] };
+      sessao.desligar.push(m.onValue(ref, (s) => {
+        if (!sessao || sessao.codigo !== codigo) return;
+        if (!s.exists()) { sairSessao(); alert("A sessão foi encerrada."); return; }
+        sessao.dados = s.val();
+        desenharSessao();
+        desenharConstelacao();
+        tique();
+      }, (err) => {
+        console.error(err);
+        sairSessao();
+        alert(mensagemDeErro(err));
+      }));
+      marcarPresenca();
+
+      history.replaceState(null, "", "#" + codigo);
+      desenharSessao();
+      desenharConstelacao(true);
+      tique();
+      return true;
+    } catch (err) {
+      console.error(err);
+      mostrarErro(mensagemDeErro(err));
+      return false;
+    } finally {
+      $("entrar-btn").disabled = false;
+    }
+  }
+
+  // Sair só desliga esta tela; a sessão continua para os outros.
+  function sairSessao({ manterEndereco = false } = {}) {
+    if (!sessao) return;
+    const { m, db } = fb;
+    sessao.desligar.forEach((desligar) => desligar());
+    const ref = m.ref(db, CAMINHO + sessao.codigo + "/presenca/" + ID_CLIENTE);
+    m.onDisconnect(ref).cancel();
+    m.remove(ref).catch(() => {});
+    sessao = null;
+    if (!manterEndereco) history.replaceState(null, "", location.pathname + location.search);
+    desenharSessao();
+    desenharConstelacao(true);
+    tique();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Interface da sessão
+  // ---------------------------------------------------------------------------
+  function desenharSessao() {
+    const btn = $("sessao-btn");
+    const dentro = Boolean(sessao);
+    btn.classList.toggle("em-sessao", dentro);
+    $("aviso-sessao-timer").hidden = !dentro;
+    $("voltar-btn").textContent = dentro ? "encerrar" : "voltar";
+    $("voltar-btn").title = dentro ? "Encerra o timer para todos da sessão" : "";
+    $("ajustes-nota-sessao").hidden = !dentro;
+
+    $("sessao-fora").hidden = dentro;
+    $("sessao-dentro").hidden = !dentro;
+    $("sair-btn").hidden = !dentro;
+
+    if (!dentro) {
+      $("sessao-rotulo").textContent = "sessão";
+      btn.setAttribute("aria-label", "Criar ou entrar numa sessão compartilhada");
+      return;
+    }
+
+    const n = Math.max(1, Object.keys((sessao.dados && sessao.dados.presenca) || {}).length);
+    const pessoas = n === 1 ? "só você" : n + " pessoas";
+    $("sessao-rotulo").innerHTML = `<span class="ponto-vivo ${conectado ? "" : "desconectado"}"></span>`
+      + `<span class="codigo">${sessao.codigo}</span><span class="pessoas">· ${pessoas}</span>`;
+    btn.setAttribute("aria-label", `Sessão ${sessao.codigo}, ${pessoas}`);
+    $("sessao-codigo").textContent = sessao.codigo;
+    $("sessao-pessoas").textContent = conectado
+      ? (n === 1 ? "Só você está conectado agora." : `${n} pessoas conectadas agora.`)
+      : "Reconectando…";
+    $("sessao-link").value = location.origin + location.pathname + "#" + sessao.codigo;
+  }
+
+  function mostrarErro(texto) {
+    $("sessao-erro").textContent = texto;
+    $("sessao-erro").hidden = !texto;
+  }
+
+  function abrir(id) { $(id).classList.add("aberta"); }
+  function fechar(id) { $(id).classList.remove("aberta"); }
+
+  // ---------------------------------------------------------------------------
+  // Editar tempos
+  // ---------------------------------------------------------------------------
+  function abrirAjustes() {
+    $("lista-ajustes").innerHTML = duracoesAtuais().map((v, i) => `
+      <div class="linha-ajuste">
+        <label for="dur-${i}">Timer ${i + 1}</label>
+        <span><input class="campo" type="number" id="dur-${i}" min="1" max="180" value="${v}"> min</span>
+      </div>`).join("");
+    abrir("ajustes");
+  }
+
+  async function salvarAjustes() {
+    const novas = limparDuracoes([...$("lista-ajustes").querySelectorAll("input")].map((c) => c.value));
+    if (sessao) {
+      try {
+        await fb.m.set(fb.m.ref(fb.db, CAMINHO + sessao.codigo + "/duracoes"), novas);
+      } catch (err) {
+        console.error(err);
+        alert("Não foi possível salvar os tempos da sessão.");
+        return;
+      }
+    } else {
+      duracoesLocais = novas;
+      try { localStorage.setItem(CHAVE_LOCAL, JSON.stringify(novas)); } catch {}
+    }
+    fechar("ajustes");
+    desenharConstelacao(true);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Eventos
+  // ---------------------------------------------------------------------------
+  $("reiniciar-btn").addEventListener("click", reiniciar);
+  $("voltar-btn").addEventListener("click", encerrar);
+  $("ajustes-btn").addEventListener("click", abrirAjustes);
+  $("ajustes-fechar").addEventListener("click", () => fechar("ajustes"));
+  $("ajustes-salvar").addEventListener("click", salvarAjustes);
+
+  $("sessao-btn").addEventListener("click", () => {
+    mostrarErro("");
+    desenharSessao();
+    abrir("painel-sessao");
+    if (!sessao) setTimeout(() => $("codigo-campo").focus(), 50);
+  });
+  $("sessao-fechar").addEventListener("click", () => fechar("painel-sessao"));
+  $("criar-btn").addEventListener("click", async () => {
+    await criarSessao();
+    if (sessao) desenharSessao();
+  });
+  $("entrar-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (await entrarSessao($("codigo-campo").value)) $("codigo-campo").value = "";
+  });
+  $("codigo-campo").addEventListener("input", (e) => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  });
+  $("sair-btn").addEventListener("click", () => { sairSessao(); fechar("painel-sessao"); });
+  $("copiar-btn").addEventListener("click", async () => {
+    const campo = $("sessao-link");
+    try { await navigator.clipboard.writeText(campo.value); }
+    catch { campo.select(); document.execCommand("copy"); }
+    $("copiar-btn").textContent = "Copiado ✓";
+    setTimeout(() => { $("copiar-btn").textContent = "Copiar link"; }, 1800);
+  });
+
+  document.querySelectorAll(".sobreposicao").forEach((s) => {
+    s.addEventListener("click", (e) => { if (e.target === s) fechar(s.id); });
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const aberta = document.querySelector(".sobreposicao.aberta");
+    if (aberta) fechar(aberta.id);
+    else if (telaAtual === "timer" && !sessao) encerrar();
+  });
+
+  let esperaRedimensionar;
+  window.addEventListener("resize", () => {
+    clearTimeout(esperaRedimensionar);
+    esperaRedimensionar = setTimeout(() => { if (telaAtual === "inicio") desenharConstelacao(); }, 150);
+  });
+
+  // Entrar por link (…/cuckoo/#K7Q2M) ou trocar o código na barra de endereço.
+  function entrarPeloEndereco() {
+    const codigo = location.hash.slice(1).toUpperCase();
+    if (!codigo || (sessao && sessao.codigo === codigo)) return;
+    entrarSessao(codigo).then((ok) => { if (!ok) { desenharSessao(); abrir("painel-sessao"); } });
+  }
+  window.addEventListener("hashchange", entrarPeloEndereco);
+
+  // ---------------------------------------------------------------------------
+  // Arranque
+  // ---------------------------------------------------------------------------
+  desenharSessao();
+  desenharConstelacao(true);
+  setInterval(tique, 200);
+  entrarPeloEndereco();
+</script>
+</body>
+</html>
