@@ -96,6 +96,12 @@ e sai depois de ~3s abaixo — a folga evita que fique tremendo na fronteira.
 Só a tela da sede mede o áudio; quem abrir de casa não precisa dar permissão. O limiar é
 compartilhado, a medição é local.
 
+No dia a dia, basta apertar **M** com o Andon aberto para ligar o microfone, sem abrir o
+editor (o monitor da sede só tem teclado). O passo a passo completo para ligar o Andon está
+no POP impresso: [`andon/pop.html`](andon/pop.html) /
+[`andon/pop-ligar-andon.pdf`](andon/pop-ligar-andon.pdf), uma folha A4 com duas cópias de
+meia página para recortar.
+
 > Para o navegador lembrar da permissão do microfone entre reinícios, a página precisa estar
 > em `https://` ou `localhost`. O GitHub Pages já serve por `https://`.
 

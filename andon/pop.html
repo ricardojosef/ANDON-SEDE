@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POP Ligar o Andon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+  /* POP impresso: uma folha A4 com duas cópias iguais (metade de cima e de
+     baixo), separadas por uma linha de corte. Cada metade é um POP completo. */
+  @page { size: A4 portrait; margin: 0; }
+
+  :root {
+    --marinho: #0d2c47;
+    --marinho-2: #123a5c;
+    --azul: #2e8bc0;
+    --azul-suave: #e8f2f9;
+    --papel: #f4f7fa;
+    --borda: #d3e1ec;
+    --texto: #123a5c;
+    --fraco: #5f7d97;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+    color: var(--texto);
+    background: #8a99a8;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .folha {
+    width: 210mm;
+    height: 297mm;
+    margin: 10mm auto;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4mm 14mm rgba(0, 0, 0, .25);
+  }
+  @media print {
+    body { background: #fff; }
+    .folha { margin: 0; box-shadow: none; }
+  }
+
+  .pop {
+    height: 148.3mm;   /* 148,5 menos a linha de corte: a folha não vaza para uma 2ª página */
+    padding: 7mm 9mm 5.5mm;
+    display: flex;
+    flex-direction: column;
+    gap: 2.6mm;
+    overflow: hidden;
+  }
+
+  .corte {
+    height: 0;
+    border-top: .3mm dashed #9fb3c4;
+    position: relative;
+  }
+  .corte span {
+    position: absolute;
+    left: 6mm;
+    top: -2.6mm;
+    background: #fff;
+    padding: 0 1.5mm;
+    font-size: 7pt;
+    color: #9fb3c4;
+  }
+
+  /* ---------- cabeçalho ---------- */
+  .topo { display: flex; align-items: center; justify-content: space-between; gap: 6mm; }
+  .titulo { display: flex; align-items: center; gap: 3mm; }
+  .selo-pop {
+    background: var(--marinho);
+    color: #fff;
+    font-weight: 800;
+    font-size: 9pt;
+    letter-spacing: .08em;
+    padding: 1.4mm 2.6mm;
+    border-radius: 1.5mm;
+  }
+  h1 { margin: 0; font-size: 16pt; font-weight: 800; color: var(--marinho); letter-spacing: -.01em; }
+  .logo { height: 9mm; width: auto; }
+
+  .teclado {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    flex-wrap: wrap;
+    background: var(--azul-suave);
+    border-radius: 2mm;
+    padding: 1.8mm 3mm;
+    font-size: 7.6pt;
+    color: var(--marinho-2);
+  }
+  .teclado b { font-weight: 700; }
+  .teclado .sep { color: #9fb3c4; }
+
+  .aviso {
+    margin: 0;
+    padding: 1.4mm 3mm;
+    border-left: 1.2mm solid #e8a317;
+    border-radius: 1.5mm;
+    background: #fdf3dc;
+    font-size: 8pt;
+    line-height: 1.45;
+    color: #5a3d00;
+  }
+  .aviso b { color: #3d2900; }
+
+  /* ---------- passos ---------- */
+  .passos {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2.6mm;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: passo;
+  }
+  .passo {
+    counter-increment: passo;
+    border: .3mm solid var(--borda);
+    border-radius: 2.4mm;
+    padding: 2.4mm 2.8mm 2.2mm 2.6mm;
+    display: grid;
+    grid-template-columns: 7mm 1fr;
+    column-gap: 2.2mm;
+    align-content: start;
+    background: #fff;
+  }
+  .passo::before {
+    content: counter(passo);
+    grid-row: span 2;
+    width: 7mm; height: 7mm;
+    border-radius: 50%;
+    background: var(--azul);
+    color: #fff;
+    font-weight: 800;
+    font-size: 10.5pt;
+    display: grid;
+    place-items: center;
+  }
+  .passo h2 { margin: .6mm 0 1mm; font-size: 10pt; font-weight: 700; color: var(--marinho); line-height: 1.2; }
+  .passo p { margin: 0; font-size: 8.1pt; line-height: 1.45; color: var(--texto); }
+  .passo .obs { display: block; margin-top: 1mm; font-size: 7.4pt; color: var(--fraco); }
+  .passo.destaque { border-color: var(--azul); background: var(--azul-suave); }
+  .passo.destaque::before { background: var(--marinho); }
+
+  kbd {
+    display: inline-block;
+    min-width: 4.6mm;
+    padding: 0 1.1mm;
+    border: .25mm solid #9fb3c4;
+    border-bottom-width: .6mm;
+    border-radius: 1mm;
+    background: var(--papel);
+    font-family: inherit;
+    font-size: 7.6pt;
+    font-weight: 700;
+    line-height: 4.2mm;
+    text-align: center;
+    color: var(--marinho);
+    white-space: nowrap;
+  }
+  .url {
+    font-weight: 700;
+    color: var(--azul);
+    white-space: nowrap;
+  }
+
+  /* ---------- rodapé ---------- */
+  .rodape {
+    display: flex;
+    justify-content: space-between;
+    gap: 4mm;
+    font-size: 6.4pt;
+    color: var(--fraco);
+  }
+</style>
+</head>
+<body>
+<div class="folha">
+
+  <template id="modelo">
+    <section class="pop">
+      <header class="topo">
+        <div class="titulo">
+          <span class="selo-pop">POP</span>
+          <h1>Ligar o Andon da sede</h1>
+        </div>
+        <img class="logo" src="../assets/logo.png" alt="GLean">
+      </header>
+
+      <div class="teclado">
+        <b>Só teclado:</b>
+        <span><kbd>Tab</kbd> avança</span><span class="sep">·</span>
+        <span><kbd>Shift</kbd>+<kbd>Tab</kbd> volta</span><span class="sep">·</span>
+        <span><kbd>Enter</kbd> confirma</span><span class="sep">·</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> escolhem opções</span>
+      </div>
+
+      <p class="aviso">
+        <b>Tela apagada?</b> Pode ser só a suspensão: aperte <kbd>Espaço</kbd> e faça o login.
+        O Andon já estará ligado.
+      </p>
+
+      <ol class="passos">
+        <li class="passo">
+          <h2>Ligar o computador</h2>
+          <p>Aperte o botão de ligar e espere o Windows abrir.</p>
+        </li>
+        <li class="passo">
+          <h2>Entrar na internet</h2>
+          <p>Abra o ícone de internet com <kbd>⊞ Win</kbd>+<kbd>A</kbd> e escolha a rede <b>eduroam</b>.</p>
+        </li>
+        <li class="passo">
+          <h2>Logar com o idUFSC</h2>
+          <p>Usuário: <b>nome.sobrenome</b><br>Senha: <b>a senha padrão do Moodle</b>. <kbd>Enter</kbd> para conectar.</p>
+        </li>
+        <li class="passo">
+          <h2>Energia e suspensão</h2>
+          <p>Aperte <kbd>⊞ Win</kbd>, digite <b>energia</b> e abra <b>“Energia e suspensão”</b> com <kbd>Enter</kbd>.</p>
+        </li>
+        <li class="passo">
+          <h2>Tela e suspensão: Nunca</h2>
+          <p>Com <kbd>Tab</kbd>, vá até cada tempo de <b>tela</b> e <b>suspensão</b>; com <kbd>↓</kbd> escolha <b>Nunca</b> e <kbd>Enter</kbd>.</p>
+        </li>
+        <li class="passo">
+          <h2>Abrir o Chrome</h2>
+          <p>Aperte <kbd>⊞ Win</kbd>, digite <b>chrome</b> e aperte <kbd>Enter</kbd>.</p>
+        </li>
+        <li class="passo">
+          <h2>Abrir o Andon</h2>
+          <p>Aperte <kbd>Ctrl</kbd>+<kbd>L</kbd>, digite <span class="url">glean.com.br/andon</span> e <kbd>Enter</kbd>.</p>
+        </li>
+        <li class="passo destaque">
+          <h2>Ligar o microfone</h2>
+          <p>Aperte <kbd>M</kbd>: o rodapé mostra <b>“microfone ativo”</b>.
+            <span class="obs">Se pedir permissão: <kbd>Tab</kbd> até “Permitir” e <kbd>Enter</kbd>.</span></p>
+        </li>
+        <li class="passo destaque">
+          <h2>Tela cheia</h2>
+          <p>Aperte <kbd>F11</kbd>. Pronto: o Andon fica ligado sozinho.</p>
+        </li>
+      </ol>
+
+      <footer class="rodape">
+        <span>POP-ANDON-01 · rev. 2 · nov/2026</span>
+        <span>GLean · Grupo de Estudos em Lean da UFSC</span>
+      </footer>
+    </section>
+  </template>
+
+  <div id="copia-1"></div>
+  <div class="corte"><span>✂ corte aqui</span></div>
+  <div id="copia-2"></div>
+</div>
+
+<script>
+  // As duas metades da folha são o mesmo POP: o conteúdo existe uma vez só.
+  const modelo = document.getElementById("modelo");
+  ["copia-1", "copia-2"].forEach((id) => {
+    document.getElementById(id).replaceWith(modelo.content.cloneNode(true));
+  });
+</script>
+</body>
+</html>

@@ -879,7 +879,7 @@ async function ligarMicrofone() {
     return true;
   } catch (err) {
     console.warn("Microfone negado:", err);
-    $("statusMic").textContent = "microfone bloqueado";
+    $("statusMic").textContent = "microfone bloqueado — aperte M de novo";
     $("statusMic").className = "selo erro";
     return false;
   }
@@ -1220,9 +1220,14 @@ function ligarInterface() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modalAberto()) fecharModal();
-    if (e.key.toLowerCase() === "e" && !modalAberto() && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
-      abrirModal();
-    }
+    const atalhoLivre = !modalAberto() && !e.ctrlKey && !e.altKey && !e.metaKey
+      && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    if (!atalhoLivre) return;
+    if (e.key.toLowerCase() === "e") abrirModal();
+    // M liga o captador de volume sem abrir o editor: o monitor da sede só
+    // tem teclado. A própria tecla conta como gesto do usuário, o que também
+    // libera o som do alarme no navegador.
+    if (e.key.toLowerCase() === "m") ligarMicrofone();
   });
 
   // abas
