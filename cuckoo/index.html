@@ -577,7 +577,7 @@
       fimJaTocado = fim;
       desenharContador(0);
       $("contador").classList.add("acabando");
-      tocarSino();
+      tocarCuco();
       segurarAte = performance.now() + 1300;
       return;
     }
@@ -588,41 +588,32 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Som: sino suave de 5 notas (Web Audio)
+  // Som do cuco, tocado sempre que o timer termina
   // ---------------------------------------------------------------------------
-  let audio = null;
-  // O navegador só libera som depois de um gesto do usuário. Quem entra por
-  // link talvez nunca clique num círculo, então qualquer toque na página serve.
+  const somCuco = new Audio("som-cuckoo.mp3");
+  somCuco.preload = "auto";
+  let audioDestravado = false;
+
+  // O navegador só deixa tocar som depois de um gesto do usuário. Tocar o
+  // arquivo mudo uma vez, dentro desse gesto, libera o play() de mais tarde
+  // (quando o timer zerar sem ninguém tocando na tela). Quem entra por link
+  // talvez nunca clique num círculo, então qualquer toque na página serve.
   function destravarAudio() {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
-    if (!audio) audio = new Ctx();
-    if (audio.state === "suspended") audio.resume();
-    try {
-      const osc = audio.createOscillator(), ganho = audio.createGain();
-      ganho.gain.value = 0;
-      osc.connect(ganho); ganho.connect(audio.destination);
-      osc.start(); osc.stop(audio.currentTime + .01);
-    } catch {}
-    return audio;
+    if (audioDestravado) return;
+    somCuco.muted = true;
+    somCuco.play().then(() => {
+      somCuco.pause();
+      somCuco.currentTime = 0;
+      somCuco.muted = false;
+      audioDestravado = true;
+    }).catch(() => { somCuco.muted = false; });
   }
   ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, destravarAudio, { passive: true }));
 
-  function tocarSino() {
-    if (!audio) return;
-    const notas = [523.25, 587.33, 659.25, 783.99, 880];
-    const t0 = audio.currentTime + .02;
-    notas.forEach((freq, i) => {
-      const osc = audio.createOscillator(), ganho = audio.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const ini = t0 + i * .13;
-      ganho.gain.setValueAtTime(0, ini);
-      ganho.gain.linearRampToValueAtTime(.16, ini + .02);
-      ganho.gain.exponentialRampToValueAtTime(.0001, ini + .16);
-      osc.connect(ganho); ganho.connect(audio.destination);
-      osc.start(ini); osc.stop(ini + .18);
-    });
+  function tocarCuco() {
+    somCuco.muted = false;
+    somCuco.currentTime = 0;
+    somCuco.play().catch((err) => console.warn("Som do cuco bloqueado pelo navegador:", err));
   }
 
   // ---------------------------------------------------------------------------
