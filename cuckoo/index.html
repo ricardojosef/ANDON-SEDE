@@ -7,26 +7,24 @@
 <link rel="icon" href="../assets/favicon_glean.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 <style>
   /* =======================================================================
      Cuckoo — timer com sessões compartilhadas
      ======================================================================= */
   :root {
-    --fundo-0: #0e2038;
-    --fundo-1: #16305c;
-    --circulo-a: #2e5a9e;
-    --circulo-b: #4c82cc;
-    --texto: #f3efe4;
-    --fraco: rgba(243, 239, 228, .55);
-    --fraco-forte: rgba(243, 239, 228, .8);
-    --destaque: #f0c577;
-    --destaque-fraco: rgba(240, 197, 119, .35);
-    --painel: #142a4c;
+    --fundo-0: #071a46;
+    --fundo-1: #1543a8;
+    --circulo-a: #1e6bff;
+    --circulo-b: #62b4ff;
+    --texto: #fbf8ef;
+    --fraco: rgba(251, 248, 239, .6);
+    --fraco-forte: rgba(251, 248, 239, .85);
+    --destaque: #ffc93f;
+    --destaque-fraco: rgba(255, 201, 63, .4);
+    --painel: #1b4cb4;
     --perigo: #e2836b;
     --ok: #7fd6a4;
-    --timer-0: #241c3b;
-    --timer-1: #3a2e5c;
   }
 
   * { box-sizing: border-box; }
@@ -34,12 +32,13 @@
   html, body {
     margin: 0; padding: 0; height: 100%;
     background: var(--fundo-0);
-    font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-family: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
   }
 
   button, input { font: inherit; }
+  [hidden] { display: none !important; }
 
   #app { position: fixed; inset: 0; color: var(--texto); overflow: hidden; }
 
@@ -62,17 +61,48 @@
     transition: opacity .45s ease, transform .45s ease, visibility 0s linear 0s;
   }
   #inicio { background: radial-gradient(120% 90% at 50% 30%, var(--fundo-1) 0%, var(--fundo-0) 70%); }
+
+  /* A cor do timer acompanha o tempo restante: --t1/--t0 são atualizadas pelo
+     script, do violeta do começo, passando pelo magenta, ao vermelho do fim. */
   #tela-timer {
+    --t1: rgb(104, 64, 236);
+    --t0: rgb(46, 22, 130);
     flex-direction: column;
-    gap: 28px;
-    background: radial-gradient(120% 90% at 50% 30%, var(--timer-1) 0%, var(--timer-0) 70%);
+    gap: 22px;
+    background: radial-gradient(120% 90% at 50% 30%, var(--t1) 0%, var(--t0) 70%);
   }
+  /* Depois do fim, um brilho quente pulsa devagar sobre o vermelho. */
+  #tela-timer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 60% at 50% 45%, rgba(255, 170, 60, .35), transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #tela-timer.excedido::before { animation: brilho 2.4s ease-in-out infinite; }
+  @keyframes brilho { 50% { opacity: 1; } }
 
   /* ----------------------------- INÍCIO ----------------------------- */
-  #constelacao { position: relative; width: min(94vw, 640px); height: min(80vh, 640px); }
+  /* Área dos círculos, entre a logo (em cima) e o botão de sessão (embaixo).
+     As posições vêm da simulação no script; --base é o diâmetro de referência,
+     ajustado para que todos caibam juntos perto do centro. */
+  #constelacao {
+    --base: 110px;
+    position: absolute;
+    top: calc(82px + env(safe-area-inset-top));
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+  }
 
   .circulo {
+    --f: 1;
     position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--base) * var(--f));
+    height: calc(var(--base) * var(--f));
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -83,19 +113,26 @@
     cursor: pointer;
     background: radial-gradient(circle at 32% 28%, var(--circulo-b), var(--circulo-a));
     color: var(--texto);
-    font-weight: 500;
     line-height: 1;
     box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
-    transform: translate(-50%, -50%) scale(.6);
+    transform: scale(.6);
     opacity: 0;
     animation: surgir .5s cubic-bezier(.22, 1.2, .36, 1) forwards;
     transition: box-shadow .2s ease, filter .2s ease;
   }
   .circulo:hover { filter: brightness(1.08); box-shadow: 0 8px 22px rgba(0, 0, 0, .32); }
   .circulo:active { filter: brightness(1.15); box-shadow: 0 0 0 6px var(--destaque-fraco); }
-  .circulo b { font-weight: 600; line-height: 1; }
-  .circulo small { font-weight: 400; opacity: .75; line-height: 1; }
-  @keyframes surgir { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+  .circulo b { font-weight: 600; font-size: max(13px, calc(var(--base) * var(--f) * .34)); }
+  .circulo small { font-weight: 400; opacity: .75; font-size: max(9px, calc(var(--base) * var(--f) * .15)); }
+  .circulo.mais {
+    background: transparent;
+    border: 2px dashed rgba(243, 239, 228, .35);
+    box-shadow: none;
+    color: var(--fraco-forte);
+  }
+  .circulo.mais:hover { border-color: var(--destaque); color: var(--destaque); filter: none; }
+  .circulo.mais b { font-weight: 400; font-size: max(20px, calc(var(--base) * var(--f) * .5)); }
+  @keyframes surgir { to { transform: scale(1); opacity: 1; } }
 
   .icone-btn {
     position: absolute;
@@ -115,28 +152,30 @@
   .icone-btn svg { width: 20px; height: 20px; }
   #ajustes-btn { right: calc(18px + env(safe-area-inset-right)); }
 
-  /* Botão de sessão: fica acima das duas telas, para que quem está numa
-     sessão sempre saiba disso (inclusive com o timer rodando). */
+  /* Botão de sessão: embaixo, no centro, acima das duas telas, para que quem
+     está numa sessão sempre saiba disso (inclusive com o timer rodando). */
   #sessao-btn {
     position: absolute;
     z-index: 5;
-    top: calc(18px + env(safe-area-inset-top));
-    left: calc(18px + env(safe-area-inset-left));
-    height: 40px;
-    padding: 0 14px 0 11px;
+    left: 50%;
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    height: 52px;
+    padding: 0 24px 0 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border: 1px solid transparent;
-    border-radius: 20px;
-    background: transparent;
-    color: var(--fraco);
-    font-size: .9rem;
+    gap: 10px;
+    white-space: nowrap;
+    border: 1px solid rgba(243, 239, 228, .22);
+    border-radius: 26px;
+    background: rgba(255, 255, 255, .06);
+    color: var(--fraco-forte);
+    font-size: 1rem;
     cursor: pointer;
     transition: color .2s ease, background .2s ease, border-color .2s ease;
   }
-  #sessao-btn:hover { color: var(--fraco-forte); background: rgba(255, 255, 255, .06); }
-  #sessao-btn svg { width: 19px; height: 19px; flex: none; }
+  #sessao-btn:hover { color: var(--texto); background: rgba(255, 255, 255, .1); border-color: rgba(243, 239, 228, .35); }
+  #sessao-btn svg { width: 22px; height: 22px; flex: none; }
   #sessao-btn.em-sessao {
     color: var(--texto);
     background: rgba(240, 197, 119, .1);
@@ -157,30 +196,79 @@
     100% { box-shadow: 0 0 0 0 rgba(127, 214, 164, 0); }
   }
 
+  /* Logo do GLean: discreta, no topo das duas telas */
+  .logo-glean {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    top: calc(22px + env(safe-area-inset-top));
+    transform: translateX(-50%);
+    height: 40px;
+    width: auto;
+    opacity: .6;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+
   /* ----------------------------- TIMER ----------------------------- */
+  #rotulo-timer {
+    position: relative;
+    margin: 0 0 -14px;
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    font-weight: 500;
+    letter-spacing: .03em;
+    color: var(--fraco-forte);
+    text-align: center;
+  }
+  .excedido #rotulo-timer {
+    margin-bottom: -4px;
+    font-size: clamp(1.4rem, 3vw, 2.3rem);
+    font-weight: 600;
+    color: var(--texto);
+  }
   #contador {
+    position: relative;
     font-size: clamp(4.2rem, 20vw, 9.5rem);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.02em;
+    line-height: 1;
     transition: color .3s ease, transform .3s ease;
   }
-  #contador.acabando { color: var(--destaque); transform: scale(1.05); }
+  #contador.acabando { transform: scale(1.08); }
+  .excedido #contador { color: #fff3c4; text-shadow: 0 4px 30px rgba(120, 10, 0, .45); }
 
-  #acoes-timer { display: flex; align-items: center; gap: 6px; }
+  /* Depois do fim: a contagem do tempo extra de um lado e os círculos do
+     outro, para já escolher o próximo tempo. No celular, um sobre o outro. */
+  @media (min-width: 761px) {
+    .modo-excedido #tela-timer { right: 50%; }
+    .modo-excedido #inicio { left: 50%; }
+    .modo-excedido #sessao-btn, .modo-excedido .logo-glean { left: 75%; }
+    .modo-excedido #contador { font-size: clamp(3.4rem, 10vw, 8.5rem); }
+  }
+  @media (max-width: 760px) {
+    .modo-excedido #tela-timer { bottom: 56%; gap: 12px; }
+    .modo-excedido #inicio { top: 44%; }
+    .modo-excedido #constelacao { top: 14px; }
+    .modo-excedido .logo-glean { display: none; }
+    .modo-excedido #contador { font-size: clamp(3rem, 17vw, 6rem); }
+    .modo-excedido #aviso-sessao-timer { display: none; }
+  }
+
+  #acoes-timer { position: relative; display: flex; align-items: center; gap: 6px; }
   #acoes-timer button {
     background: none;
     border: none;
-    color: var(--fraco);
+    color: var(--fraco-forte);
     font-size: .95rem;
     cursor: pointer;
     padding: 10px 16px;
     border-radius: 20px;
     transition: color .2s ease, background .2s ease;
   }
-  #acoes-timer button:hover { color: var(--fraco-forte); background: rgba(255, 255, 255, .06); }
-  #acoes-timer .divisor { width: 1px; height: 14px; background: rgba(255, 255, 255, .15); }
-  #aviso-sessao-timer { margin: -14px 0 0; font-size: .85rem; color: var(--fraco); text-align: center; }
+  #acoes-timer button:hover { color: var(--texto); background: rgba(255, 255, 255, .08); }
+  #acoes-timer .divisor { width: 1px; height: 14px; background: rgba(255, 255, 255, .2); }
+  #aviso-sessao-timer { position: relative; margin: -10px 0 0; font-size: .85rem; color: var(--fraco); text-align: center; }
 
   button:focus-visible, input:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
 
@@ -189,9 +277,10 @@
     position: fixed;
     inset: 0;
     z-index: 10;
-    background: rgba(8, 16, 30, .6);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    /* fundo bem escurecido e desfocado: o painel se destaca do que está atrás */
+    background: rgba(3, 8, 18, .78);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -203,13 +292,14 @@
   .sobreposicao.aberta { opacity: 1; visibility: visible; transition: opacity .25s ease, visibility 0s linear 0s; }
 
   .painel {
-    background: var(--painel);
+    background: linear-gradient(180deg, #2a66dc 0%, var(--painel) 100%);
+    border: 1px solid rgba(243, 239, 228, .2);
     border-radius: 20px;
     padding: 28px 24px;
     width: min(420px, 100%);
-    max-height: 80vh;
+    max-height: 84vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .6), 0 0 0 6px rgba(76, 130, 204, .12);
     transform: translateY(8px);
     transition: transform .25s ease;
   }
@@ -217,11 +307,6 @@
   .painel h2 { margin: 0 0 16px; font-size: 1.15rem; font-weight: 600; }
   .painel p { margin: 0 0 18px; color: var(--fraco-forte); font-size: .92rem; line-height: 1.5; }
   .painel .nota { color: var(--fraco); font-size: .85rem; }
-
-  #lista-ajustes { display: flex; flex-direction: column; gap: 12px; }
-  .linha-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .linha-ajuste label { color: var(--fraco-forte); font-size: .95rem; }
-  .linha-ajuste span { display: flex; align-items: center; gap: 6px; color: var(--fraco); font-size: .85rem; }
 
   .campo {
     background: rgba(255, 255, 255, .06);
@@ -231,9 +316,26 @@
     font-size: .95rem;
     padding: 8px 10px;
   }
-  .linha-ajuste .campo { width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+  .campo[type="number"] { width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  #lista-ajustes { display: flex; flex-direction: column; gap: 10px; }
+  .linha-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .linha-ajuste .ordem { color: var(--fraco); font-size: .85rem; width: 22px; }
+  .campos-tempo { display: flex; align-items: center; gap: 6px; color: var(--fraco); font-size: .85rem; }
+  .remover-tempo {
+    width: 32px; height: 32px;
+    border: none; border-radius: 50%;
+    background: transparent;
+    color: var(--fraco);
+    cursor: pointer;
+  }
+  .remover-tempo:hover { color: var(--perigo); background: rgba(226, 131, 107, .12); }
+
+  .novo-tempo-campos { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 6px 0 4px; color: var(--fraco); }
+  .novo-tempo-campos .campo { width: 86px; font-size: 1.6rem; font-weight: 600; text-align: center; padding: 10px; }
 
   .acoes-painel { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .acoes-painel .empurra { margin-right: auto; }
   .botao {
     font-size: .9rem;
     border-radius: 20px;
@@ -285,11 +387,22 @@
     text-align: center;
   }
   .pessoas-sessao { text-align: center; margin-bottom: 20px !important; }
+  .rotulo-campo { display: block; margin-bottom: 6px; font-size: .85rem; color: var(--fraco-forte); }
+  .rotulo-campo span { color: var(--fraco); }
+  .campo-nome { display: block; width: 100%; margin-bottom: 16px; }
+  #sessao-btn .nome-sessao { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
   .linha-link { display: flex; gap: 8px; }
   .linha-link .campo { flex: 1; min-width: 0; font-size: .85rem; color: var(--fraco-forte); }
 
+  @media (max-height: 520px) {
+    .logo-glean { height: 26px; top: 12px; }
+    #sessao-btn { height: 42px; bottom: 12px; }
+    #constelacao { top: 50px; bottom: 64px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: .001s !important; transition-duration: .001s !important; }
+    #tela-timer.excedido::before { animation: none; opacity: .7; }
   }
 </style>
 </head>
@@ -301,7 +414,7 @@
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
-    <span id="sessao-rotulo">sessão</span>
+    <span id="sessao-rotulo">sessão compartilhada</span>
   </button>
 
   <section id="inicio" class="tela ativa">
@@ -315,7 +428,8 @@
   </section>
 
   <section id="tela-timer" class="tela">
-    <div id="contador">00:00</div>
+    <p id="rotulo-timer">&nbsp;</p>
+    <div id="contador" role="timer" aria-live="off">00:00</div>
     <p id="aviso-sessao-timer" hidden>todos na sessão veem este mesmo tempo</p>
     <div id="acoes-timer">
       <button id="reiniciar-btn">reiniciar</button>
@@ -324,6 +438,27 @@
     </div>
   </section>
 
+  <img class="logo-glean" src="../assets/logo-branca-glean.png" alt="GLean, Grupo de Estudos em Lean">
+
+  <!-- Novo tempo (círculo "+") -->
+  <div id="novo-tempo" class="sobreposicao">
+    <form id="novo-tempo-form" class="painel" role="dialog" aria-modal="true" aria-labelledby="novo-tempo-titulo">
+      <h2 id="novo-tempo-titulo">Novo tempo</h2>
+      <div class="novo-tempo-campos">
+        <input id="novo-min" class="campo" type="number" min="0" max="180" inputmode="numeric" aria-label="Minutos" placeholder="0">
+        <span>min</span>
+        <input id="novo-seg" class="campo" type="number" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">
+        <span>s</span>
+      </div>
+      <p id="novo-tempo-erro" class="erro" hidden></p>
+      <div class="acoes-painel">
+        <button type="button" id="novo-tempo-fechar" class="botao empurra">Fechar</button>
+        <button type="button" id="novo-tempo-iniciar" class="botao contorno">Só iniciar</button>
+        <button type="submit" class="botao principal">Adicionar</button>
+      </div>
+    </form>
+  </div>
+
   <!-- Editar tempos -->
   <div id="ajustes" class="sobreposicao">
     <div class="painel" role="dialog" aria-modal="true" aria-labelledby="ajustes-titulo">
@@ -331,6 +466,7 @@
       <p id="ajustes-nota-sessao" class="nota" hidden>Os tempos valem para todos da sessão.</p>
       <div id="lista-ajustes"></div>
       <div class="acoes-painel">
+        <button id="ajustes-padrao" class="botao empurra">Restaurar padrão</button>
         <button id="ajustes-fechar" class="botao">Fechar</button>
         <button id="ajustes-salvar" class="botao principal">Salvar</button>
       </div>
@@ -343,10 +479,9 @@
 
       <div id="sessao-fora">
         <h2 id="sessao-titulo">Sessão compartilhada</h2>
-        <p>
-          Todos que entram na mesma sessão veem o mesmo tempo passando. Qualquer pessoa da
-          sessão pode iniciar, reiniciar ou encerrar o timer.
-        </p>
+        <label class="rotulo-campo" for="nome-campo">Nome da sessão <span>(opcional, aparece no link)</span></label>
+        <input id="nome-campo" class="campo campo-nome" maxlength="40" autocomplete="off"
+               placeholder="Ex.: Reunião de sexta">
         <button id="criar-btn" class="botao principal largo">Criar nova sessão</button>
         <div class="separador">ou entre com um código</div>
         <form id="entrar-form" class="linha-codigo">
@@ -358,9 +493,12 @@
       </div>
 
       <div id="sessao-dentro" hidden>
-        <h2>Você está na sessão</h2>
+        <h2 id="sessao-dentro-titulo">Você está na sessão</h2>
         <div id="sessao-codigo" class="codigo-grande">—</div>
         <p id="sessao-pessoas" class="pessoas-sessao">—</p>
+        <label class="rotulo-campo" for="sessao-nome-campo">Nome da sessão <span>(muda para todos)</span></label>
+        <input id="sessao-nome-campo" class="campo campo-nome" maxlength="40" autocomplete="off"
+               placeholder="Sem nome">
         <div class="linha-link">
           <input id="sessao-link" class="campo" readonly aria-label="Link da sessão">
           <button id="copiar-btn" class="botao contorno">Copiar link</button>
@@ -369,7 +507,7 @@
       </div>
 
       <div class="acoes-painel">
-        <button id="sair-btn" class="botao perigo" hidden>Sair da sessão</button>
+        <button id="sair-btn" class="botao perigo empurra" hidden>Sair da sessão</button>
         <button id="sessao-fechar" class="botao">Fechar</button>
       </div>
     </div>
@@ -380,8 +518,13 @@
 <script type="module">
   const $ = (id) => document.getElementById(id);
 
-  const DURACOES_PADRAO = [1, 2, 5, 10, 15, 20, 25, 30, 45, 60];
-  const CHAVE_LOCAL = "cuckoo-duracoes";
+  // Tempos em segundos, para aceitar valores como 1:30.
+  const TEMPOS_PADRAO = [1, 2, 5, 10, 15, 20, 25, 30, 45, 60].map((m) => m * 60);
+  const TEMPO_MIN = 5;              // 5 s
+  const TEMPO_MAX = 180 * 60;       // 3 h
+  const MAX_TEMPOS = 16;
+  const CHAVE_LOCAL = "cuckoo-tempos";
+  const CHAVE_ANTIGA = "cuckoo-duracoes";   // versão anterior, em minutos
   const CAMINHO = "cuckoo/sessoes/";
   // Sem letras/números que se confundem ao ditar o código (0/O, 1/I/L).
   const ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -393,115 +536,295 @@
   // ---------------------------------------------------------------------------
   // O timer é sempre descrito por "quando começou" e não por "quanto falta":
   // assim cada tela calcula o restante sozinha e todas mostram o mesmo número.
-  let duracoesLocais = carregarDuracoesLocais();
-  let timerLocal = { ativo: false, minutos: 0, inicio: 0 };
+  let temposLocais = carregarTemposLocais();
+  let timerLocal = { ativo: false, segundos: 0, inicio: 0 };
 
-  // Sessão atual (null fora de sessão).
-  //   codigo, dados (o nó do banco), desligar[] (cancela os listeners)
+  // Sessão atual (null fora de sessão): codigo, dados (o nó do banco) e
+  // desligar[] (cancela os listeners).
   let sessao = null;
   let fb = null;              // { db, m } depois que o Firebase carrega
   let desvioServidor = 0;     // relógio do servidor - relógio local, em ms
   let conectado = true;
 
-  function carregarDuracoesLocais() {
+  function carregarTemposLocais() {
     try {
       const salvo = JSON.parse(localStorage.getItem(CHAVE_LOCAL) || "null");
-      if (Array.isArray(salvo) && salvo.length === DURACOES_PADRAO.length) return limparDuracoes(salvo);
+      if (salvo) return limparTempos(salvo);
+      const antigo = JSON.parse(localStorage.getItem(CHAVE_ANTIGA) || "null");
+      if (Array.isArray(antigo)) return limparTempos(antigo.map((m) => m * 60));
     } catch {}
-    return DURACOES_PADRAO.slice();
+    return TEMPOS_PADRAO.slice();
   }
 
-  // O banco pode devolver listas como objetos; também garante 1..180 min.
-  function limparDuracoes(bruto) {
-    const lista = Array.isArray(bruto) ? bruto : Object.values(bruto || {});
-    if (lista.length !== DURACOES_PADRAO.length) return DURACOES_PADRAO.slice();
-    return lista.map((v) => Math.min(180, Math.max(1, parseInt(v, 10) || 1)));
+  // O banco pode devolver listas como objetos. Garante a faixa permitida, sem
+  // repetidos e em ordem crescente (é a ordem dos círculos na tela).
+  function limparTempos(bruto) {
+    const lista = (Array.isArray(bruto) ? bruto : Object.values(bruto || {}))
+      .map((v) => Math.round(Number(v)))
+      .filter((v) => v >= TEMPO_MIN && v <= TEMPO_MAX);
+    const unicos = [...new Set(lista)].sort((a, b) => a - b).slice(0, MAX_TEMPOS);
+    return unicos.length ? unicos : TEMPOS_PADRAO.slice();
   }
 
-  const duracoesAtuais = () => (sessao && sessao.dados ? limparDuracoes(sessao.dados.duracoes) : duracoesLocais);
-  const timerAtual = () => (sessao ? (sessao.dados && sessao.dados.timer) || {} : timerLocal);
+  function temposAtuais() {
+    if (!sessao || !sessao.dados) return temposLocais;
+    const d = sessao.dados;
+    // sessões criadas pela versão anterior guardavam minutos em "duracoes"
+    if (d.tempos) return limparTempos(d.tempos);
+    if (d.duracoes) return limparTempos(Object.values(d.duracoes).map((m) => m * 60));
+    return TEMPOS_PADRAO.slice();
+  }
+
+  function timerAtual() {
+    const t = sessao ? (sessao.dados && sessao.dados.timer) || {} : timerLocal;
+    return { ...t, segundos: t.segundos || (t.minutos || 0) * 60 };
+  }
+
   const agora = () => Date.now() + (sessao ? desvioServidor : 0);
 
   // ---------------------------------------------------------------------------
-  // Constelação: círculos sem sobreposição, maiores para tempos maiores
+  // Formatação
   // ---------------------------------------------------------------------------
-  function posicionarCirculos(duracoes, larg, alt) {
-    const lado = Math.min(larg, alt);
-    const minR = lado * .095, maxR = lado * .235;
-    const menor = Math.min(...duracoes), maior = Math.max(...duracoes);
-    const n = duracoes.length;
-    const cx = larg / 2, cy = alt / 2;
-    const espalhar = lado / 2.5;
-    const achatar = alt >= larg ? 1 : .72;
+  const dois = (n) => String(n).padStart(2, "0");
 
-    // Ponto de partida em espiral (ângulo áureo), depois afasta quem se toca.
-    const itens = duracoes.map((v, i) => {
-      const t = maior === menor ? .5 : (v - menor) / (maior - menor);
-      const ang = i * 2.399963;
-      const dist = Math.sqrt(i + 1) * espalhar / Math.sqrt(n) * .85;
-      return {
-        valor: v,
-        r: minR + (maxR - minR) * Math.sqrt(t),
-        x: cx + Math.cos(ang) * dist,
-        y: cy + Math.sin(ang) * dist * achatar,
-      };
-    });
+  function relogio(seg) {
+    const h = Math.floor(seg / 3600), m = Math.floor((seg % 3600) / 60), s = seg % 60;
+    return h ? `${h}:${dois(m)}:${dois(s)}` : `${dois(m)}:${dois(s)}`;
+  }
 
-    const folga = lado * .018;
-    for (let passo = 0; passo < 300; passo++) {
-      for (let i = 0; i < n; i++) {
-        for (let j = i + 1; j < n; j++) {
-          const a = itens[i], b = itens[j];
+  // [número, unidade] para os círculos: 25 min, 1:30 min, 45 s
+  function rotuloCirculo(seg) {
+    if (seg < 60) return [String(seg), "s"];
+    if (seg % 60 === 0) return [String(seg / 60), "min"];
+    return [`${Math.floor(seg / 60)}:${dois(seg % 60)}`, "min"];
+  }
+
+  function porExtenso(seg) {
+    const m = Math.floor(seg / 60), s = seg % 60;
+    const partes = [];
+    if (m) partes.push(m + (m === 1 ? " minuto" : " minutos"));
+    if (s) partes.push(s + (s === 1 ? " segundo" : " segundos"));
+    return partes.join(" e ");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Círculos dos tempos
+  // ---------------------------------------------------------------------------
+  // Cada círculo é um corpo numa pequena simulação: um ímã no centro puxa
+  // todos, cada um tem uma agitação própria (o movimento "desordenado") e as
+  // colisões os mantêm encostados sem nunca sobrepor.
+  let corpos = [];   // { el, chave, f, x, y, vx, vy, semente, ritmo, preso }
+  let base = 100;    // diâmetro de referência, em px
+  let area = { w: 0, h: 0 };
+  let assinaturaCirculos = "";
+
+  function desenharCirculos(forcar = false) {
+    const tempos = temposAtuais();
+    const assinatura = tempos.join(",");
+    if (!area.w) area = { w: $("constelacao").clientWidth, h: $("constelacao").clientHeight };
+    if (forcar || assinatura !== assinaturaCirculos) {
+      assinaturaCirculos = assinatura;
+
+      // Tamanho em escala logarítmica: 1 min e 60 min ficam distinguíveis sem
+      // que os tempos longos dominem a tela.
+      const lnMin = Math.log(tempos[0]), lnMax = Math.log(tempos[tempos.length - 1]);
+      const fator = (v) => .8 + .5 * (lnMax === lnMin ? .5 : (Math.log(v) - lnMin) / (lnMax - lnMin));
+
+      // Quem já estava na tela continua de onde estava; só os novos surgem.
+      const anteriores = new Map(corpos.map((c) => [c.chave, c]));
+      const itens = [...tempos.map((v) => ({ chave: String(v), f: fator(v), seg: v })), { chave: "+", f: .8 }];
+      $("constelacao").innerHTML = "";
+
+      corpos = itens.map((it, i) => {
+        const el = document.createElement("button");
+        el.className = "circulo" + (it.chave === "+" ? " mais" : "");
+        el.style.setProperty("--f", it.f.toFixed(3));
+        el.style.animationDelay = i * 35 + "ms";
+        if (it.chave === "+") {
+          el.innerHTML = "<b>+</b>";
+          el.setAttribute("aria-label", "Adicionar um tempo específico");
+        } else {
+          const [num, unid] = rotuloCirculo(it.seg);
+          el.dataset.seg = it.seg;
+          el.innerHTML = `<b>${num}</b><small>${unid}</small>`;
+          el.setAttribute("aria-label", "Iniciar timer de " + porExtenso(it.seg));
+        }
+        $("constelacao").appendChild(el);
+
+        const antigo = anteriores.get(it.chave);
+        // Os novos surgem espalhados pela área e o ímã os junta no centro.
+        const corpo = {
+          el, chave: it.chave, f: it.f,
+          x: antigo ? antigo.x : area.w * (.08 + Math.random() * .84),
+          y: antigo ? antigo.y : area.h * (.08 + Math.random() * .84),
+          vx: 0, vy: 0,
+          semente: Math.random() * Math.PI * 2,
+          ritmo: .25 + Math.random() * .35,
+          preso: false,
+        };
+        // Parado sob o cursor, para não fugir na hora do clique.
+        el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") corpo.preso = true; });
+        el.addEventListener("pointerleave", () => { corpo.preso = false; });
+        return corpo;
+      });
+    }
+    encaixarCirculos();
+    acomodar();
+  }
+
+  // Ajusta o tamanho para que os círculos, juntos, ocupem cerca de metade da
+  // área disponível: sobra espaço para se moverem sem ficar espremidos.
+  function encaixarCirculos() {
+    const c = $("constelacao");
+    const w = c.clientWidth, h = c.clientHeight;
+    if (w < 10 || h < 10) return;
+
+    // Mudou o tamanho da tela: leva as posições junto, a partir do centro.
+    if (area.w && (area.w !== w || area.h !== h)) {
+      for (const k of corpos) {
+        k.x = w / 2 + (k.x - area.w / 2) * (w / area.w);
+        k.y = h / 2 + (k.y - area.h / 2) * (h / area.h);
+      }
+    }
+    area = { w, h };
+
+    const somaAreas = corpos.reduce((s, k) => s + Math.PI * (k.f / 2) ** 2, 0) || 1;
+    const maiorF = Math.max(...corpos.map((k) => k.f), 1);
+    base = Math.min(160, Math.sqrt(.5 * w * h / somaAreas), Math.min(w, h) * .42 / maiorF);
+    c.style.setProperty("--base", base + "px");
+  }
+
+  // A acomodação dura 1,5 s: os círculos correm para o centro, freiam juntos
+  // no fim e ficam parados até a próxima mudança (novo tempo, tela redimensionada,
+  // volta do timer).
+  const DURACAO_ACOMODACAO = 1.5;   // s
+  const reduzirMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let quadro = 0, ultimoQuadro = 0, inicioAcomodacao = 0;
+
+  function acomodar() {
+    pararCirculos();
+    inicioAcomodacao = performance.now();
+    if (!area.w) return;
+    if (reduzirMovimento) {
+      // sem animação: calcula direto onde eles parariam
+      for (let t = 0; t < DURACAO_ACOMODACAO; t += 1 / 60) simular(1 / 60, t);
+      terminarAcomodacao();
+      return;
+    }
+    if (telaAtual === "timer" || document.hidden) return;
+    ultimoQuadro = inicioAcomodacao;
+    quadro = requestAnimationFrame(passoFisica);
+  }
+
+  function pararCirculos() {
+    cancelAnimationFrame(quadro);
+    quadro = 0;
+  }
+
+  function passoFisica(t) {
+    quadro = 0;
+    const dt = Math.min(.033, Math.max(.001, (t - ultimoQuadro) / 1000));
+    ultimoQuadro = t;
+    const decorrido = (t - inicioAcomodacao) / 1000;
+    if (decorrido >= DURACAO_ACOMODACAO) { terminarAcomodacao(); return; }
+    simular(dt, decorrido);
+    posicionarCirculos();
+    quadro = requestAnimationFrame(passoFisica);
+  }
+
+  // Fim: zera as velocidades e faz passadas extras de colisão, para que a
+  // posição final em que ficam parados não tenha nenhuma sobreposição.
+  function terminarAcomodacao() {
+    for (const k of corpos) k.vx = k.vy = 0;
+    resolverColisoes(30);
+    posicionarCirculos();
+  }
+
+  function simular(dt, decorrido) {
+    const { w, h } = area;
+    const cx = w / 2, cy = h / 2;
+    const lado = Math.min(w, h);
+    const p = decorrido / DURACAO_ACOMODACAO;          // 0 → 1
+    const atracao = lado * 4;                           // px/s² em direção ao centro
+    const agitacao = lado * 1.2 * (1 - p);              // desordem que se desfaz
+    const amortece = Math.pow(.03, dt);
+    // freio: na segunda metade o deslocamento vai a zero suavemente
+    const x = Math.max(0, (p - .5) / .5);
+    const freio = 1 - x * x * (3 - 2 * x);
+
+    for (const k of corpos) {
+      if (k.preso) { k.vx = k.vy = 0; continue; }
+      const dx = cx - k.x, dy = cy - k.y;
+      const d = Math.hypot(dx, dy) || 1;
+      // o ímã enfraquece bem perto do centro, para ninguém ficar tremendo ali
+      const puxa = atracao * Math.min(1, d / (lado * .08));
+      // agitação: direção própria de cada círculo, que gira com o tempo
+      const ang = k.semente + decorrido * k.ritmo * 6;
+      k.vx = (k.vx + (dx / d * puxa + Math.cos(ang) * agitacao) * dt) * amortece;
+      k.vy = (k.vy + (dy / d * puxa + Math.sin(ang) * agitacao) * dt) * amortece;
+      k.x += k.vx * dt * freio;
+      k.y += k.vy * dt * freio;
+    }
+
+    resolverColisoes(6);
+  }
+
+  function posicionarCirculos() {
+    for (const k of corpos) {
+      const r = k.f * base / 2;
+      k.el.style.left = (k.x - r).toFixed(1) + "px";
+      k.el.style.top = (k.y - r).toFixed(1) + "px";
+    }
+  }
+
+  // Várias passadas por quadro garantem que ninguém se sobreponha.
+  function resolverColisoes(passadas) {
+    const { w, h } = area;
+    const folga = base * .035;                          // espaço mínimo entre círculos
+    for (let passada = 0; passada < passadas; passada++) {
+      for (let i = 0; i < corpos.length; i++) {
+        for (let j = i + 1; j < corpos.length; j++) {
+          const a = corpos[i], b = corpos[j];
           const dx = b.x - a.x, dy = b.y - a.y;
-          const d = Math.hypot(dx, dy) || .0001;
-          const minimo = a.r + b.r + folga;
-          if (d < minimo) {
-            const empurra = (minimo - d) / 2;
-            a.x -= dx / d * empurra; a.y -= dy / d * empurra;
-            b.x += dx / d * empurra; b.y += dy / d * empurra;
+          const d = Math.hypot(dx, dy);
+          const minimo = (a.f + b.f) * base / 2 + folga;
+          if (d >= minimo) continue;
+          // exatamente no mesmo ponto: separa numa direção qualquer
+          const giro = Math.random() * Math.PI * 2;
+          const nx = d > .01 ? dx / d : Math.cos(giro), ny = d > .01 ? dy / d : Math.sin(giro);
+          const sobra = minimo - d;
+          // um círculo parado sob o cursor não é empurrado: o outro desvia
+          const pa = a.preso ? 0 : b.preso ? 1 : .5;
+          const pb = 1 - pa;
+          a.x -= nx * sobra * pa; a.y -= ny * sobra * pa;
+          b.x += nx * sobra * pb; b.y += ny * sobra * pb;
+          // tira a parte da velocidade que os empurraria um contra o outro
+          const vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+          if (vn < 0) {
+            a.vx += nx * vn * pa; a.vy += ny * vn * pa;
+            b.vx -= nx * vn * pb; b.vy -= ny * vn * pb;
           }
         }
       }
-      for (const it of itens) {
-        it.x = Math.max(it.r + 6, Math.min(larg - it.r - 6, it.x));
-        it.y = Math.max(it.r + 6, Math.min(alt - it.r - 6, it.y));
+      for (const k of corpos) {
+        const r = k.f * base / 2;
+        k.x = Math.max(r, Math.min(w - r, k.x));
+        k.y = Math.max(r, Math.min(h - r, k.y));
       }
     }
-    return itens;
   }
 
-  let constelacaoDesenhada = "";
-  function desenharConstelacao(forcar = false) {
-    const caixa = $("constelacao").getBoundingClientRect();
-    if (caixa.width < 10 || caixa.height < 10) return;
-    const duracoes = duracoesAtuais();
-    const assinatura = duracoes.join(",") + "@" + Math.round(caixa.width) + "x" + Math.round(caixa.height);
-    if (!forcar && assinatura === constelacaoDesenhada) return;
-    constelacaoDesenhada = assinatura;
-
-    $("constelacao").innerHTML = "";
-    posicionarCirculos(duracoes, caixa.width, caixa.height).forEach((it, i) => {
-      const btn = document.createElement("button");
-      btn.className = "circulo";
-      Object.assign(btn.style, {
-        width: it.r * 2 + "px", height: it.r * 2 + "px",
-        left: it.x + "px", top: it.y + "px",
-        animationDelay: i * 35 + "ms",
-      });
-      btn.innerHTML = `<b style="font-size:${Math.max(13, it.r * .42)}px">${it.valor}</b>`
-        + `<small style="font-size:${Math.max(9, it.r * .19)}px">min</small>`;
-      btn.setAttribute("aria-label", `Iniciar timer de ${it.valor} ${it.valor === 1 ? "minuto" : "minutos"}`);
-      btn.addEventListener("click", () => iniciar(it.valor));
-      $("constelacao").appendChild(btn);
-    });
-  }
+  // Aba em segundo plano no meio da acomodação: termina na hora, sem animar.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && quadro) { pararCirculos(); terminarAcomodacao(); }
+  });
 
   // ---------------------------------------------------------------------------
   // Timer
   // ---------------------------------------------------------------------------
-  async function iniciar(minutos) {
+  async function iniciar(segundos) {
     destravarAudio();
-    const novo = { ativo: true, minutos, inicio: 0 };
+    const novo = { ativo: true, segundos, inicio: 0 };
     if (sessao) {
       novo.inicio = fb.m.serverTimestamp();
       await gravarTimer(novo);
@@ -514,8 +837,7 @@
 
   function reiniciar() {
     const t = timerAtual();
-    if (!t.minutos) return;
-    iniciar(t.minutos);
+    if (t.segundos) iniciar(t.segundos);
   }
 
   async function encerrar() {
@@ -532,87 +854,122 @@
     }
   }
 
+  // Três telas: "inicio" (só os círculos), "timer" (só a contagem) e
+  // "excedido" (o tempo extra de um lado e os círculos do outro).
   let telaAtual = "inicio";
   function mostrarTela(nome) {
     if (nome === telaAtual) return;
     telaAtual = nome;
-    $("inicio").classList.toggle("ativa", nome === "inicio");
-    $("tela-timer").classList.toggle("ativa", nome === "timer");
-    $("ajustes-btn").hidden = nome !== "inicio";
-    if (nome === "inicio") {
-      document.title = "Cuckoo";
-      requestAnimationFrame(() => desenharConstelacao(true));
-    }
+    const comCirculos = nome !== "timer";
+    $("inicio").classList.toggle("ativa", comCirculos);
+    $("tela-timer").classList.toggle("ativa", nome !== "inicio");
+    $("app").classList.toggle("modo-excedido", nome === "excedido");
+    $("ajustes-btn").hidden = !comCirculos;
+    if (nome === "inicio") document.title = "Cuckoo";
+    if (comCirculos) requestAnimationFrame(() => desenharCirculos(true));
+    else pararCirculos();   // ninguém vê os círculos durante a contagem
   }
 
-  function desenharContador(segundos) {
-    const texto = String(Math.floor(segundos / 60)).padStart(2, "0") + ":" + String(segundos % 60).padStart(2, "0");
-    if ($("contador").textContent !== texto) {
-      $("contador").textContent = texto;
-      document.title = texto + " · Cuckoo";
-    }
+  function escrever(id, texto) {
+    if ($(id).textContent !== texto) $(id).textContent = texto;
+  }
+
+  // Cor do fundo conforme a fração de tempo que ainda falta, mudando aos
+  // poucos: violeta no começo, magenta na metade, rosa-vermelho perto do fim
+  // e vermelho-alaranjado quando zera.
+  const CORES = [
+    // [fração restante, cor clara, cor escura]
+    [1, [104, 64, 236], [46, 22, 130]],
+    [.5, [196, 48, 196], [92, 16, 104]],
+    [.2, [240, 44, 104], [124, 12, 52]],
+    [0, [255, 78, 36], [150, 22, 8]],
+  ];
+  function pintarFundo(fracao) {
+    fracao = Math.max(0, Math.min(1, fracao));
+    let i = 0;
+    while (i < CORES.length - 2 && fracao < CORES[i + 1][0]) i++;
+    const [fa, claraA, escuraA] = CORES[i];
+    const [fb_, claraB, escuraB] = CORES[i + 1];
+    const k = fa === fb_ ? 0 : (fa - fracao) / (fa - fb_);
+    const mistura = (a, b) => `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(",")})`;
+    const tela = $("tela-timer");
+    tela.style.setProperty("--t1", mistura(claraA, claraB));
+    tela.style.setProperty("--t0", mistura(escuraA, escuraB));
   }
 
   // Roda várias vezes por segundo e decide a tela a partir do estado: é isso
   // que mantém todos da sessão sincronizados, inclusive quem entra no meio.
   let fimJaTocado = 0;
-  let segurarAte = 0;
   function tique() {
     const t = timerAtual();
-    const fim = t.ativo && typeof t.inicio === "number" ? t.inicio + t.minutos * 60000 : 0;
+    const fim = t.ativo && typeof t.inicio === "number" && t.segundos ? t.inicio + t.segundos * 1000 : 0;
+    if (!fim) { mostrarTela("inicio"); return; }
+
     const restante = fim - agora();
+    const estavaNoTimer = telaAtual === "timer";
+    const tela = $("tela-timer");
 
-    if (fim && restante > 0) {
-      segurarAte = 0;
-      $("contador").classList.remove("acabando");
-      desenharContador(Math.ceil(restante / 1000));
+    if (restante > 0) {
       mostrarTela("timer");
+      tela.classList.remove("excedido");
+      escrever("rotulo-timer", "de " + rotuloCirculo(t.segundos).join(" "));
+      const texto = relogio(Math.ceil(restante / 1000));
+      escrever("contador", texto);
+      document.title = texto + " · Cuckoo";
+      pintarFundo(restante / (t.segundos * 1000));
       return;
     }
 
-    // Acabou com a tela do timer aberta: toca o cuco e segura o 00:00 um
-    // instante. Quem chega depois que acabou (ou volta muito tempo depois a
-    // uma aba esquecida) vai direto para o início, sem alarme atrasado.
-    if (fim && fim !== fimJaTocado && telaAtual === "timer" && restante > -5000) {
+    // Acabou: o cuco canta uma vez (só para quem estava vendo a contagem — quem
+    // chega depois não ouve um alarme atrasado), o contador passa a mostrar há
+    // quanto tempo o tempo acabou e os círculos voltam ao lado dele.
+    mostrarTela("excedido");
+    if (fim !== fimJaTocado) {
       fimJaTocado = fim;
-      desenharContador(0);
+      if (estavaNoTimer && restante > -5000) tocarCuco();
       $("contador").classList.add("acabando");
-      tocarCuco();
-      segurarAte = performance.now() + 1300;
-      return;
+      setTimeout(() => $("contador").classList.remove("acabando"), 600);
     }
-
-    if (performance.now() < segurarAte) return;
-    $("contador").classList.remove("acabando");
-    mostrarTela("inicio");
+    tela.classList.add("excedido");
+    pintarFundo(0);
+    escrever("rotulo-timer", "tempo esgotado há");
+    const texto = "+" + relogio(Math.floor(-restante / 1000));
+    escrever("contador", texto);
+    document.title = texto + " · Cuckoo";
   }
 
   // ---------------------------------------------------------------------------
-  // Som do cuco, tocado sempre que o timer termina
+  // Som: só o cuco, quando o timer termina
   // ---------------------------------------------------------------------------
   const somCuco = new Audio("som-cuckoo.mp3");
   somCuco.preload = "auto";
   let audioDestravado = false;
+  let destravando = false;
 
   // O navegador só deixa tocar som depois de um gesto do usuário. Tocar o
-  // arquivo mudo uma vez, dentro desse gesto, libera o play() de mais tarde
-  // (quando o timer zerar sem ninguém tocando na tela). Quem entra por link
-  // talvez nunca clique num círculo, então qualquer toque na página serve.
+  // arquivo em silêncio total (mudo e volume zero) uma vez, dentro desse gesto,
+  // libera o play() de mais tarde. Quem entra por link talvez nunca clique num
+  // círculo, então qualquer toque na página serve.
   function destravarAudio() {
-    if (audioDestravado) return;
+    if (audioDestravado || destravando) return;
+    destravando = true;
     somCuco.muted = true;
+    somCuco.volume = 0;
     somCuco.play().then(() => {
       somCuco.pause();
       somCuco.currentTime = 0;
-      somCuco.muted = false;
       audioDestravado = true;
-    }).catch(() => { somCuco.muted = false; });
+    }).catch(() => {}).finally(() => {
+      destravando = false;
+    });
   }
   ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, destravarAudio, { passive: true }));
 
   function tocarCuco() {
-    somCuco.muted = false;
+    somCuco.pause();
     somCuco.currentTime = 0;
+    somCuco.muted = false;
+    somCuco.volume = 1;
     somCuco.play().catch((err) => console.warn("Som do cuco bloqueado pelo navegador:", err));
   }
 
@@ -653,6 +1010,36 @@
     m.set(ref, true).catch(() => {});
   }
 
+  // ---------------------------------------------------------------------------
+  // Nome da sessão e link
+  // ---------------------------------------------------------------------------
+  // O link leva o nome e o código: …/cuckoo/#reuniao-de-sexta-K7Q2M. Só o
+  // código (sempre no fim) identifica a sessão, então links antigos continuam
+  // funcionando mesmo depois que alguém renomeia.
+  const limparNome = (nome) => String(nome || "").replace(/\s+/g, " ").trim().slice(0, 40);
+
+  function slugDoNome(nome) {
+    return limparNome(nome).normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+  }
+
+  const nomeDaSessao = () => limparNome(sessao && sessao.dados && sessao.dados.nome);
+
+  function hashDaSessao() {
+    const slug = slugDoNome(nomeDaSessao());
+    return "#" + (slug ? slug + "-" : "") + sessao.codigo;
+  }
+
+  function codigoDoEndereco() {
+    let hash = location.hash.slice(1);
+    try { hash = decodeURIComponent(hash); } catch {}
+    const achado = hash.match(/(?:^|-)([A-Za-z0-9]{5})$/);
+    return achado ? achado[1].toUpperCase() : "";
+  }
+
+  const escapar = (s) => String(s).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
   function gerarCodigo() {
     let c = "";
     for (let i = 0; i < 5; i++) c += ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
@@ -679,10 +1066,11 @@
         // estiver rodando aqui, para não interromper ninguém.
         await m.set(ref, {
           criadaEm: m.serverTimestamp(),
-          duracoes: duracoesLocais,
+          nome: limparNome($("nome-campo").value),
+          tempos: temposLocais,
           timer: timerLocal.ativo
             ? { ...timerLocal, inicio: timerLocal.inicio + desvioServidor }
-            : { ativo: false, minutos: 0, inicio: 0 },
+            : { ativo: false, segundos: 0, inicio: 0 },
         });
         await entrarSessao(codigo);
         return;
@@ -711,12 +1099,16 @@
 
       sairSessao({ manterEndereco: true });
       sessao = { codigo, dados: snap.val(), desligar: [] };
+      // Entrar numa sessão já com o tempo acabado não toca o cuco.
+      fimJaTocado = 0;
       sessao.desligar.push(m.onValue(ref, (s) => {
         if (!sessao || sessao.codigo !== codigo) return;
         if (!s.exists()) { sairSessao(); alert("A sessão foi encerrada."); return; }
         sessao.dados = s.val();
+        // alguém renomeou: o endereço desta tela passa a levar o nome novo
+        if (location.hash !== hashDaSessao()) history.replaceState(null, "", hashDaSessao());
         desenharSessao();
-        desenharConstelacao();
+        desenharCirculos();
         tique();
       }, (err) => {
         console.error(err);
@@ -725,9 +1117,9 @@
       }));
       marcarPresenca();
 
-      history.replaceState(null, "", "#" + codigo);
+      history.replaceState(null, "", hashDaSessao());
       desenharSessao();
-      desenharConstelacao(true);
+      desenharCirculos(true);
       tique();
       return true;
     } catch (err) {
@@ -750,7 +1142,7 @@
     sessao = null;
     if (!manterEndereco) history.replaceState(null, "", location.pathname + location.search);
     desenharSessao();
-    desenharConstelacao(true);
+    desenharCirculos(true);
     tique();
   }
 
@@ -771,21 +1163,30 @@
     $("sair-btn").hidden = !dentro;
 
     if (!dentro) {
-      $("sessao-rotulo").textContent = "sessão";
+      $("sessao-rotulo").textContent = "sessão compartilhada";
       btn.setAttribute("aria-label", "Criar ou entrar numa sessão compartilhada");
       return;
     }
 
     const n = Math.max(1, Object.keys((sessao.dados && sessao.dados.presenca) || {}).length);
     const pessoas = n === 1 ? "só você" : n + " pessoas";
+    const nome = nomeDaSessao();
+    // Com nome, o botão mostra o nome; sem nome, o código.
     $("sessao-rotulo").innerHTML = `<span class="ponto-vivo ${conectado ? "" : "desconectado"}"></span>`
-      + `<span class="codigo">${sessao.codigo}</span><span class="pessoas">· ${pessoas}</span>`;
-    btn.setAttribute("aria-label", `Sessão ${sessao.codigo}, ${pessoas}`);
+      + (nome ? `<span class="nome-sessao">${escapar(nome)}</span>` : `<span class="codigo">${sessao.codigo}</span>`)
+      + `<span class="pessoas">· ${pessoas}</span>`;
+    btn.setAttribute("aria-label", `Sessão ${nome || sessao.codigo}, ${pessoas}`);
+    $("sessao-dentro-titulo").textContent = nome || "Você está na sessão";
     $("sessao-codigo").textContent = sessao.codigo;
     $("sessao-pessoas").textContent = conectado
       ? (n === 1 ? "Só você está conectado agora." : `${n} pessoas conectadas agora.`)
       : "Reconectando…";
-    $("sessao-link").value = location.origin + location.pathname + "#" + sessao.codigo;
+    // não sobrescreve o nome enquanto alguém o edita nesta tela
+    if (document.activeElement !== $("sessao-nome-campo")) $("sessao-nome-campo").value = nome;
+    $("sessao-link").value = location.origin + location.pathname + hashDaSessao();
+    $("aviso-sessao-timer").textContent = nome
+      ? `todos na sessão “${nome}” veem este mesmo tempo`
+      : "todos na sessão veem este mesmo tempo";
   }
 
   function mostrarErro(texto) {
@@ -796,55 +1197,121 @@
   function abrir(id) { $(id).classList.add("aberta"); }
   function fechar(id) { $(id).classList.remove("aberta"); }
 
+  // Grava a lista de tempos onde ela vale agora: na sessão ou neste navegador.
+  async function salvarTempos(tempos) {
+    tempos = limparTempos(tempos);
+    if (sessao) {
+      try {
+        await fb.m.set(fb.m.ref(fb.db, CAMINHO + sessao.codigo + "/tempos"), tempos);
+      } catch (err) {
+        console.error(err);
+        alert("Não foi possível salvar os tempos da sessão.");
+        return false;
+      }
+    } else {
+      temposLocais = tempos;
+      try { localStorage.setItem(CHAVE_LOCAL, JSON.stringify(tempos)); } catch {}
+    }
+    desenharCirculos(true);
+    return true;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Novo tempo (círculo "+")
+  // ---------------------------------------------------------------------------
+  function abrirNovoTempo() {
+    $("novo-min").value = "";
+    $("novo-seg").value = "";
+    $("novo-tempo-erro").hidden = true;
+    abrir("novo-tempo");
+    setTimeout(() => $("novo-min").focus(), 50);
+  }
+
+  function lerNovoTempo() {
+    const seg = (parseInt($("novo-min").value, 10) || 0) * 60 + (parseInt($("novo-seg").value, 10) || 0);
+    if (seg < TEMPO_MIN || seg > TEMPO_MAX) {
+      $("novo-tempo-erro").textContent = "Escolha um tempo entre 5 segundos e 180 minutos.";
+      $("novo-tempo-erro").hidden = false;
+      return 0;
+    }
+    return seg;
+  }
+
   // ---------------------------------------------------------------------------
   // Editar tempos
   // ---------------------------------------------------------------------------
-  function abrirAjustes() {
-    $("lista-ajustes").innerHTML = duracoesAtuais().map((v, i) => `
-      <div class="linha-ajuste">
-        <label for="dur-${i}">Timer ${i + 1}</label>
-        <span><input class="campo" type="number" id="dur-${i}" min="1" max="180" value="${v}"> min</span>
-      </div>`).join("");
+  function linhaAjuste(seg) {
+    return `<div class="linha-ajuste">
+      <span class="campos-tempo">
+        <input class="campo" type="number" data-p="m" min="0" max="180" value="${Math.floor(seg / 60)}" aria-label="Minutos"> min
+        <input class="campo" type="number" data-p="s" min="0" max="59" value="${seg % 60}" aria-label="Segundos"> s
+      </span>
+      <button class="remover-tempo" aria-label="Remover este tempo">✕</button>
+    </div>`;
+  }
+
+  function abrirAjustes(tempos = temposAtuais()) {
+    $("lista-ajustes").innerHTML = tempos.map(linhaAjuste).join("");
     abrir("ajustes");
   }
 
   async function salvarAjustes() {
-    const novas = limparDuracoes([...$("lista-ajustes").querySelectorAll("input")].map((c) => c.value));
-    if (sessao) {
-      try {
-        await fb.m.set(fb.m.ref(fb.db, CAMINHO + sessao.codigo + "/duracoes"), novas);
-      } catch (err) {
-        console.error(err);
-        alert("Não foi possível salvar os tempos da sessão.");
-        return;
-      }
-    } else {
-      duracoesLocais = novas;
-      try { localStorage.setItem(CHAVE_LOCAL, JSON.stringify(novas)); } catch {}
-    }
-    fechar("ajustes");
-    desenharConstelacao(true);
+    const tempos = [...$("lista-ajustes").querySelectorAll(".linha-ajuste")].map((linha) =>
+      (parseInt(linha.querySelector('[data-p="m"]').value, 10) || 0) * 60
+      + (parseInt(linha.querySelector('[data-p="s"]').value, 10) || 0));
+    if (await salvarTempos(tempos)) fechar("ajustes");
   }
 
   // ---------------------------------------------------------------------------
   // Eventos
   // ---------------------------------------------------------------------------
+  $("constelacao").addEventListener("click", (e) => {
+    const btn = e.target.closest(".circulo");
+    if (!btn) return;
+    if (btn.classList.contains("mais")) abrirNovoTempo();
+    else iniciar(Number(btn.dataset.seg));
+  });
+
+  $("novo-tempo-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const seg = lerNovoTempo();
+    if (!seg) return;
+    if (temposAtuais().length >= MAX_TEMPOS && !temposAtuais().includes(seg)) {
+      $("novo-tempo-erro").textContent = `Cabem até ${MAX_TEMPOS} tempos. Remova algum em "Editar tempos".`;
+      $("novo-tempo-erro").hidden = false;
+      return;
+    }
+    if (await salvarTempos([...temposAtuais(), seg])) fechar("novo-tempo");
+  });
+  $("novo-tempo-iniciar").addEventListener("click", () => {
+    const seg = lerNovoTempo();
+    if (!seg) return;
+    fechar("novo-tempo");
+    iniciar(seg);
+  });
+  $("novo-tempo-fechar").addEventListener("click", () => fechar("novo-tempo"));
+
   $("reiniciar-btn").addEventListener("click", reiniciar);
   $("voltar-btn").addEventListener("click", encerrar);
-  $("ajustes-btn").addEventListener("click", abrirAjustes);
+  $("ajustes-btn").addEventListener("click", () => abrirAjustes());
   $("ajustes-fechar").addEventListener("click", () => fechar("ajustes"));
   $("ajustes-salvar").addEventListener("click", salvarAjustes);
+  $("ajustes-padrao").addEventListener("click", () => abrirAjustes(TEMPOS_PADRAO));
+  $("lista-ajustes").addEventListener("click", (e) => {
+    const btn = e.target.closest(".remover-tempo");
+    if (btn) btn.closest(".linha-ajuste").remove();
+  });
 
   $("sessao-btn").addEventListener("click", () => {
     mostrarErro("");
     desenharSessao();
     abrir("painel-sessao");
-    if (!sessao) setTimeout(() => $("codigo-campo").focus(), 50);
+    if (!sessao) setTimeout(() => $("nome-campo").focus(), 50);
   });
   $("sessao-fechar").addEventListener("click", () => fechar("painel-sessao"));
   $("criar-btn").addEventListener("click", async () => {
     await criarSessao();
-    if (sessao) desenharSessao();
+    if (sessao) { $("nome-campo").value = ""; desenharSessao(); }
   });
   $("entrar-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -854,6 +1321,19 @@
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
   });
   $("sair-btn").addEventListener("click", () => { sairSessao(); fechar("painel-sessao"); });
+
+  // Renomear: grava um instante depois que a pessoa para de digitar.
+  let esperaNome;
+  $("sessao-nome-campo").addEventListener("input", (e) => {
+    clearTimeout(esperaNome);
+    const codigo = sessao && sessao.codigo;
+    esperaNome = setTimeout(() => {
+      if (!sessao || sessao.codigo !== codigo) return;
+      fb.m.set(fb.m.ref(fb.db, CAMINHO + codigo + "/nome"), limparNome(e.target.value))
+        .catch((err) => { console.error(err); alert("Não foi possível renomear a sessão."); });
+    }, 500);
+  });
+  $("sessao-nome-campo").addEventListener("blur", () => desenharSessao());
   $("copiar-btn").addEventListener("click", async () => {
     const campo = $("sessao-link");
     try { await navigator.clipboard.writeText(campo.value); }
@@ -869,18 +1349,26 @@
     if (e.key !== "Escape") return;
     const aberta = document.querySelector(".sobreposicao.aberta");
     if (aberta) fechar(aberta.id);
-    else if (telaAtual === "timer" && !sessao) encerrar();
+    else if (telaAtual !== "inicio" && !sessao) encerrar();
   });
 
+  // A área dos círculos muda de tamanho com a janela e ao dividir a tela com
+  // o tempo extra: os círculos se reacomodam no espaço novo.
   let esperaRedimensionar;
-  window.addEventListener("resize", () => {
+  new ResizeObserver(() => {
     clearTimeout(esperaRedimensionar);
-    esperaRedimensionar = setTimeout(() => { if (telaAtual === "inicio") desenharConstelacao(); }, 150);
-  });
+    esperaRedimensionar = setTimeout(() => {
+      const c = $("constelacao");
+      if (telaAtual === "timer" || (c.clientWidth === area.w && c.clientHeight === area.h)) return;
+      encaixarCirculos();
+      acomodar();
+    }, 120);
+  }).observe($("constelacao"));
 
-  // Entrar por link (…/cuckoo/#K7Q2M) ou trocar o código na barra de endereço.
+  // Entrar por link (…/cuckoo/#nome-K7Q2M ou …/cuckoo/#K7Q2M) ou trocar o
+  // código na barra de endereço.
   function entrarPeloEndereco() {
-    const codigo = location.hash.slice(1).toUpperCase();
+    const codigo = codigoDoEndereco();
     if (!codigo || (sessao && sessao.codigo === codigo)) return;
     entrarSessao(codigo).then((ok) => { if (!ok) { desenharSessao(); abrir("painel-sessao"); } });
   }
@@ -890,7 +1378,7 @@
   // Arranque
   // ---------------------------------------------------------------------------
   desenharSessao();
-  desenharConstelacao(true);
+  desenharCirculos(true);
   setInterval(tique, 200);
   entrarPeloEndereco();
 </script>
