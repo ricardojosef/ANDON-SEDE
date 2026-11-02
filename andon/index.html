@@ -67,8 +67,8 @@
 
   <!-- ================= EVENTOS =================
        Três blocos: o da esquerda é sempre o dia corrente; os dois da direita
-       são os próximos compromissos. Os títulos mudam conforme o dia da semana
-       (ver ROTULOS_EVENTOS em app.js). -->
+       são os próximos compromissos. O conteúdo é guardado por data e cada
+       bloco mostra a data que lhe cabe no dia (ver BLOCOS_POR_DIA em app.js). -->
   <section class="eventos">
     <article class="cartao evento evento-hoje" data-dia="hoje">
       <h2 class="cartao-titulo" id="tituloHoje">Eventos do dia</h2>
@@ -211,6 +211,13 @@
 
     <!-- ---- aba eventos ---- -->
     <div class="painel-aba" data-aba="eventos">
+      <p class="dica">
+        Planeje a semana inteira de uma vez: cada evento fica guardado no seu dia e,
+        na virada do dia, anda sozinho pelos blocos do painel (o que está em
+        "Terça-feira" na segunda vira "Eventos do dia" na terça).
+      </p>
+      <div id="edEventosSemanas" class="ed-semanas" role="tablist"></div>
+      <div id="edEventosDias" class="ed-dias" role="tablist"></div>
       <div id="edEventos" class="ed-eventos"></div>
     </div>
 

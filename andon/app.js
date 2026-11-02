@@ -25,21 +25,45 @@ function diaDeHoje(agora = new Date()) {
   return DIAS.find((d) => d.diaSemana === agora.getDay()) || DIAS[0];
 }
 
-// Títulos dos três blocos de evento, por dia da semana. O bloco da esquerda é
-// sempre o dia corrente; os dois da direita são os próximos compromissos.
+// Os três blocos de evento, por dia da semana: o título e quantos dias à frente
+// está a data que cada bloco mostra. O conteúdo é guardado por data, então na
+// virada do dia ele anda sozinho entre os blocos: o que aparece em "Terça-feira"
+// na segunda passa a ser o "Eventos do dia" na terça.
 // Índice = Date.getDay() (0 = domingo … 6 = sábado).
-const ROTULOS_EVENTOS = {
-  1: ["Eventos do dia", "Terça-feira", "Quinta-feira"],        // segunda
-  2: ["Eventos do dia", "Amanhã", "Quinta-feira"],             // terça
-  3: ["Eventos do dia", "Amanhã", "Sexta-feira"],              // quarta
-  4: ["Eventos do dia", "Amanhã", "Semana que vem"],           // quinta
-  5: ["Eventos do dia", "Próxima terça-feira", "Próxima quinta-feira"], // sexta
+const BLOCOS_POR_DIA = {
+  1: [["Eventos do dia", 0], ["Terça-feira", 1], ["Quinta-feira", 3]],
+  2: [["Eventos do dia", 0], ["Amanhã", 1], ["Quinta-feira", 2]],
+  3: [["Eventos do dia", 0], ["Amanhã", 1], ["Sexta-feira", 2]],
+  4: [["Eventos do dia", 0], ["Amanhã", 1], ["Semana que vem", 5]],   // próxima terça
+  5: [["Eventos do dia", 0], ["Próxima terça-feira", 4], ["Próxima quinta-feira", 6]],
+  // Sábado e domingo já mostram a semana seguinte, como se fosse segunda.
+  6: [["Eventos do dia", 2], ["Terça-feira", 3], ["Quinta-feira", 5]],
+  0: [["Eventos do dia", 1], ["Terça-feira", 2], ["Quinta-feira", 4]],
 };
-// Sábado e domingo caem no mesmo rótulo de segunda, que é o próximo dia útil.
-const ROTULOS_FIM_DE_SEMANA = ["Eventos do dia", "Terça-feira", "Quinta-feira"];
 
-function rotulosEventos(agora = new Date()) {
-  return ROTULOS_EVENTOS[agora.getDay()] || ROTULOS_FIM_DE_SEMANA;
+function blocosEventos(agora = new Date()) {
+  return BLOCOS_POR_DIA[agora.getDay()].map(([titulo, desloc]) => ({
+    titulo,
+    data: dataISO(somarDias(agora, desloc)),
+  }));
+}
+
+// Datas no fuso local (toISOString usaria UTC e erraria o dia à noite).
+function somarDias(d, n) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+function dataISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")
+    + "-" + String(d.getDate()).padStart(2, "0");
+}
+const diaMes = (d) => String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+const ehFimDeSemana = (d = new Date()) => d.getDay() === 0 || d.getDay() === 6;
+
+// Segunda-feira da semana que o painel está mostrando; no fim de semana, a
+// próxima (a mesma regra dos blocos).
+function segundaDaSemana(agora = new Date()) {
+  const dia = agora.getDay();
+  return somarDias(agora, dia === 0 ? 1 : dia === 6 ? 2 : 1 - dia);
 }
 
 // ---------------------------------------------------------------------------
@@ -77,11 +101,9 @@ function estadoPadrao() {
     letreiro: { texto: "", modo: "off", exibidoEm: 0 },
     plantao,
     membros,
-    eventos: {
-      hoje: eventoPadrao(""),
-      proximo1: eventoPadrao(""),
-      proximo2: eventoPadrao(""),
-    },
+    // Um evento por data ("2026-11-03": {...}); os blocos da tela escolhem
+    // quais datas mostrar (ver BLOCOS_POR_DIA).
+    eventos: { dias: {} },
     volume: { limiar: 0.12, calibradoEm: 0 },
     atualizadoEm: 0,
   };
@@ -102,24 +124,35 @@ function normalizar(bruto) {
     letreiro: { ...base.letreiro, ...(bruto.letreiro || {}) },
     plantao: base.plantao,
     membros: base.membros,
-    // O formato antigo tinha blocos fixos "terca"/"quinta"; eles viram os dois
-    // blocos de próximos compromissos, para não perder o que já estava escrito.
-    eventos: {
-      hoje: { ...base.eventos.hoje, ...((bruto.eventos || {}).hoje || {}) },
-      proximo1: {
-        ...base.eventos.proximo1,
-        ...((bruto.eventos || {}).terca || {}),
-        ...((bruto.eventos || {}).proximo1 || {}),
-      },
-      proximo2: {
-        ...base.eventos.proximo2,
-        ...((bruto.eventos || {}).quinta || {}),
-        ...((bruto.eventos || {}).proximo2 || {}),
-      },
-    },
+    eventos: { dias: {} },
     volume: { ...base.volume, ...(bruto.volume || {}) },
     atualizadoEm: bruto.atualizadoEm || 0,
   };
+
+  const evBruto = bruto.eventos || {};
+  if (evBruto.dias && typeof evBruto.dias === "object") {
+    for (const [iso, ev] of Object.entries(evBruto.dias)) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(iso) && ev && typeof ev === "object") {
+        est.eventos.dias[iso] = { ...eventoPadrao(""), ...ev };
+      }
+    }
+  }
+
+  // Formato antigo: três blocos fixos (hoje/proximo1/proximo2, e antes deles
+  // terca/quinta), cujo conteúdo não mudava de lugar. Cada um vai para a data
+  // que o bloco correspondente mostra hoje, para não perder o que foi escrito.
+  const antigos = [evBruto.hoje, evBruto.proximo1 || evBruto.terca, evBruto.proximo2 || evBruto.quinta];
+  if (antigos.some(Boolean)) {
+    blocosEventos().forEach(({ data }, i) => {
+      const ev = antigos[i];
+      const temConteudo = ev && typeof ev === "object" && ((ev.texto || "").trim() || ev.imagem);
+      if (temConteudo && !est.eventos.dias[data]) {
+        est.eventos.dias[data] = { ...eventoPadrao(""), ...ev };
+      }
+    });
+    // Sinaliza para regravar no formato novo e apagar os blocos antigos.
+    est._migrarEventos = true;
+  }
 
   if (bruto.plantao) {
     // Formato antigo: uma escala única, com os horários na raiz. Aproveita esses
@@ -253,6 +286,22 @@ async function gravar(caminho, valor) {
   }
 }
 
+// Remove uma subárvore. Não conta como edição (não mexe em "atualizadoEm").
+async function apagar(caminho) {
+  if (sync.modo === "firebase") {
+    const { ref, remove } = sync._fb;
+    await remove(ref(sync._db, "andon/" + caminho));
+  } else {
+    const partes = caminho.split("/");
+    let no = estado;
+    for (let i = 0; i < partes.length - 1 && no; i++) no = no[partes[i]];
+    if (!no) return;
+    delete no[partes[partes.length - 1]];
+    localStorage.setItem(CHAVE_LOCAL, JSON.stringify(estado));
+    aplicarEstado(estado);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Utilidades de horário
 // ---------------------------------------------------------------------------
@@ -279,10 +328,13 @@ function proximoSlotIndice(agora = new Date()) {
 // Render
 // ---------------------------------------------------------------------------
 let plantaoMigrado = false;
+let eventosMigrados = false;
 
 function aplicarEstado(novo) {
   const precisaMigrar = novo._migrarPlantao;
+  const precisaMigrarEventos = novo._migrarEventos;
   delete novo._migrarPlantao;
+  delete novo._migrarEventos;
   estado = novo;
 
   // Escala no formato antigo (única, sem dias): regrava já convertida, uma vez
@@ -291,6 +343,13 @@ function aplicarEstado(novo) {
     plantaoMigrado = true;
     gravar("plantao", estado.plantao);
   }
+  // Mesma ideia para os eventos em blocos fixos: o "set" de "eventos" inteiro
+  // descarta as chaves antigas.
+  if (precisaMigrarEventos && !eventosMigrados) {
+    eventosMigrados = true;
+    gravar("eventos", { dias: estado.eventos.dias });
+  }
+  limparDiasPassados();
 
   renderReuniao();
   renderPlantao();
@@ -473,15 +532,27 @@ const BLOCOS_EVENTO = ["hoje", "proximo1", "proximo2"];
 // "hoje" -> "Hoje", "proximo1" -> "Proximo1": sufixo dos ids no HTML.
 const idDoBloco = (b) => b[0].toUpperCase() + b.slice(1);
 
-function renderEventos() {
-  // Os títulos acompanham o dia da semana; o conteúdo é sempre o mesmo campo.
-  const rotulos = rotulosEventos();
-  $("tituloHoje").textContent = rotulos[0];
-  $("tituloProximo1").textContent = rotulos[1];
-  $("tituloProximo2").textContent = rotulos[2];
+// Datas que já passaram não aparecem em bloco nenhum; apagá-las evita que
+// imagens antigas (data URL) se acumulem no banco. Várias telas podem tentar
+// apagar a mesma data ao mesmo tempo, o que é inofensivo.
+const datasApagando = new Set();
+function limparDiasPassados() {
+  const hoje = dataISO(new Date());
+  for (const iso of Object.keys(estado.eventos.dias)) {
+    if (iso < hoje && !datasApagando.has(iso)) {
+      datasApagando.add(iso);
+      apagar("eventos/dias/" + iso);
+    }
+  }
+}
 
-  for (const dia of BLOCOS_EVENTO) {
-    const ev = estado.eventos[dia];
+function renderEventos() {
+  // Cada bloco mostra a data que lhe cabe hoje; o título acompanha.
+  const blocos = blocosEventos();
+
+  BLOCOS_EVENTO.forEach((dia, i) => {
+    $("titulo" + idDoBloco(dia)).textContent = blocos[i].titulo;
+    const ev = estado.eventos.dias[blocos[i].data] || eventoPadrao("");
     const alvo = $("evento" + idDoBloco(dia));
     const url = (ev.imagem || "").trim();
 
@@ -503,7 +574,7 @@ function renderEventos() {
     alvo.classList.toggle("piscando", Boolean(ev.piscar) && !alvo.classList.contains("vazio"));
 
     confete(dia, Boolean(ev.confete) && !alvo.classList.contains("vazio"));
-  }
+  });
 }
 
 function renderLetreiro() {
@@ -712,10 +783,11 @@ function tiquetaque() {
   renderPlantao();
   renderReuniao();   // reflete o agendamento de reunião assim que o período abre/fecha
 
-  // Na virada do dia os rótulos dos eventos mudam (ex.: "Terça-feira" vira
-  // "Amanhã"), mesmo antes do reload de madrugada.
+  // Na virada do dia o conteúdo dos eventos anda entre os blocos (o de
+  // "Terça-feira" vira "Eventos do dia"), mesmo antes do reload de madrugada.
   if (agora.getDay() !== diaSemanaAtual) {
     diaSemanaAtual = agora.getDay();
+    limparDiasPassados();
     renderEventos();
     if (modalAberto()) renderFormularios();
   }
@@ -890,11 +962,16 @@ let membrosDestravados = false;
 let editandoHorarioAgenda = false;
 // Dia da semana aberto na aba de escala; o modal sempre abre no dia de hoje.
 let diaEscalaAberto = diaDeHoje().chave;
+// Semana (0 = a atual, 1 = a seguinte) e data abertas na aba de eventos.
+let semanaEventos = 0;
+let dataEventoAberta = blocosEventos()[0].data;
 
 function abrirModal() {
   $("modal").hidden = false;
   document.body.classList.add("editando");
   diaEscalaAberto = diaDeHoje().chave;   // abre sempre no dia de hoje
+  semanaEventos = 0;
+  dataEventoAberta = blocosEventos()[0].data;
   renderFormularios();
 }
 
@@ -937,11 +1014,9 @@ function renderEditorPlantao() {
 
   const iAtual = diaEscalaAberto === hoje ? slotAtualIndice() : -1;
 
-  // Preserva o campo em digitação: sem isso, a gravação de um slot redesenharia
-  // a lista e tiraria o cursor de onde o usuário está escrevendo.
-  const focado = document.activeElement;
-  const slotFocado = focado && focado.dataset && focado.dataset.slot ? focado.dataset.slot : null;
-  const posCursor = slotFocado ? focado.selectionStart : 0;
+  // Trocar de dia tira o foco da lista (vai para o botão do dia), então ela
+  // é redesenhada normalmente nesse caso.
+  if (emEdicao($("edPlantao"))) return;
 
   $("edPlantao").innerHTML = SLOTS_PLANTAO.map(([inicio, fim], i) => `
     <div class="linha ${i === iAtual ? "atual" : ""}">
@@ -949,14 +1024,30 @@ function renderEditorPlantao() {
       <input type="text" data-slot="${inicio}" placeholder="livre"
              value="${escapar(escala[inicio] || "")}">
     </div>`).join("");
+}
 
-  if (slotFocado) {
-    const campo = $("edPlantao").querySelector(`input[data-slot="${slotFocado}"]`);
-    if (campo) {
-      campo.focus();
-      campo.setSelectionRange(posCursor, posCursor);
-    }
-  }
+// Há um campo em uso dentro de `container`? Enquanto houver, o container não é
+// redesenhado: o redesenho tiraria o foco do campo (obrigando a clicar de novo
+// para continuar digitando) e devolveria o valor já gravado por cima do que
+// ainda está sendo escrito. O que mudou aparece na próxima atualização depois
+// que o campo perde o foco — a própria gravação pendente provoca uma.
+function emEdicao(container) {
+  const el = document.activeElement;
+  return Boolean(el && el !== container && container.contains(el)
+    && el.matches("input, textarea, select"));
+}
+
+// Um temporizador por campo: digitar em dois campos seguidos não pode fazer o
+// segundo cancelar a gravação pendente do primeiro. `chaveDe` identifica o
+// campo a partir do evento (ou devolve null para ignorá-lo).
+function debouncePorCampo(chaveDe, fn, ms) {
+  const timers = new Map();
+  return (e) => {
+    const chave = chaveDe(e);
+    if (chave == null) return;
+    clearTimeout(timers.get(chave));
+    timers.set(chave, setTimeout(() => { timers.delete(chave); fn(e); }, ms));
+  };
 }
 
 function renderFormularios() {
@@ -981,7 +1072,7 @@ function renderFormularios() {
   renderEditorPlantao();
 
   // --- cadeia de ajuda ---
-  $("edAjuda").innerHTML = estado.membros.map((m, i) => `
+  if (!emEdicao($("edAjuda"))) $("edAjuda").innerHTML = estado.membros.map((m, i) => `
     <div class="item" data-i="${i}">
       <div class="nome">${escapar(m.nome)}</div>
       <div class="cores">
@@ -994,14 +1085,65 @@ function renderFormularios() {
   if (membrosDestravados) renderListaMembros();
 
   // --- eventos ---
-  // Os rótulos do editor acompanham os da tela, para o gestor saber qual bloco
-  // está editando no dia de hoje.
-  const rotulosEd = rotulosEventos();
-  $("edEventos").innerHTML = BLOCOS_EVENTO.map((dia, i) => {
-    const ev = estado.eventos[dia];
-    return `
-    <fieldset data-dia="${dia}">
-      <legend>${escapar(rotulosEd[i])}</legend>
+  renderEditorEventos();
+
+  // --- volume ---
+  $("edLimiar").value = Number(estado.volume.limiar) || 0.12;
+  atualizarMedidor();
+}
+
+const temConteudo = (ev) => Boolean(ev && ((ev.texto || "").trim() || ev.imagem));
+
+// Seletor de semana e de dia, e o formulário do dia aberto. Dá para planejar a
+// semana inteira de uma vez (e a seguinte, a partir de quinta/sexta).
+function renderEditorEventos() {
+  const agora = new Date();
+  const hoje = dataISO(agora);
+  const fds = ehFimDeSemana(agora);
+  const segunda = somarDias(segundaDaSemana(agora), 7 * semanaEventos);
+  const blocos = blocosEventos(agora);
+
+  // A data aberta pode ter ficado no passado (modal aberto na virada do dia).
+  if (dataEventoAberta < hoje) dataEventoAberta = blocos[0].data;
+
+  const nomesSemana = fds ? ["Próxima semana", "Semana seguinte"] : ["Esta semana", "Próxima semana"];
+  $("edEventosSemanas").innerHTML = nomesSemana.map((nome, w) => {
+    const ini = somarDias(segundaDaSemana(agora), 7 * w);
+    return `<button data-semana="${w}" class="${w === semanaEventos ? "sel" : ""}">
+      ${nome}<small>${diaMes(ini)} – ${diaMes(somarDias(ini, 4))}</small>
+    </button>`;
+  }).join("");
+
+  $("edEventosDias").innerHTML = DIAS.map(({ curto }, i) => {
+    const d = somarDias(segunda, i);
+    const iso = dataISO(d);
+    const passou = iso < hoje;
+    const marca = iso === hoje ? '<span class="marca-hoje">hoje</span>'
+      : `<span class="preenchidos">${passou ? "passou" : temConteudo(estado.eventos.dias[iso]) ? "planejado ✓" : "vazio"}</span>`;
+    return `<button data-data="${iso}" class="${iso === dataEventoAberta ? "sel" : ""}" ${passou ? "disabled" : ""}>
+      <span>${curto} ${diaMes(d)}</span>${marca}
+    </button>`;
+  }).join("");
+
+  // Formulário em uso (digitando, arrastando o tamanho): fica como está; o
+  // seletor acima continua atualizando normalmente. Ao trocar de dia o foco
+  // vai para o botão do dia, e o formulário do novo dia é desenhado.
+  const fsAtual = $("edEventos").querySelector("fieldset");
+  if (emEdicao($("edEventos")) && fsAtual && fsAtual.dataset.data === dataEventoAberta) return;
+
+  const iso = dataEventoAberta;
+  const d = new Date(iso + "T00:00:00");
+  const ev = estado.eventos.dias[iso] || eventoPadrao("");
+  const nomeDia = d.toLocaleDateString("pt-BR", { weekday: "long" });
+  const bloco = blocos.find((b) => b.data === iso);
+  const onde = bloco
+    ? `Aparece agora no bloco <b>${escapar(bloco.titulo)}</b>.`
+    : "Ainda não aparece no painel: entra sozinho quando chegar a vez deste dia.";
+
+  $("edEventos").innerHTML = `
+    <fieldset data-data="${iso}">
+      <legend>${escapar(nomeDia[0].toUpperCase() + nomeDia.slice(1))}, ${diaMes(d)}</legend>
+      <p class="dica ed-evento-onde">${onde}</p>
       <label class="campo">
         <span>Texto</span>
         <textarea rows="2" data-c="texto">${escapar(ev.texto || "")}</textarea>
@@ -1034,15 +1176,10 @@ function renderFormularios() {
             ? `Imagem ativa${ev.imagemNome ? ": " + escapar(ev.imagemNome) : ""} — substitui o texto.`
             : "Nenhuma imagem. O texto acima é exibido."}
         </div>
-        <button class="btn" data-img="enviar" data-dia="${dia}">${ev.imagem ? "Trocar…" : "Enviar imagem…"}</button>
-        ${ev.imagem ? `<button class="btn" data-img="remover" data-dia="${dia}">Remover</button>` : ""}
+        <button class="btn" data-img="enviar">${ev.imagem ? "Trocar…" : "Enviar imagem…"}</button>
+        ${ev.imagem ? `<button class="btn" data-img="remover">Remover</button>` : ""}
       </div>
     </fieldset>`;
-  }).join("");
-
-  // --- volume ---
-  $("edLimiar").value = Number(estado.volume.limiar) || 0.12;
-  atualizarMedidor();
 }
 
 const rotuloStatus = (s) => ({
@@ -1055,11 +1192,8 @@ const rotuloStatus = (s) => ({
 const nomeFonte = (f) => ({ sans: "Padrão", serif: "Serifada", mono: "Monoespaçada", display: "Display" }[f]);
 
 function renderListaMembros() {
-  // Uma atualização vinda de outra tela não pode roubar o campo em digitação.
-  const focado = document.activeElement;
-  const emEdicao = focado && focado.classList.contains("nome-membro")
-    ? { i: Number(focado.closest(".linha").dataset.i), pos: focado.selectionStart }
-    : null;
+  // Uma atualização (desta ou de outra tela) não pode roubar o campo em digitação.
+  if (emEdicao($("edMembrosLista"))) return;
 
   $("edMembrosLista").innerHTML = estado.membros.map((m, i) => `
     <div class="linha" data-i="${i}">
@@ -1073,15 +1207,6 @@ function renderListaMembros() {
       </div>
       <button class="btn remover" title="Remover membro">✕</button>
     </div>`).join("");
-
-  if (emEdicao) {
-    const campo = $("edMembrosLista")
-      .querySelector(`.linha[data-i="${emEdicao.i}"] .nome-membro`);
-    if (campo) {
-      campo.focus();
-      campo.setSelectionRange(emEdicao.pos, emEdicao.pos);
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1203,12 +1328,13 @@ function ligarInterface() {
     gravar("membros", membros);
   });
 
-  $("edAjuda").addEventListener("input", debounce((e) => {
-    if (!e.target.classList.contains("nota")) return;
-    const i = Number(e.target.closest(".item").dataset.i);
-    const membros = estado.membros.map((m, j) => (j === i ? { ...m, nota: e.target.value } : m));
-    gravar("membros", membros);
-  }, 450));
+  $("edAjuda").addEventListener("input", debouncePorCampo(
+    (e) => (e.target.classList.contains("nota") ? e.target.closest(".item").dataset.i : null),
+    (e) => {
+      const i = Number(e.target.closest(".item").dataset.i);
+      const membros = estado.membros.map((m, j) => (j === i ? { ...m, nota: e.target.value } : m));
+      gravar("membros", membros);
+    }, 450));
 
   $("btnGerenciarMembros").addEventListener("click", () => {
     if (!membrosDestravados) {
@@ -1222,12 +1348,13 @@ function ligarInterface() {
     $("edMembros").hidden = !$("edMembros").hidden;
   });
 
-  $("edMembrosLista").addEventListener("input", debounce((e) => {
-    if (!e.target.classList.contains("nome-membro")) return;
-    const i = Number(e.target.closest(".linha").dataset.i);
-    const membros = estado.membros.map((m, j) => (j === i ? { ...m, nome: e.target.value } : m));
-    gravar("membros", membros);
-  }, 450));
+  $("edMembrosLista").addEventListener("input", debouncePorCampo(
+    (e) => (e.target.classList.contains("nome-membro") ? e.target.closest(".linha").dataset.i : null),
+    (e) => {
+      const i = Number(e.target.closest(".linha").dataset.i);
+      const membros = estado.membros.map((m, j) => (j === i ? { ...m, nome: e.target.value } : m));
+      gravar("membros", membros);
+    }, 450));
 
   $("edMembrosLista").addEventListener("click", async (e) => {
     const linha = e.target.closest(".linha");
@@ -1273,25 +1400,52 @@ function ligarInterface() {
   });
 
   // --- eventos ---
+  $("edEventosSemanas").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-semana]");
+    if (!btn) return;
+    // mantém o mesmo dia da semana ao trocar de semana
+    const desloc = 7 * (Number(btn.dataset.semana) - semanaEventos);
+    semanaEventos = Number(btn.dataset.semana);
+    dataEventoAberta = dataISO(somarDias(new Date(dataEventoAberta + "T00:00:00"), desloc));
+    renderEditorEventos();
+  });
+
+  $("edEventosDias").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-data]");
+    if (!btn || btn.disabled) return;
+    dataEventoAberta = btn.dataset.data;
+    renderEditorEventos();
+  });
+
+  // A data é lida do formulário em que o campo está (e não da seleção atual),
+  // para que trocar de dia logo depois de digitar não grave no dia errado.
   const alterarEvento = (e) => {
     const campo = e.target.dataset.c;
     if (!campo) return;
-    const dia = e.target.closest("fieldset").dataset.dia;
+    const data = e.target.closest("fieldset").dataset.data;
     const valor = e.target.type === "checkbox" ? e.target.checked
       : e.target.type === "range" ? Number(e.target.value)
       : e.target.value;
-    gravar("eventos/" + dia, { [campo]: valor });
+    gravar("eventos/dias/" + data, { [campo]: valor });
   };
-  $("edEventos").addEventListener("input", debounce(alterarEvento, 350));
+  $("edEventos").addEventListener("input", debouncePorCampo(
+    (e) => (e.target.dataset.c ? e.target.closest("fieldset").dataset.data + "/" + e.target.dataset.c : null),
+    alterarEvento, 350));
   $("edEventos").addEventListener("change", alterarEvento);
+  // o rótulo do tamanho acompanha o arraste, já que o formulário não é
+  // redesenhado enquanto o controle está em uso
+  $("edEventos").addEventListener("input", (e) => {
+    if (e.target.dataset.c !== "tamanho") return;
+    e.target.previousElementSibling.textContent = `Tamanho (${e.target.value}%)`;
+  });
 
   $("edEventos").addEventListener("click", async (e) => {
     const acao = e.target.dataset.img;
     if (!acao) return;
-    const dia = e.target.dataset.dia;
+    const data = e.target.closest("fieldset").dataset.data;
 
     if (acao === "remover") {
-      gravar("eventos/" + dia, { imagem: "", imagemNome: "" });
+      gravar("eventos/dias/" + data, { imagem: "", imagemNome: "" });
       return;
     }
 
@@ -1301,7 +1455,7 @@ function ligarInterface() {
     e.target.textContent = "Processando…";
     try {
       const imagem = await processarImagemEvento(arquivo);
-      await gravar("eventos/" + dia, { imagem, imagemNome: arquivo.name });
+      await gravar("eventos/dias/" + data, { imagem, imagemNome: arquivo.name });
     } catch (err) {
       console.error(err);
       alert("Não foi possível usar essa imagem: " + err.message);

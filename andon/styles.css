@@ -630,6 +630,22 @@ input[type=color] { width: 46px; height: 34px; padding: 2px; border: 1px solid v
 }
 .ed-dias button.sel .marca-hoje { color: #9fc7e4; }
 .ed-dias button .preenchidos { font-size: 10.5px; font-weight: 500; opacity: .8; }
+.ed-dias button:disabled { opacity: .45; cursor: default; background: var(--papel); }
+
+/* semana dos eventos: duas opções lado a lado */
+.ed-semanas { display: flex; gap: 6px; margin-bottom: 10px; }
+.ed-semanas button {
+  flex: 1;
+  border: 1px solid var(--borda); background: var(--branco);
+  border-radius: 9px; padding: 8px;
+  font: inherit; font-size: 14px; font-weight: 700;
+  color: var(--texto-fraco); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+}
+.ed-semanas button small { font-size: 11px; font-weight: 500; opacity: .8; }
+.ed-semanas button:hover { background: var(--azul-suave); }
+.ed-semanas button.sel { background: var(--azul); border-color: var(--azul); color: var(--branco); }
+.ed-evento-onde { margin: 0 0 10px; }
 
 .ed-plantao-acoes { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--borda); }
 

@@ -1,8 +1,8 @@
 # Andon GLean — painel da sede
 
 Painel para o monitor da sede do GLean. Mostra, de relance: quem está no horário de sede,
-se há reunião acontecendo, quem precisa de ajuda na cadeia de ajuda, os eventos de terça e
-quinta, recados no letreiro, relógio, temperatura — e um alerta em tela cheia quando o
+se há reunião acontecendo, quem precisa de ajuda na cadeia de ajuda, os eventos da
+semana, recados no letreiro, relógio, temperatura — e um alerta em tela cheia quando o
 ambiente fica barulhento demais.
 
 Todos que abrirem a página veem o mesmo conteúdo. Qualquer pessoa pode editar pelo botão
@@ -163,9 +163,23 @@ Aba **Geral**. Três modos:
 - **Tela cheia** — ocupa todo o monitor **uma única vez** (~15s) e volta sozinho ao normal,
   sincronizado entre todas as telas abertas
 
-### Eventos de terça e quinta
+### Eventos da semana
 
-Cada bloco aceita texto com cor, fonte e tamanho próprios, além de **piscar** e **confete**.
+O conteúdo dos eventos é guardado **por data**, então dá para planejar a semana inteira de
+uma vez (e a seguinte) na aba **Eventos**. Na virada de cada dia, o conteúdo anda sozinho
+entre os três blocos do painel: o que aparece em "Terça-feira" na segunda vira "Eventos do
+dia" na terça. Datas que já passaram são apagadas automaticamente.
+
+| Dia       | Eventos do dia | 2º bloco                    | 3º bloco                     |
+|-----------|----------------|-----------------------------|------------------------------|
+| Segunda   | segunda        | Terça-feira                 | Quinta-feira                 |
+| Terça     | terça          | Amanhã (quarta)             | Quinta-feira                 |
+| Quarta    | quarta         | Amanhã (quinta)             | Sexta-feira                  |
+| Quinta    | quinta         | Amanhã (sexta)              | Semana que vem (terça)       |
+| Sexta     | sexta          | Próxima terça-feira         | Próxima quinta-feira         |
+| Fim de semana | próxima segunda | Terça-feira            | Quinta-feira                 |
+
+Cada evento aceita texto com cor, fonte e tamanho próprios, além de **piscar** e **confete**.
 Também dá para **enviar uma imagem** do computador (um logo, um cartaz) pelo botão
 "Enviar imagem…", que abre os arquivos do sistema. A imagem substitui o texto do bloco, é
 reduzida para no máximo 1000px antes de ser salva e nunca ultrapassa as bordas do cartão.
