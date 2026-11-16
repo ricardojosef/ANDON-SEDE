@@ -13,6 +13,37 @@ import { ICONES } from "../components/Icones.js";
 
 const CHAVE_SELECAO = "gig-agenda-selecao";
 const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const HORA_PX = 48;                        // altura de uma hora na grade
+const HORAS = Array.from({ length: 24 }, (_, h) => h);
+const doisDig = (n) => String(n).padStart(2, "0");
+
+// Distribui os eventos de um dia em colunas, como o Google Agenda: eventos
+// que se sobrepõem ficam lado a lado, dividindo a largura do grupo.
+function distribuir(blocos) {
+  const ordenados = [...blocos].sort((a, b) => a.ini - b.ini || b.fim - a.fim);
+  const saida = [];
+  let grupo = [], colunas = [], fimGrupo = -1;
+  const fecharGrupo = () => {
+    const n = colunas.length;
+    for (const b of grupo) {
+      const conflitos = grupo.filter((o) => o.coluna > b.coluna && o.ini < b.fim && o.fim > b.ini).map((o) => o.coluna);
+      const proxima = conflitos.length ? Math.min(...conflitos) : n;
+      let largura = (proxima - b.coluna) / n;
+      if (proxima === b.coluna + 1 && proxima < n) largura = Math.min((n - b.coluna) / n, largura * 1.7);
+      saida.push({ ...b, colunas: n, esquerda: b.coluna / n, largura });
+    }
+    grupo = []; colunas = []; fimGrupo = -1;
+  };
+  for (const b of ordenados) {
+    if (grupo.length && b.ini >= fimGrupo) fecharGrupo();
+    let col = colunas.findIndex((fimCol) => fimCol <= b.ini);
+    if (col < 0) { col = colunas.length; colunas.push(b.fim); } else colunas[col] = b.fim;
+    grupo.push({ ...b, coluna: col });
+    fimGrupo = Math.max(fimGrupo, b.fim);
+  }
+  fecharGrupo();
+  return saida;
+}
 
 function segundaDe(iso) {
   const d = deISO(iso);
@@ -24,7 +55,8 @@ function segundaDe(iso) {
 export default {
   data() {
     return {
-      store, agenda, ICONES, DIAS, CORES_EVENTO,
+      store, agenda, ICONES, DIAS, CORES_EVENTO, HORAS, HORA_PX,
+      agora: Date.now(), relogio: null, rolouGrade: false,
       inicioSemana: segundaDe(hojeISO()),
       agendas: [], selecionadas: [], eventos: [], atas: [],
       carregando: false, erro: "", ok: "",
@@ -41,8 +73,19 @@ export default {
       const hoje = hojeISO();
       return DIAS.map((nome, i) => {
         const iso = somarDias(this.inicioSemana, i);
-        return { iso, nome, hoje: iso === hoje, eventos: this.eventos.filter((e) => this.cobre(e, iso)) };
+        const doDia = this.eventos.filter((e) => this.cobre(e, iso));
+        return {
+          iso, nome, hoje: iso === hoje, numero: Number(iso.slice(8, 10)),
+          diaInteiro: doDia.filter((e) => tempoDoEvento(e).diaInteiro),
+          blocos: this.blocosDoDia(doDia.filter((e) => !tempoDoEvento(e).diaInteiro), iso),
+        };
       });
+    },
+    temDiaInteiro() { return this.dias.some((d) => d.diaInteiro.length); },
+    // Posição da linha vermelha da hora atual (só aparece no dia de hoje).
+    linhaAgora() {
+      const d = new Date(this.agora);
+      return { iso: paraISO(d), top: (d.getHours() * 60 + d.getMinutes()) / 60 * HORA_PX };
     },
     tituloSemana() {
       const fim = somarDias(this.inicioSemana, 6);
@@ -66,15 +109,63 @@ export default {
   watch: {
     "store.configAgenda": { immediate: true, handler(c) { this.config = { clientId: (c && c.clientId) || "", agendaGrupo: (c && c.agendaGrupo) || "" }; } },
   },
-  created() { if (agenda.conectado) this.iniciar(); },
+  created() {
+    if (agenda.conectado) this.iniciar();
+    this.relogio = setInterval(() => { this.agora = Date.now(); }, 60000);
+  },
+  beforeUnmount() { clearInterval(this.relogio); },
   methods: {
     formatarData, rotuloHorario, linkMeet, nomeDoMembro, nomeStatus, dataDoEvento,
     cobre(e, iso) {
       const t = tempoDoEvento(e);
       const ini = paraISO(t.inicio);
-      if (!t.diaInteiro) return ini === iso;
+      if (!t.diaInteiro) {
+        // eventos com horário entram em todo dia que tocam (ex.: 22h–1h)
+        const comeco = deISO(iso), fim = deISO(somarDias(iso, 1));
+        return t.inicio < fim && t.fim > comeco;
+      }
       const fim = paraISO(new Date(t.fim.getTime() - 86400000));
       return iso >= ini && iso <= fim;
+    },
+    blocosDoDia(eventos, iso) {
+      const comeco = deISO(iso).getTime();
+      const blocos = eventos.map((e) => {
+        const t = tempoDoEvento(e);
+        const ini = Math.max(0, (t.inicio.getTime() - comeco) / 60000);
+        const fim = Math.min(1440, (t.fim.getTime() - comeco) / 60000);
+        return { e, ini, fim: Math.max(fim, ini + 15) };   // mínimo visível de 15 min
+      });
+      return distribuir(blocos).map((b) => {
+        const altura = Math.max(18, (b.fim - b.ini) / 60 * HORA_PX - 2);
+        return {
+          ...b,
+          estilo: {
+            top: b.ini / 60 * HORA_PX + "px",
+            height: altura + "px",
+            left: `calc(${b.esquerda * 100}% + 1px)`,
+            width: `calc(${b.largura * 100}% - 3px)`,
+            zIndex: 1 + b.coluna,
+            "--cor": b.e.cor, "--cor-texto": b.e.corTexto,
+          },
+          curto: altura < 38,
+        };
+      });
+    },
+    rotuloHora: (h) => (h === 0 ? "" : doisDig(h) + ":00"),
+    // Clique num horário vazio: nova reunião começando ali (de meia em meia hora).
+    novaNoHorario(ev, iso) {
+      const minutos = Math.max(0, Math.min(23 * 60, Math.floor(ev.offsetY / HORA_PX * 2) * 30));
+      const fimMin = Math.min(24 * 60 - 1, minutos + 60);
+      const hm = (m) => `${doisDig(Math.floor(m / 60))}:${doisDig(m % 60)}`;
+      this.nova(iso, hm(minutos), hm(fimMin));
+    },
+    // Na primeira carga, a grade rola até 7h (ou até o primeiro compromisso, se for mais cedo).
+    rolarGrade() {
+      if (this.rolouGrade || !this.$refs.grade) return;
+      const primeiros = this.dias.flatMap((d) => d.blocos.filter((b) => paraISO(tempoDoEvento(b.e).inicio) === d.iso).map((b) => b.ini));
+      const minutos = Math.min(7 * 60, ...(primeiros.length ? primeiros : [7 * 60]));
+      this.$refs.grade.scrollTop = Math.max(0, minutos / 60 * HORA_PX - 12);
+      this.rolouGrade = true;
     },
     nomeMembroPorEmail(email) {
       const m = this.membros.find((x) => (x.email || "").toLowerCase() === email);
@@ -139,7 +230,7 @@ export default {
         this.atas = sem ? await listar("atas", where("semestre", "==", sem.id)) : [];
         if (this.sel) this.sel = this.eventos.find((e) => e.id === this.sel.id) || null;
       } catch (err) { this.erro = err.message || mensagemErro(err); }
-      finally { this.carregando = false; }
+      finally { this.carregando = false; this.$nextTick(() => this.rolarGrade()); }
     },
 
     // ---------------- painel do evento ----------------
@@ -207,13 +298,13 @@ export default {
     },
 
     // ---------------- criar / editar ----------------
-    nova(dia) {
+    nova(dia, inicio = "14:00", fim = "15:00") {
       const padrao = this.agendasEditaveis.find((a) => a.id === this.config.agendaGrupo) || this.agendasEditaveis.find((a) => a.primaria) || this.agendasEditaveis[0];
       if (!padrao) { this.erro = "Você não tem permissão de edição em nenhuma das suas agendas."; return; }
       this.sel = null; this.modo = "novo";
       this.form = {
         titulo: "", agendaId: padrao.id, data: dia || hojeISO(), dataFim: dia || hojeISO(),
-        inicio: "14:00", fim: "15:00", diaInteiro: false, local: "", descricao: "",
+        inicio, fim, diaInteiro: false, local: "", descricao: "",
         convidados: [], meet: true, notificar: true, criarAta: false, cor: "",
       };
     },
@@ -322,19 +413,43 @@ export default {
         <button class="btn pequeno" @click="sairDaAgenda">Desconectar</button>
       </div>
 
-      <div class="semana" :class="{ carregando }">
-        <div class="dia" v-for="d in dias" :key="d.iso" :class="{ hoje: d.hoje }">
-          <div class="dia-cab"><span>{{ d.nome }}</span><b>{{ formatarData(d.iso) }}</b>
-            <button class="dia-mais" @click="nova(d.iso)" title="Nova reunião neste dia">+</button></div>
-          <button class="evento" v-for="e in d.eventos" :key="e.agendaId + e.id" @click="abrir(e)" :style="{ '--cor': e.cor, '--cor-texto': e.corTexto }" :class="{ sel: sel && sel.id === e.id }">
-            <small>{{ rotuloHorario(e) }}</small>
-            <b>{{ e.summary || "(sem título)" }}</b>
-            <span class="evento-selos">
-              <span class="selo ok" v-if="ataPorEvento[e.id]">ata</span>
-              <span class="selo neutro" v-if="linkMeet(e)">Meet</span>
-            </span>
-          </button>
-          <p class="dia-vazio" v-if="!d.eventos.length">—</p>
+      <div class="calendario" :class="{ carregando }">
+        <!-- cabeçalho dos dias -->
+        <div class="cal-cab">
+          <div class="cal-fuso">GMT-3</div>
+          <div class="cal-dia-cab" v-for="d in dias" :key="d.iso" :class="{ hoje: d.hoje }">
+            <span>{{ d.nome }}</span><b>{{ d.numero }}</b>
+          </div>
+        </div>
+        <!-- eventos de dia inteiro -->
+        <div class="cal-dia-inteiro" v-if="temDiaInteiro">
+          <div class="cal-fuso"></div>
+          <div class="cal-dia-inteiro-col" v-for="d in dias" :key="d.iso">
+            <button class="bloco-dia" v-for="e in d.diaInteiro" :key="e.agendaId + e.id" @click="abrir(e)"
+                    :style="{ '--cor': e.cor, '--cor-texto': e.corTexto }" :class="{ sel: sel && sel.id === e.id }">
+              {{ e.summary || "(sem título)" }}
+            </button>
+          </div>
+        </div>
+        <!-- grade de horários -->
+        <div class="cal-grade" ref="grade">
+          <div class="cal-corpo" :style="{ height: 24 * HORA_PX + 'px', '--hora': HORA_PX + 'px' }">
+            <div class="cal-horas">
+              <div class="cal-hora" v-for="h in HORAS" :key="h" :style="{ height: HORA_PX + 'px' }"><span>{{ rotuloHora(h) }}</span></div>
+            </div>
+            <div class="cal-col" v-for="d in dias" :key="d.iso" :class="{ hoje: d.hoje }"
+                 @click.self="novaNoHorario($event, d.iso)" title="Clique para criar uma reunião neste horário">
+              <button class="bloco" v-for="b in d.blocos" :key="b.e.agendaId + b.e.id" :style="b.estilo"
+                      :class="{ curto: b.curto, sel: sel && sel.id === b.e.id }" @click="abrir(b.e)">
+                <b>{{ b.e.summary || "(sem título)" }}<template v-if="b.curto">, {{ rotuloHorario(b.e).split(" – ")[0] }}</template></b>
+                <small v-if="!b.curto">{{ rotuloHorario(b.e) }}</small>
+                <span class="bloco-selos" v-if="!b.curto && (ataPorEvento[b.e.id] || linkMeet(b.e))">
+                  <span v-if="ataPorEvento[b.e.id]">📄 ata</span><span v-if="linkMeet(b.e)">🎥 Meet</span>
+                </span>
+              </button>
+              <div class="cal-agora" v-if="d.iso === linhaAgora.iso" :style="{ top: linhaAgora.top + 'px' }"></div>
+            </div>
+          </div>
         </div>
       </div>
     </template>

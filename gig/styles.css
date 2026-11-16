@@ -260,52 +260,72 @@ h1, h2, h3 { margin: 0; line-height: 1.2; }
 .chip-agenda.sel i { background: var(--cor); }
 .chip-agenda small { font-size: 10.5px; color: var(--azul); text-transform: uppercase; letter-spacing: .06em; }
 
-.semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; transition: opacity .2s; }
-.semana.carregando { opacity: .55; }
-.dia { background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 10px 8px; min-height: 260px; display: flex; flex-direction: column; gap: 6px; }
-.dia.hoje { border-color: var(--azul); box-shadow: 0 0 0 2px rgba(46, 139, 192, .15); }
-.dia-cab { display: flex; align-items: baseline; gap: 6px; padding: 0 4px 6px; border-bottom: 1px solid #edf2f6; }
-.dia-cab span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-fraco); }
-.dia-cab b { font-size: 15px; }
-.dia.hoje .dia-cab b { color: var(--azul); }
-.dia-mais { margin-left: auto; border: 0; background: transparent; color: #9fb3c4; font-size: 18px; line-height: 1; cursor: pointer; border-radius: 6px; padding: 0 5px; }
-.dia-mais:hover { background: var(--azul-suave); color: var(--azul); }
-.dia-vazio { color: #c4d2de; text-align: center; margin: 8px 0 0; font-size: 13px; }
-/* Cartão preenchido com a cor do evento, como no Google Agenda. */
-.evento {
-  text-align: left; border: 0; border-radius: 8px;
-  background: var(--cor, var(--azul)); color: var(--cor-texto, #fff);
-  padding: 7px 9px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
-  box-shadow: 0 1px 2px rgba(18, 58, 92, .15);
-  transition: filter .15s, transform .15s, box-shadow .15s;
+/* Grade semanal no estilo do Google Agenda: coluna de horas, uma coluna
+   por dia e cada compromisso como um bloco colorido do tamanho da duração. */
+.calendario {
+  background: #fff; border: 1px solid var(--borda); border-radius: 14px;
+  box-shadow: var(--sombra); overflow-x: auto; transition: opacity .2s;
 }
-.evento:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(18, 58, 92, .2); }
-.evento.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--cor, var(--azul)); }
-.evento small { font-size: 11px; color: inherit; opacity: .85; font-weight: 600; }
-.evento b { font-size: 12.5px; line-height: 1.3; overflow-wrap: anywhere; }
-.evento-selos { display: flex; gap: 4px; flex-wrap: wrap; }
-.evento-selos .selo { padding: 1px 7px; font-size: 10.5px; background: rgba(255, 255, 255, .85); color: var(--marinho); }
+.calendario.carregando { opacity: .55; }
+.cal-cab, .cal-dia-inteiro, .cal-corpo {
+  display: grid; grid-template-columns: 58px repeat(7, minmax(0, 1fr)); min-width: 720px;
+}
+.cal-cab { border-bottom: 1px solid #e3eaf0; }
+.cal-fuso { font-size: 10px; color: var(--texto-fraco); display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 8px 6px 0; }
+.cal-dia-cab { text-align: center; padding: 10px 0 8px; border-left: 1px solid transparent; }
+.cal-dia-cab span { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-fraco); }
+.cal-dia-cab b {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; margin-top: 2px;
+  border-radius: 50%; font-size: 22px; font-weight: 500; color: var(--marinho);
+}
+.cal-dia-cab.hoje span { color: var(--azul); }
+.cal-dia-cab.hoje b { background: var(--azul); color: #fff; }
 
-.cores-evento { display: flex; gap: 8px; flex-wrap: wrap; }
-.cor-evento {
-  width: 26px; height: 26px; border-radius: 50%; border: 0; cursor: pointer;
-  background: var(--cor); box-shadow: 0 0 0 2px #fff, 0 0 0 3px transparent; transition: box-shadow .15s, transform .15s;
+.cal-dia-inteiro { border-bottom: 1px solid #e3eaf0; }
+.cal-dia-inteiro-col { border-left: 1px solid #e3eaf0; padding: 3px 3px; display: flex; flex-direction: column; gap: 2px; min-height: 26px; }
+.bloco-dia {
+  border: 0; border-radius: 5px; background: var(--cor); color: var(--cor-texto);
+  font: inherit; font-size: 12px; font-weight: 600; text-align: left; padding: 3px 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
 }
-.cor-evento:hover { transform: scale(1.1); }
-.cor-evento.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--cor); }
-.cor-evento.padrao { background: conic-gradient(var(--cor) 0 50%, #fff 0); border: 2px solid var(--cor); }
+.bloco-dia:hover { filter: brightness(1.07); }
+
+.cal-grade { max-height: calc(100vh - 290px); min-height: 380px; overflow-y: auto; }
+.cal-corpo { position: relative; }
+.cal-horas { position: relative; }
+.cal-hora { position: relative; }
+.cal-hora span { position: absolute; top: -7px; right: 8px; font-size: 10.5px; color: var(--texto-fraco); }
+.cal-col {
+  position: relative; border-left: 1px solid #e3eaf0; cursor: cell;
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--hora) - 1px), #e9eff4 calc(var(--hora) - 1px), #e9eff4 var(--hora));
+}
+.cal-col.hoje { background-color: rgba(46, 139, 192, .035); }
+
+.bloco {
+  position: absolute; z-index: 1; border: 0; border-radius: 6px;
+  background: var(--cor); color: var(--cor-texto);
+  padding: 4px 7px; text-align: left; font: inherit; line-height: 1.25;
+  overflow: hidden; cursor: pointer; display: flex; flex-direction: column; gap: 1px;
+  box-shadow: 0 0 0 1px #fff;
+  transition: filter .15s, box-shadow .15s;
+}
+.bloco:hover { filter: brightness(1.07); z-index: 20 !important; }
+.bloco.sel { z-index: 21 !important; box-shadow: 0 0 0 1px #fff, 0 6px 16px rgba(18, 58, 92, .35); }
+.bloco b { font-size: 12.5px; font-weight: 600; overflow-wrap: break-word; }
+.bloco small { font-size: 11.5px; opacity: .9; }
+.bloco.curto { padding: 1px 7px; justify-content: center; }
+.bloco.curto b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
+.bloco-selos { display: flex; gap: 6px; flex-wrap: wrap; font-size: 10.5px; font-weight: 600; opacity: .95; margin-top: 2px; }
+
+.cal-agora { position: absolute; left: -1px; right: 0; height: 2px; background: #ea4335; z-index: 4; pointer-events: none; }
+.cal-agora::before { content: ""; position: absolute; left: -6px; top: -5px; width: 12px; height: 12px; border-radius: 50%; background: #ea4335; }
 
 .modal-fundo { position: fixed; inset: 0; z-index: 40; background: rgba(13, 44, 71, .45); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px 24px; overflow-y: auto; }
 .modal-caixa { background: #fff; border-radius: 16px; padding: 22px 24px; width: 100%; max-width: 680px; box-shadow: 0 30px 70px rgba(0, 0, 0, .3); }
 .descricao-evento { white-space: pre-wrap; font-size: 14px; background: var(--papel); border-radius: 10px; padding: 10px 12px; margin: 10px 0; max-height: 180px; overflow-y: auto; overflow-wrap: anywhere; }
 .bloco-ata { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borda); }
 
-@media (max-width: 1100px) {
-  .semana { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
 @media (max-width: 700px) {
-  .semana { grid-template-columns: minmax(0, 1fr); }
-  .dia { min-height: 0; }
   .modal-fundo { padding: 0; }
   .modal-caixa { border-radius: 0; min-height: 100%; }
 }
