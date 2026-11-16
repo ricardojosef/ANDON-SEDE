@@ -170,6 +170,39 @@ export function lerEvento(agendaId, eventoId) {
 }
 
 // ---------------------------------------------------------------------------
+// Cores
+// ---------------------------------------------------------------------------
+// Paleta fixa de cores de evento do Google Agenda (colorId 1–11), nos tons
+// que a interface atual do Google mostra. Um evento sem colorId usa a cor da
+// agenda em que está.
+export const CORES_EVENTO = {
+  1: { nome: "Lavanda", cor: "#7986cb" },
+  2: { nome: "Sálvia", cor: "#33b679" },
+  3: { nome: "Uva", cor: "#8e24aa" },
+  4: { nome: "Flamingo", cor: "#e67c73" },
+  5: { nome: "Banana", cor: "#f6bf26" },
+  6: { nome: "Tangerina", cor: "#f4511e" },
+  7: { nome: "Pavão", cor: "#039be5" },
+  8: { nome: "Grafite", cor: "#616161" },
+  9: { nome: "Mirtilo", cor: "#3f51b5" },
+  10: { nome: "Manjericão", cor: "#0b8043" },
+  11: { nome: "Tomate", cor: "#d50000" },
+};
+
+export function corDoEvento(e, corDaAgenda) {
+  return (e.colorId && CORES_EVENTO[e.colorId] && CORES_EVENTO[e.colorId].cor) || corDaAgenda || "#2e8bc0";
+}
+
+// Texto escuro sobre cores claras (banana, sálvia…), branco sobre as demais.
+export function textoSobre(hex) {
+  const m = String(hex || "").replace("#", "").match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (!m) return "#fff";
+  const [r, g, b] = m.slice(1).map((x) => parseInt(x, 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.45 ? "#1f2a33" : "#fff";
+}
+
+// ---------------------------------------------------------------------------
 // Conversões entre o evento do Google e o formulário da plataforma
 // ---------------------------------------------------------------------------
 const dois = (n) => String(n).padStart(2, "0");
@@ -203,6 +236,8 @@ export function formDoEvento(e) {
     diaInteiro: t.diaInteiro,
     convidados: (e.attendees || []).filter((a) => !a.resource).map((a) => a.email.toLowerCase()),
     meet: Boolean(linkMeet(e)),
+    cor: e.colorId || "",
+    corOriginal: e.colorId || "",
   };
 }
 
@@ -214,6 +249,9 @@ export function eventoDoForm(f) {
     description: f.descricao || "",
     attendees: (f.convidados || []).map((email) => ({ email })),
   };
+  // Sem cor escolhida = cor da agenda. null apaga a cor numa edição.
+  if (f.cor) evento.colorId = String(f.cor);
+  else if (f.corOriginal) evento.colorId = null;
   if (f.diaInteiro) {
     evento.start = { date: f.data };
     evento.end = { date: proximo(f.dataFim && f.dataFim >= f.data ? f.dataFim : f.data) };

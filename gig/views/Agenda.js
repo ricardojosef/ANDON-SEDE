@@ -5,7 +5,7 @@ import {
 import {
   agenda, clientId, conectar, desconectar, listarAgendas, listarEventos, criarEvento, atualizarEvento,
   excluirEvento, tempoDoEvento, rotuloHorario, dataDoEvento, linkMeet, formDoEvento, eventoDoForm,
-  descricaoComAta,
+  descricaoComAta, CORES_EVENTO, corDoEvento, textoSobre,
 } from "../lib/agenda.js";
 import { hojeISO, somarDias, deISO, paraISO, formatarData } from "../lib/util.js";
 import { nomeStatus } from "../lib/constantes.js";
@@ -24,7 +24,7 @@ function segundaDe(iso) {
 export default {
   data() {
     return {
-      store, agenda, ICONES, DIAS,
+      store, agenda, ICONES, DIAS, CORES_EVENTO,
       inicioSemana: segundaDe(hojeISO()),
       agendas: [], selecionadas: [], eventos: [], atas: [],
       carregando: false, erro: "", ok: "",
@@ -57,6 +57,10 @@ export default {
     ataDoSel() { return this.sel ? this.ataPorEvento[this.sel.id] || null : null; },
     atasLivres() { return this.atas.filter((a) => !a.evento || !a.evento.eventId).sort((x, y) => (y.data || "").localeCompare(x.data || "")); },
     emailsMembros() { return new Set(this.membros.map((m) => (m.email || "").toLowerCase())); },
+    corDaAgendaDoForm() {
+      const a = this.form && this.agendas.find((x) => x.id === this.form.agendaId);
+      return (a && a.cor) || "#2e8bc0";
+    },
     convidadosExternos() { return this.form ? this.form.convidados.filter((e) => !this.emailsMembros.has(e)) : []; },
   },
   watch: {
@@ -118,7 +122,8 @@ export default {
           return itens.map((e) => {
             const organizador = (e.organizer && e.organizer.email) || "";
             const daAgenda = (e.organizer && e.organizer.self) || organizador === id || e.guestsCanModify;
-            return { ...e, agendaId: id, cor: ag.cor, podeEditar: Boolean(ag.podeEditar && daAgenda) };
+            const cor = corDoEvento(e, ag.cor);
+            return { ...e, agendaId: id, cor, corTexto: textoSobre(cor), corAgenda: ag.cor, podeEditar: Boolean(ag.podeEditar && daAgenda) };
           });
         }));
         // O mesmo evento aparece em várias agendas (ex.: convite na pessoal e
@@ -209,7 +214,7 @@ export default {
       this.form = {
         titulo: "", agendaId: padrao.id, data: dia || hojeISO(), dataFim: dia || hojeISO(),
         inicio: "14:00", fim: "15:00", diaInteiro: false, local: "", descricao: "",
-        convidados: [], meet: true, notificar: true, criarAta: false,
+        convidados: [], meet: true, notificar: true, criarAta: false, cor: "",
       };
     },
     editar(e) {
@@ -321,7 +326,7 @@ export default {
         <div class="dia" v-for="d in dias" :key="d.iso" :class="{ hoje: d.hoje }">
           <div class="dia-cab"><span>{{ d.nome }}</span><b>{{ formatarData(d.iso) }}</b>
             <button class="dia-mais" @click="nova(d.iso)" title="Nova reunião neste dia">+</button></div>
-          <button class="evento" v-for="e in d.eventos" :key="e.agendaId + e.id" @click="abrir(e)" :style="{ '--cor': e.cor }" :class="{ sel: sel && sel.id === e.id }">
+          <button class="evento" v-for="e in d.eventos" :key="e.agendaId + e.id" @click="abrir(e)" :style="{ '--cor': e.cor, '--cor-texto': e.corTexto }" :class="{ sel: sel && sel.id === e.id }">
             <small>{{ rotuloHorario(e) }}</small>
             <b>{{ e.summary || "(sem título)" }}</b>
             <span class="evento-selos">
@@ -413,6 +418,15 @@ export default {
           <div class="linha" style="gap:6px;margin-top:8px">
             <span class="selo neutro" v-for="e in convidadosExternos" :key="e">{{ e }} <button class="remover" style="padding:0 2px;font-size:14px" @click="alternarConvidado(e)">×</button></span>
             <input class="entrada" style="max-width:260px" v-model="outroEmail" placeholder="outro e-mail" @keyup.enter="addOutroEmail">
+          </div>
+        </div>
+        <div class="campo">
+          <span>Cor</span>
+          <div class="cores-evento">
+            <button type="button" class="cor-evento padrao" :class="{ sel: !form.cor }" @click="form.cor = ''"
+                    :style="{ '--cor': corDaAgendaDoForm }" title="Cor da agenda"></button>
+            <button type="button" v-for="(c, id) in CORES_EVENTO" :key="id" class="cor-evento" :class="{ sel: String(form.cor) === String(id) }"
+                    :style="{ '--cor': c.cor }" :title="c.nome" @click="form.cor = String(id)"></button>
           </div>
         </div>
         <div class="linha" style="gap:8px 20px;margin-bottom:12px">

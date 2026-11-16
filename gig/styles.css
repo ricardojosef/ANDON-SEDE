@@ -271,16 +271,29 @@ h1, h2, h3 { margin: 0; line-height: 1.2; }
 .dia-mais { margin-left: auto; border: 0; background: transparent; color: #9fb3c4; font-size: 18px; line-height: 1; cursor: pointer; border-radius: 6px; padding: 0 5px; }
 .dia-mais:hover { background: var(--azul-suave); color: var(--azul); }
 .dia-vazio { color: #c4d2de; text-align: center; margin: 8px 0 0; font-size: 13px; }
+/* Cartão preenchido com a cor do evento, como no Google Agenda. */
 .evento {
-  text-align: left; border: 0; border-left: 4px solid var(--cor, var(--azul)); border-radius: 8px;
-  background: var(--papel); padding: 7px 8px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
-  transition: background .15s, transform .15s;
+  text-align: left; border: 0; border-radius: 8px;
+  background: var(--cor, var(--azul)); color: var(--cor-texto, #fff);
+  padding: 7px 9px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+  box-shadow: 0 1px 2px rgba(18, 58, 92, .15);
+  transition: filter .15s, transform .15s, box-shadow .15s;
 }
-.evento:hover, .evento.sel { background: var(--azul-suave); }
-.evento small { font-size: 11px; color: var(--texto-fraco); font-weight: 600; }
+.evento:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(18, 58, 92, .2); }
+.evento.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--cor, var(--azul)); }
+.evento small { font-size: 11px; color: inherit; opacity: .85; font-weight: 600; }
 .evento b { font-size: 12.5px; line-height: 1.3; overflow-wrap: anywhere; }
 .evento-selos { display: flex; gap: 4px; flex-wrap: wrap; }
-.evento-selos .selo { padding: 1px 7px; font-size: 10.5px; }
+.evento-selos .selo { padding: 1px 7px; font-size: 10.5px; background: rgba(255, 255, 255, .85); color: var(--marinho); }
+
+.cores-evento { display: flex; gap: 8px; flex-wrap: wrap; }
+.cor-evento {
+  width: 26px; height: 26px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--cor); box-shadow: 0 0 0 2px #fff, 0 0 0 3px transparent; transition: box-shadow .15s, transform .15s;
+}
+.cor-evento:hover { transform: scale(1.1); }
+.cor-evento.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--cor); }
+.cor-evento.padrao { background: conic-gradient(var(--cor) 0 50%, #fff 0); border: 2px solid var(--cor); }
 
 .modal-fundo { position: fixed; inset: 0; z-index: 40; background: rgba(13, 44, 71, .45); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px 24px; overflow-y: auto; }
 .modal-caixa { background: #fff; border-radius: 16px; padding: 22px 24px; width: 100%; max-width: 680px; box-shadow: 0 30px 70px rgba(0, 0, 0, .3); }
