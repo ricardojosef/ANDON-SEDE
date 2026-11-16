@@ -1,0 +1,5 @@
+# Planilhas com dados pessoais (nomes, e-mails e respostas da pesquisa de clima).
+# O repositório é publicado no GitHub Pages, então estas não podem ir para o git.
+*.xlsx
+*.xls
+*.csv

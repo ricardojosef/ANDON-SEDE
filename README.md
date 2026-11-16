@@ -210,7 +210,63 @@ Para outra cidade, altere `LOCAL` em [`config.js`](config.js).
 
 ---
 
-## Arquivos
+## 5. Plataforma GIG (`/gig`)
+
+Em [`gig/`](gig/) fica a plataforma de gestão semanal do grupo, publicada em
+`glean.com.br/gig`: login com a conta Google `@glean.ufsc.br`, GIG semanal (planejado ×
+realizado por tipo de atividade, feeling de sobrecarga e atividades padrão por membro),
+pesquisinha de clima, atas com encaminhamentos, visão centralizada "meus encaminhamentos",
+quadro de quedas no ID e dashboards para a liderança.
+
+Roda sem build (Vue 3 e vue-router por CDN, via *import map*) e usa o **mesmo projeto
+Firebase** do Andon — a configuração vem de [`andon/config.js`](andon/config.js). O banco
+é o Cloud Firestore (não o Realtime Database do Andon). Tudo cabe no plano gratuito.
+
+### Ativar (uma vez, no Firebase Console)
+
+1. **Authentication → Sign-in method → Google**: ativar. Em **Settings → Authorized
+   domains**, adicionar `glean.com.br` (`localhost` já vem).
+2. **Firestore Database → Create database** (modo produção) → aba **Rules**: colar o
+   conteúdo de [`gig/firestore.rules`](gig/firestore.rules) e publicar. Só contas
+   `@glean.ufsc.br` verificadas passam, mesmo sem o front.
+3. Entrar na plataforma com a conta do líder. Isso cria `membros/{uid}`. No Console, em
+   **Firestore → membros**, abrir esse documento e trocar `papel` de `"membro"` para
+   `"lider"`. Daí em diante tudo é feito pela tela **Membros** da própria plataforma.
+4. Na plataforma, em **Membros → Semestres**, criar o semestre (segunda-feira da semana 1 e
+   número de semanas) e marcá-lo como ativo; em **Membros**, clicar em **Carregar catálogos
+   iniciais** (processos, ~120 atividades e os motivos de queda, tirados das planilhas do
+   GIG 26.2).
+
+### Papéis
+
+| Papel | Quem | Pode |
+|---|---|---|
+| `membro` | todos, ao entrar pela primeira vez | preencher GIG e pesquisinha, criar atas e encaminhamentos, ver quadro de quedas |
+| `gp` | Gestão de Pessoas | o mesmo + registrar quedas, ler respostas da pesquisinha, dashboards, motivos de queda |
+| `lider` | Liderança | tudo + membros, cargos por processo, módulos, catálogos e semestres |
+
+As respostas individuais da pesquisinha só são lidas por `lider`/`gp`; cada membro lê só a
+sua. GIG, atas, encaminhamentos e quedas são visíveis a todos (gestão visual).
+
+### Arquivos da plataforma
+
+| Arquivo | Papel |
+|---|---|
+| [`gig/index.html`](gig/index.html) | Shell: import map (Vue, vue-router), Chart.js, monta o app |
+| [`gig/app.js`](gig/app.js) | Rotas, login/guarda de autenticação, criação do cadastro no 1º acesso |
+| [`gig/styles.css`](gig/styles.css) | Paleta e componentes (mesmos tokens do Andon) |
+| [`gig/firestore.rules`](gig/firestore.rules) | Regras do Firestore (colar no Console) |
+| `gig/lib/` | Firebase, store reativa, semana do semestre, cálculo do ID, perguntas da pesquisinha, catálogos iniciais |
+| `gig/views/` | Uma tela por arquivo: Início, GIG, Pesquisinha, Encaminhamentos, Atas, Membros, Quedas, Dashboards, Perfil |
+| `gig/components/` | Navegação, seletor de semana, escala 1–7, gráfico |
+
+Modelo de dados: um documento por **membro-semana** em `gig/{semestre}_{semana}_{uid}` e
+`clima/{semestre}_{semana}_{uid}`; `encaminhamentos` guardam `responsavel` e a `origem`
+(ata ou manual); `membros/{uid}` guarda papel, módulo, cargos e as atividades padrão.
+
+---
+
+## Arquivos do Andon
 
 | Arquivo | Papel |
 |---|---|

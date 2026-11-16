@@ -1,0 +1,82 @@
+rules_version = '2';
+
+// Regras do Firestore da plataforma GIG (glean.com.br/gig).
+// Cole o arquivo inteiro em Firebase Console → Firestore Database → Rules.
+//
+// Só entra quem tem conta Google verificada do domínio glean.ufsc.br. Os papéis
+// vêm do documento membros/{uid}.papel: "lider", "gp" (Gestão de Pessoas) ou
+// "membro". A liderança promove o primeiro líder editando esse campo no Console.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower().matches('.*@glean[.]ufsc[.]br');
+    }
+    function meuCadastro() {
+      return get(/databases/$(database)/documents/membros/$(request.auth.uid)).data;
+    }
+    function lider() { return logado() && meuCadastro().papel == 'lider'; }
+    function gestao() { return logado() && meuCadastro().papel in ['lider', 'gp']; }
+    function eu(uid) { return logado() && request.auth.uid == uid; }
+
+    // ---- membros: o próprio usuário cria seu cadastro no primeiro login,
+    // sempre como "membro" e sem cargos; só a liderança muda papel/módulo/cargos.
+    match /membros/{uid} {
+      allow read: if logado();
+      allow create: if eu(uid)
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.papel == 'membro'
+        && request.resource.data.cargos.size() == 0;
+      allow update: if lider()
+        || (eu(uid) && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['nome', 'foto', 'padroes', 'atualizadoEm']));
+      allow delete: if lider();
+    }
+
+    // ---- catálogos e configuração
+    match /semestres/{id} { allow read: if logado(); allow write: if lider(); }
+    match /processos/{id} { allow read: if logado(); allow write: if lider(); }
+    match /atividades/{id} { allow read: if logado(); allow write: if lider(); }
+    match /config/{id} { allow read: if logado(); allow write: if gestao(); }
+
+    // ---- GIG semanal: cada um escreve só o seu; todos leem (gestão visual).
+    match /gig/{id} {
+      allow read: if logado();
+      allow create, update: if eu(request.resource.data.uid);
+      allow delete: if lider() || eu(resource.data.uid);
+    }
+
+    // ---- pesquisinha: respostas individuais são sensíveis. O id é
+    // "{semestre}_{semana}_{uid}", então o dono é lido do próprio id (isso
+    // também permite checar se a resposta da semana já existe).
+    match /clima/{id} {
+      allow read: if gestao() || eu(id.split('_')[2]);
+      allow create, update: if eu(request.resource.data.uid);
+      allow delete: if lider();
+    }
+
+    // ---- quedas no ID: todos veem o quadro; só liderança/GP registram.
+    match /quedas/{id} {
+      allow read: if logado();
+      allow create, update, delete: if gestao();
+    }
+
+    // ---- atas: qualquer membro cria; edita o autor ou a liderança.
+    match /atas/{id} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.autor == request.auth.uid;
+      allow update, delete: if lider() || eu(resource.data.autor);
+    }
+
+    // ---- encaminhamentos: qualquer membro cria; muda status o responsável,
+    // quem criou ou a liderança.
+    match /encaminhamentos/{id} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.criadoPor == request.auth.uid;
+      allow update: if lider() || eu(resource.data.responsavel) || eu(resource.data.criadoPor);
+      allow delete: if lider() || eu(resource.data.criadoPor);
+    }
+  }
+}

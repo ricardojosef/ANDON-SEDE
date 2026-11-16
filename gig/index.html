@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GIG · GLean</title>
+<meta name="description" content="Plataforma de gestão semanal do GLean: GIG, pesquisa de clima, atas e encaminhamentos.">
+<link rel="icon" href="../assets/favicon_glean.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+<!-- Vue e vue-router sem etapa de build: o import map resolve os nomes "vue" e
+     "vue-router" para os builds ESM de navegador. -->
+<script type="importmap">
+{
+  "imports": {
+    "vue": "https://unpkg.com/vue@3.4.38/dist/vue.esm-browser.prod.js",
+    "vue-router": "https://unpkg.com/vue-router@4.4.3/dist/vue-router.esm-browser.js",
+    "@vue/devtools-api": "https://unpkg.com/@vue/devtools-api@6.6.3/lib/esm/index.js"
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"></script>
+</head>
+<body>
+<div id="app"><div class="tela-cheia"><p class="carregando">Carregando…</p></div></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
