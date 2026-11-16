@@ -14,6 +14,7 @@ import Gig from "./views/Gig.js";
 import Clima from "./views/Clima.js";
 import Encaminhamentos from "./views/Encaminhamentos.js";
 import Atas from "./views/Atas.js";
+import Agenda from "./views/Agenda.js";
 import AtaEditar from "./views/AtaEditar.js";
 import Membros from "./views/Membros.js";
 import Quedas from "./views/Quedas.js";
@@ -26,6 +27,7 @@ const rotas = [
   { path: "/gig", component: Gig },
   { path: "/clima", component: Clima },
   { path: "/encaminhamentos", component: Encaminhamentos },
+  { path: "/agenda", component: Agenda },
   { path: "/atas", component: Atas },
   { path: "/atas/nova", component: AtaEditar },
   { path: "/atas/:id", component: AtaEditar, props: true },

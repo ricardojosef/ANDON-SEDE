@@ -12,6 +12,7 @@ export default {
         { to: "/", nome: "Início", icone: "inicio" },
         { to: "/gig", nome: "GIG", icone: "gig" },
         { to: "/clima", nome: "Pesquisinha", icone: "clima" },
+        { to: "/agenda", nome: "Agenda", icone: "agenda" },
         { to: "/encaminhamentos", nome: "Encaminhamentos", icone: "enc" },
         { to: "/atas", nome: "Atas", icone: "atas" },
         { to: "/quedas", nome: "Quedas no ID", icone: "quedas" },

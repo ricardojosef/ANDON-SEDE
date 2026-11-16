@@ -68,6 +68,10 @@ service cloud.firestore {
       allow read: if logado();
       allow create: if logado() && request.resource.data.autor == request.auth.uid;
       allow update, delete: if lider() || eu(resource.data.autor);
+      // Qualquer membro pode vincular/desvincular uma ata a uma reunião da
+      // agenda (só o campo "evento"; o conteúdo continua com o autor).
+      allow update: if logado()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['evento']);
     }
 
     // ---- encaminhamentos: qualquer membro cria; muda status o responsável,

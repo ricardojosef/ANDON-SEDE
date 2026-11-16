@@ -5,6 +5,7 @@ import {
 import { hojeISO, formatarData } from "../lib/util.js";
 import { TIPOS_ATA, nomeStatus } from "../lib/constantes.js";
 import { ICONES } from "../components/Icones.js";
+import { agenda, lerEvento, atualizarEvento, descricaoComAta } from "../lib/agenda.js";
 
 const novoEnc = () => ({ titulo: "", responsavel: "", prazo: "" });
 
@@ -24,7 +25,10 @@ export default {
     nova() { return !this.id; },
     podeEditar() { return this.nova || ehLider() || this.ata.autor === store.membro.id; },
   },
-  created() { if (this.id) this.carregar(); },
+  created() {
+    if (this.id) this.carregar();
+    else this.preencherDaReuniao();
+  },
   methods: {
     nomeDoMembro, nomeStatus, formatarData,
     async carregar() {
@@ -36,6 +40,36 @@ export default {
         this.encs = await listar("encaminhamentos", where("origem.id", "==", this.id));
       } catch (err) { this.erro = mensagemErro(err); }
       finally { this.carregando = false; }
+    },
+    // Vindo da Agenda ("Criar ata"): título, data e participantes já vêm da
+    // reunião, e a ata fica vinculada ao evento.
+    preencherDaReuniao() {
+      const q = this.$route.query || {};
+      if (!q.evento) return;
+      if (!this.membros.length) {
+        const parar = this.$watch(() => store.membros.length, (n) => { if (n) { parar(); this.preencherDaReuniao(); } });
+        return;
+      }
+      const emails = String(q.emails || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+      const participantes = this.membros.filter((m) => emails.includes((m.email || "").toLowerCase())).map((m) => m.id);
+      if (store.membro && !participantes.includes(store.membro.id)) participantes.push(store.membro.id);
+      this.ata.titulo = String(q.titulo || "");
+      if (q.data) this.ata.data = String(q.data);
+      this.ata.participantes = participantes;
+      this.ata.evento = {
+        eventId: String(q.evento), calendarId: String(q.agenda || ""), htmlLink: String(q.link || ""),
+        titulo: String(q.titulo || ""), data: String(q.data || ""),
+      };
+    },
+    // Põe o link da ata na descrição do evento, para quem abre direto no Google.
+    // Só funciona com a agenda conectada e permissão de edição; se não der, a
+    // ata continua vinculada do lado da plataforma.
+    async anotarNoEvento(ataId, evento) {
+      if (!agenda.conectado || !evento || !evento.calendarId) return;
+      try {
+        const e = await lerEvento(evento.calendarId, evento.eventId);
+        await atualizarEvento(evento.calendarId, evento.eventId, { description: descricaoComAta(e.description, ataId) }, { notificar: false });
+      } catch (err) { console.warn("não foi possível anotar a ata no evento", err); }
     },
     marcarTodos() { this.ata.participantes = this.membros.map((m) => m.id); },
     addNovo() { this.novos.push(novoEnc()); },
@@ -51,6 +85,7 @@ export default {
           titulo: this.ata.titulo.trim(), tipo: this.ata.tipo, processo: this.ata.processo || "",
           data: this.ata.data || hojeISO(), participantes: this.ata.participantes || [], texto: this.ata.texto || "",
           semestre: this.semestre ? this.semestre.id : "", atualizadoEm: serverTimestamp(),
+          evento: this.ata.evento || null,
         };
         let id = this.id;
         if (this.nova) {
@@ -58,6 +93,7 @@ export default {
             ...dados, autor: store.membro.id, autorNome: store.membro.nome, criadoEm: serverTimestamp(),
           });
           id = ref.id;
+          await this.anotarNoEvento(id, dados.evento);
         } else {
           await updateDoc(doc(db, "atas", id), dados);
         }
@@ -94,6 +130,11 @@ export default {
         <router-link to="/atas" class="btn pequeno" style="margin-bottom:8px"><span v-html="ICONES.voltar"></span> Atas</router-link>
         <h1>{{ nova ? "Nova ata" : ata.titulo }}</h1>
         <p class="sub" v-if="!nova">{{ formatarData(ata.data, true) }} · {{ ata.tipo }} · {{ ata.autorNome || nomeDoMembro(ata.autor) }}</p>
+        <p class="sub" v-if="ata.evento && ata.evento.eventId">
+          📅 Reunião na agenda<span v-if="ata.evento.titulo">: {{ ata.evento.titulo }}</span>
+          · <router-link to="/agenda">ver na Agenda</router-link>
+          <template v-if="ata.evento.htmlLink"> · <a :href="ata.evento.htmlLink" target="_blank" rel="noopener">abrir no Google Agenda</a></template>
+        </p>
       </div>
       <div class="acoes" v-if="!nova && podeEditar && !editando">
         <button class="btn" @click="editando = true">Editar</button>

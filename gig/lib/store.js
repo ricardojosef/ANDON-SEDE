@@ -17,6 +17,7 @@ export const store = reactive({
   semestres: [],
   configQuedas: CONFIG_QUEDAS_PADRAO,
   configClima: {},
+  configAgenda: {},     // { clientId, agendaGrupo } — integração com o Google Agenda
 });
 
 // Derivados simples, usados em várias telas.
@@ -51,6 +52,7 @@ export function iniciarStore(uid) {
     store.configQuedas = s.exists() ? { ...CONFIG_QUEDAS_PADRAO, ...s.data() } : CONFIG_QUEDAS_PADRAO;
   });
   escuta(doc(db, "config", "clima"), (s) => { store.configClima = s.exists() ? s.data() : {}; });
+  escuta(doc(db, "config", "agenda"), (s) => { store.configAgenda = s.exists() ? s.data() : {}; });
 }
 
 export function pararStore() {

@@ -249,6 +249,54 @@ h1, h2, h3 { margin: 0; line-height: 1.2; }
 .grafico { position: relative; height: 280px; }
 .grafico.alto { height: 340px; }
 
+/* ------------------------------ agenda ------------------------------ */
+.chip-agenda {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--borda); background: #fff; border-radius: 999px;
+  padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--texto-fraco); cursor: pointer;
+}
+.chip-agenda i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--cor); background: transparent; }
+.chip-agenda.sel { color: var(--marinho); border-color: var(--cor); }
+.chip-agenda.sel i { background: var(--cor); }
+.chip-agenda small { font-size: 10.5px; color: var(--azul); text-transform: uppercase; letter-spacing: .06em; }
+
+.semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; transition: opacity .2s; }
+.semana.carregando { opacity: .55; }
+.dia { background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 10px 8px; min-height: 260px; display: flex; flex-direction: column; gap: 6px; }
+.dia.hoje { border-color: var(--azul); box-shadow: 0 0 0 2px rgba(46, 139, 192, .15); }
+.dia-cab { display: flex; align-items: baseline; gap: 6px; padding: 0 4px 6px; border-bottom: 1px solid #edf2f6; }
+.dia-cab span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-fraco); }
+.dia-cab b { font-size: 15px; }
+.dia.hoje .dia-cab b { color: var(--azul); }
+.dia-mais { margin-left: auto; border: 0; background: transparent; color: #9fb3c4; font-size: 18px; line-height: 1; cursor: pointer; border-radius: 6px; padding: 0 5px; }
+.dia-mais:hover { background: var(--azul-suave); color: var(--azul); }
+.dia-vazio { color: #c4d2de; text-align: center; margin: 8px 0 0; font-size: 13px; }
+.evento {
+  text-align: left; border: 0; border-left: 4px solid var(--cor, var(--azul)); border-radius: 8px;
+  background: var(--papel); padding: 7px 8px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+  transition: background .15s, transform .15s;
+}
+.evento:hover, .evento.sel { background: var(--azul-suave); }
+.evento small { font-size: 11px; color: var(--texto-fraco); font-weight: 600; }
+.evento b { font-size: 12.5px; line-height: 1.3; overflow-wrap: anywhere; }
+.evento-selos { display: flex; gap: 4px; flex-wrap: wrap; }
+.evento-selos .selo { padding: 1px 7px; font-size: 10.5px; }
+
+.modal-fundo { position: fixed; inset: 0; z-index: 40; background: rgba(13, 44, 71, .45); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px 24px; overflow-y: auto; }
+.modal-caixa { background: #fff; border-radius: 16px; padding: 22px 24px; width: 100%; max-width: 680px; box-shadow: 0 30px 70px rgba(0, 0, 0, .3); }
+.descricao-evento { white-space: pre-wrap; font-size: 14px; background: var(--papel); border-radius: 10px; padding: 10px 12px; margin: 10px 0; max-height: 180px; overflow-y: auto; overflow-wrap: anywhere; }
+.bloco-ata { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borda); }
+
+@media (max-width: 1100px) {
+  .semana { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .semana { grid-template-columns: minmax(0, 1fr); }
+  .dia { min-height: 0; }
+  .modal-fundo { padding: 0; }
+  .modal-caixa { border-radius: 0; min-height: 100%; }
+}
+
 /* ------------------------------ mobile ------------------------------ */
 @media (max-width: 900px) {
   .app { grid-template-columns: minmax(0, 1fr); }

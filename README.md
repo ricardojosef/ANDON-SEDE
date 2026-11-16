@@ -248,6 +248,40 @@ Firebase** do Andon — a configuração vem de [`andon/config.js`](andon/config
 As respostas individuais da pesquisinha só são lidas por `lider`/`gp`; cada membro lê só a
 sua. GIG, atas, encaminhamentos e quedas são visíveis a todos (gestão visual).
 
+### Google Agenda
+
+A tela **Agenda** mostra a semana das agendas Google de quem está logado (pessoal, do grupo,
+de processos), permite criar/editar/excluir reuniões com convidados do grupo e link do Meet,
+e liga cada reunião a uma **ata**: "Criar ata" já preenche título, data e participantes, e os
+encaminhamentos da ata aparecem (e podem ser criados) no painel da reunião. O link da ata é
+escrito na descrição do evento, para quem abre direto no Google Agenda.
+
+Funciona só no navegador (Google Identity Services + Calendar API), sem servidor e sem custo.
+Cada pessoa clica em **Conectar Google Agenda** e autoriza a própria conta; o acesso vale por
+cerca de uma hora e depois é só conectar de novo.
+
+Configuração, uma vez, no [Google Cloud Console](https://console.cloud.google.com/) do mesmo
+projeto do Firebase (`andon-sede`):
+
+1. **APIs e serviços → Biblioteca → Google Calendar API → Ativar.**
+2. **Tela de consentimento OAuth.** Se o projeto pertence à organização do Workspace
+   `glean.ufsc.br`, escolha o tipo **Interno**: só contas do grupo usam, sem verificação do
+   Google. Se o projeto foi criado com uma conta Gmail pessoal (fora da organização), o tipo
+   Interno não aparece: use **Externo** em modo **Teste** e cadastre os e-mails dos membros
+   como usuários de teste (até 100), ou transfira o projeto para a organização. Escopos:
+   `calendar.events` e `calendar.calendarlist.readonly`.
+3. **Credenciais → IDs do cliente OAuth 2.0 →** "Web client (auto created by Google Service)"
+   (criado pelo Firebase) → em **Origens JavaScript autorizadas**, adicione
+   `https://glean.com.br` (e `http://localhost:8765` para testar localmente). Copie o
+   **Client ID**.
+4. Na plataforma, como líder: **Agenda → Configurar** → cole o Client ID e escolha a
+   **agenda do grupo** (ela vem marcada para todos e é onde as reuniões novas são criadas).
+5. Agenda do grupo: no Google Agenda, crie uma agenda "GLean" e compartilhe com o grupo do
+   Workspace com a permissão **Fazer alterações nos eventos**.
+
+Se o Workspace restringir apps de terceiros (Admin → Segurança → Controles de API), o
+administrador precisa marcar este Client ID como confiável.
+
 ### Arquivos da plataforma
 
 | Arquivo | Papel |
@@ -256,8 +290,8 @@ sua. GIG, atas, encaminhamentos e quedas são visíveis a todos (gestão visual)
 | [`gig/app.js`](gig/app.js) | Rotas, login/guarda de autenticação, criação do cadastro no 1º acesso |
 | [`gig/styles.css`](gig/styles.css) | Paleta e componentes (mesmos tokens do Andon) |
 | [`gig/firestore.rules`](gig/firestore.rules) | Regras do Firestore (colar no Console) |
-| `gig/lib/` | Firebase, store reativa, semana do semestre, cálculo do ID, perguntas da pesquisinha, catálogos iniciais |
-| `gig/views/` | Uma tela por arquivo: Início, GIG, Pesquisinha, Encaminhamentos, Atas, Membros, Quedas, Dashboards, Perfil |
+| `gig/lib/` | Firebase, Google Agenda (`agenda.js`), store reativa, semana do semestre, cálculo do ID, perguntas da pesquisinha, catálogos iniciais |
+| `gig/views/` | Uma tela por arquivo: Início, GIG, Pesquisinha, Agenda, Encaminhamentos, Atas, Membros, Quedas, Dashboards, Perfil |
 | `gig/components/` | Navegação, seletor de semana, escala 1–7, gráfico |
 
 Modelo de dados: um documento por **membro-semana** em `gig/{semestre}_{semana}_{uid}` e
