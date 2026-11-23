@@ -28,6 +28,8 @@ import Formularios from "./views/Formularios.js";
 import FormularioEditar from "./views/FormularioEditar.js";
 import FormularioResponder from "./views/FormularioResponder.js";
 import FormularioRespostas from "./views/FormularioRespostas.js";
+import Chat from "./views/Chat.js";
+import { iniciarAvisosDoChat } from "./lib/chat.js";
 
 const rotas = [
   { path: "/login", component: Login, meta: { publica: true } },
@@ -40,6 +42,8 @@ const rotas = [
   { path: "/formularios/:id/editar", component: FormularioEditar, props: true },
   { path: "/formularios/:id/respostas", component: FormularioRespostas, props: true },
   { path: "/formularios/:id", component: FormularioResponder, props: true },
+  { path: "/chat", component: Chat },
+  { path: "/chat/:id", component: Chat, props: true },
   { path: "/encaminhamentos", component: Encaminhamentos },
   { path: "/agenda", component: Agenda },
   { path: "/atas", component: Atas },
@@ -93,6 +97,7 @@ onAuthStateChanged(auth, async (user) => {
       store.user = user;
       iniciarStore(user.uid);
       iniciarLembretes();
+      iniciarAvisosDoChat(router);
       if (router.currentRoute.value.path === "/login") router.replace("/");
     } else {
       store.user = null;

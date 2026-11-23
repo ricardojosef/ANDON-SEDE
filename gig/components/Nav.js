@@ -4,6 +4,7 @@ import { ICONES } from "./Icones.js";
 import { nomePapel } from "../lib/constantes.js";
 import { primeiroNome } from "../lib/util.js";
 import { ddlsPendentes } from "../lib/ddl.js";
+import { totalNaoLidas } from "../lib/chat.js";
 import { tema, alternarTema } from "../lib/tema.js";
 import Logo from "./Logo.js";
 
@@ -15,6 +16,7 @@ export default {
       const itens = [
         { to: "/", nome: "Início", icone: "inicio" },
         { to: "/gig", nome: "GIG", icone: "gig" },
+        { to: "/chat", nome: "Chat", icone: "chat", contador: totalNaoLidas() },
         { to: "/ddls", nome: "DDLs", icone: "ddl", contador: this.pendentes },
         { to: "/clima", nome: "Pesquisinha", icone: "clima" },
         { to: "/agenda", nome: "Agenda", icone: "agenda" },

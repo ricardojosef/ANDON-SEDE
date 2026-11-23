@@ -116,5 +116,63 @@ service cloud.firestore {
         allow delete: if lider() || eu(form().autor);
       }
     }
+
+    // ---- chat: conversas diretas (id dm_<uidA>_<uidB>) e grupos. Só quem
+    // participa lê e escreve; a lista do app filtra por "membros contém eu".
+    function conversa(cid) { return get(/databases/$(database)/documents/conversas/$(cid)).data; }
+    function participo(cid) { return logado() && request.auth.uid in conversa(cid).membros; }
+    // conversa direta: o id é sempre dm_<uidA>_<uidB> com os próprios membros
+    // (ou dm_<eu>_<eu>, a conversa comigo mesmo, para anotações)
+    function idDiretaValido(cid, m) {
+      return (m.size() == 2 && (cid == 'dm_' + m[0] + '_' + m[1] || cid == 'dm_' + m[1] + '_' + m[0]))
+        || (m.size() == 1 && cid == 'dm_' + m[0] + '_' + m[0]);
+    }
+
+    match /conversas/{cid} {
+      // resource == null: checar se a conversa direta já existe antes de criá-la
+      allow read: if logado() && (resource == null || request.auth.uid in resource.data.membros);
+      allow create: if logado()
+        && request.resource.data.criadoPor == request.auth.uid
+        && request.auth.uid in request.resource.data.membros
+        && ((request.resource.data.tipo == 'grupo' && request.resource.data.admins.hasOnly([request.auth.uid]))
+            || (request.resource.data.tipo == 'direta' && idDiretaValido(cid, request.resource.data.membros)));
+      allow update: if logado() && request.auth.uid in resource.data.membros && (
+        // qualquer participante: última mensagem e "lida até"
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ultima', 'atualizadoEm', 'lidas'])
+        // administradores do grupo (e a liderança): nome, foto, membros, admins…
+        || (resource.data.tipo == 'grupo' && (request.auth.uid in resource.data.admins || lider())
+            && request.resource.data.tipo == 'grupo' && request.resource.data.criadoPor == resource.data.criadoPor)
+        // sair do grupo: só tirar a si mesmo
+        || (resource.data.tipo == 'grupo'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['membros', 'admins', 'atualizadoEm'])
+            && request.resource.data.membros.toSet() == resource.data.membros.toSet().difference([request.auth.uid].toSet()))
+      );
+      allow delete: if lider();
+
+      match /mensagens/{mid} {
+        allow read: if participo(cid);
+        allow create: if participo(cid) && request.resource.data.autor == request.auth.uid;
+        // só o autor mexe na própria mensagem (apagar para todos)
+        allow update: if participo(cid) && resource.data.autor == request.auth.uid
+          && request.resource.data.autor == resource.data.autor;
+        allow delete: if false;
+      }
+
+      // anexos: o arquivo em pedaços de até ~800 KB (base64)
+      match /anexos/{aid}/partes/{n} {
+        allow read: if participo(cid);
+        allow create: if participo(cid) && request.resource.data.autor == request.auth.uid
+          && request.resource.data.dados.size() <= 900000;
+        allow update, delete: if false;
+      }
+    }
+
+    // ---- figurinhas criadas pelos membros (imagens pequenas, até ~200 KB)
+    match /figurinhas/{id} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.criadoPor == request.auth.uid
+        && request.resource.data.dados is string && request.resource.data.dados.size() <= 200000;
+      allow delete: if lider() || eu(resource.data.criadoPor);
+    }
   }
 }

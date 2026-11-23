@@ -88,6 +88,25 @@ ocupando a tela inteira, no layout do Google Agenda (botão Criar, mini calendá
 "Minhas agendas" e a grade da semana); **Voltar ao GIG** (ou `Esc`) retorna à plataforma.
 O link `#/agenda?tela=cheia` já abre nesse modo.
 
+## Chat
+
+Conversas diretas com qualquer membro e **grupos** (nome, emoji, cor, descrição; quem cria é
+administrador e pode adicionar/remover pessoas e promover outros admins; qualquer um pode sair).
+Dá para responder uma mensagem, **encaminhar** qualquer mensagem (texto, figurinha ou anexo) para
+uma ou várias conversas, apagar as próprias mensagens e ver ✓✓ azul quando todos leram.
+
+- **Figurinhas:** o pacote do GLean (desenhado em [`lib/figurinhas.js`](lib/figurinhas.js)) e a
+  biblioteca "Do grupo", em que qualquer membro cria uma figurinha a partir de uma imagem (PNG
+  com fundo transparente fica melhor) ou guarda uma figurinha que recebeu.
+- **Anexos:** fotos, PDFs, planilhas, qualquer arquivo de até **5 MB** (clipe, arrastar para a
+  conversa ou colar). Ficam no próprio Firestore, em pedaços de ~600 KB, sem precisar do
+  Firebase Storage (que exige o plano pago). Fotos grandes são reduzidas e comprimidas antes de
+  enviar. Como tudo divide a cota de 1 GB do plano gratuito, o chat não serve para vídeos
+  grandes: para isso, compartilhe um link do Drive.
+- **Avisos:** o item Chat da navegação mostra quantas conversas têm mensagem nova e, com as
+  notificações do navegador ligadas (tela DDLs), chega um aviso quando o GIG está aberto em
+  segundo plano.
+
 ## DDLs e formulários
 
 **DDL** é uma entrega com prazo: terça ou quinta às 23:59, ou um prazo *excepcional* (outro dia
@@ -127,4 +146,7 @@ Modelo de dados: um documento por **membro-semana** em `gig/{semestre}_{semana}_
 `membros/{uid}` guarda papel, módulo, cargos e as atividades padrão; `config/agenda` guarda o
 Client ID e a agenda do grupo; `ddls/{id}` guarda prazo, público e `concluidos.{uid}`;
 `formularios/{id}` guarda perguntas, público, prazo e `respondentes.{uid}`, com as respostas em
-`formularios/{id}/respostas/{uid}`.
+`formularios/{id}/respostas/{uid}`; `conversas/{id}` (diretas com id `dm_<uidA>_<uidB>` ou
+grupos) guarda membros, admins, a última mensagem e `lidas.{uid}`, com as mensagens em
+`conversas/{id}/mensagens` e os anexos em `conversas/{id}/anexos/{aid}/partes/{n}`;
+`figurinhas/{id}` guarda as figurinhas criadas pelos membros.

@@ -3,7 +3,7 @@
 // Tudo chega por onSnapshot, então uma mudança feita pela liderança aparece
 // em todas as telas abertas.
 import { reactive } from "vue";
-import { db, collection, doc, onSnapshot, comId } from "./firebase.js";
+import { db, collection, doc, onSnapshot, comId, query, where } from "./firebase.js";
 import { CONFIG_QUEDAS_PADRAO } from "./id.js";
 import { semanaAtual, idSemana } from "./semana.js";
 
@@ -23,6 +23,8 @@ export const store = reactive({
   ddls: [],             // DDLs do tipo tarefa (ddls/{id})
   formularios: [],      // formulários (os com prazo também são DDLs)
   climaDaSemana: null,  // a pesquisinha desta semana do usuário (null = não respondida)
+  conversas: [],        // chat: conversas de que o usuário participa (mais recente primeiro)
+  figurinhas: [],       // chat: figurinhas criadas pelos membros
 });
 
 // Derivados simples, usados em várias telas.
@@ -76,6 +78,13 @@ export function iniciarStore(uid) {
   escuta(collection(db, "formularios"), (s) => {
     store.formularios = s.docs.map(comId).sort((a, b) => (b.criadoEmISO || "").localeCompare(a.criadoEmISO || ""));
   });
+  // chat: só as conversas de que a pessoa participa (as regras exigem esse filtro)
+  escuta(query(collection(db, "conversas"), where("membros", "array-contains", uid)), (s) => {
+    store.conversas = s.docs.map(comId).sort((a, b) => (b.atualizadoEm || "").localeCompare(a.atualizadoEm || ""));
+  });
+  escuta(collection(db, "figurinhas"), (s) => {
+    store.figurinhas = s.docs.map(comId).sort((a, b) => (b.criadoEmISO || "").localeCompare(a.criadoEmISO || ""));
+  });
   escuta(doc(db, "config", "quedas"), (s) => {
     store.configQuedasExiste = s.exists();
     store.configQuedas = s.exists() ? { ...CONFIG_QUEDAS_PADRAO, ...s.data() } : CONFIG_QUEDAS_PADRAO;
@@ -89,7 +98,7 @@ export function pararStore({ manterMembro = false } = {}) {
   desligar = [];
   if (desligarClima) desligarClima();
   desligarClima = null; climaAtual = ""; store.climaDaSemana = null;
-  store.ddls = []; store.formularios = [];
+  store.ddls = []; store.formularios = []; store.conversas = []; store.figurinhas = [];
   if (!manterMembro) store.membro = null;
   store.membros = []; store.processos = []; store.atividades = []; store.semestres = [];
 }

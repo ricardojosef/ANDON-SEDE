@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
-  onSnapshot, query, where, writeBatch, serverTimestamp,
+  onSnapshot, query, where, orderBy, limitToLast, writeBatch, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export const app = initializeApp(FIREBASE_CONFIG);
@@ -16,7 +16,7 @@ export const db = getFirestore(app);
 
 export {
   onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
-  onSnapshot, query, where, writeBatch, serverTimestamp,
+  onSnapshot, query, where, orderBy, limitToLast, writeBatch, serverTimestamp,
 };
 
 // Só contas do Google Workspace do grupo entram. O front checa aqui e as
