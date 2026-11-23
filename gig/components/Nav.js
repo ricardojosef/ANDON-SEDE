@@ -4,9 +4,12 @@ import { ICONES } from "./Icones.js";
 import { nomePapel } from "../lib/constantes.js";
 import { primeiroNome } from "../lib/util.js";
 import { ddlsPendentes } from "../lib/ddl.js";
+import { tema, alternarTema } from "../lib/tema.js";
+import Logo from "./Logo.js";
 
 export default {
-  data() { return { store, ICONES }; },
+  components: { Logo },
+  data() { return { store, ICONES, tema }; },
   computed: {
     itens() {
       const itens = [
@@ -33,20 +36,21 @@ export default {
       const p = this.$route.path;
       return item.to === "/" ? p === "/" : p.startsWith(item.to);
     },
-    sair,
+    sair, alternarTema,
   },
   template: `
   <nav class="nav">
-    <div class="nav-marca"><img src="../assets/marca/logo-branca-glean.png" alt="GLean"><span>GIG</span></div>
+    <router-link to="/" class="nav-marca" title="GIG · Gestão Interna do Grupo"><Logo variante="clara" :altura="40" /></router-link>
     <router-link v-for="i in itens" :key="i.to" :to="i.to" class="nav-item" :class="{ ativo: ativo(i) }">
       <span class="nav-icone" v-html="ICONES[i.icone]"></span><span>{{ i.nome }}</span>
       <span class="nav-contador" v-if="i.contador">{{ i.contador }}</span>
     </router-link>
     <div class="nav-rodape" v-if="store.membro">
-      <router-link to="/perfil" class="nav-usuario" title="Meu perfil">
+      <router-link to="/perfil" class="nav-usuario" title="Perfil e configurações">
         <img :src="store.membro.foto || '../assets/marca/favicon_glean.png'" alt="">
         <div><b>{{ nome }}</b><small>{{ papel }}</small></div>
       </router-link>
+      <button class="nav-sair" @click="alternarTema" :title="tema.efetivo === 'escuro' ? 'Usar modo claro' : 'Usar modo escuro'" v-html="tema.efetivo === 'escuro' ? ICONES.sol : ICONES.lua"></button>
       <button class="nav-sair" @click="sair" title="Sair" v-html="ICONES.sair"></button>
     </div>
   </nav>`,

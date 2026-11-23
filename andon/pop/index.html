@@ -118,7 +118,8 @@
     flex: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 0;
     gap: 2.6mm;
     margin: 0;
     padding: 0;
@@ -219,11 +220,11 @@
         </li>
         <li class="passo">
           <h2>Entrar na internet</h2>
-          <p>Abra o ícone de internet com <kbd>⊞ Win</kbd>+<kbd>A</kbd> e escolha a rede <b>eduroam</b>.</p>
+          <p><kbd>⊞ Win</kbd>+<kbd>T</kbd>, depois <kbd>Tab</kbd> até o <b>sinal de internet</b> (perto do relógio) e <kbd>Enter</kbd>. Escolha <b>eduroam</b> com <kbd>↓</kbd> e <kbd>Enter</kbd>.<span class="obs">Parou num ícone vizinho? Use <kbd>→</kbd>.</span></p>
         </li>
         <li class="passo">
           <h2>Logar com o idUFSC</h2>
-          <p>Usuário: <b>nome.sobrenome</b><br>Senha: <b>a senha padrão do Moodle</b>. <kbd>Enter</kbd> para conectar.</p>
+          <p>Usuário: <b>o idUFSC</b><br>Senha: <b>a senha padrão do Moodle</b>. <kbd>Enter</kbd> para conectar.<span class="obs"><b>Atenção:</b> digite o idUFSC <b>sem o @ufsc.br</b> no final.</span></p>
         </li>
         <li class="passo">
           <h2>Energia e suspensão</h2>
@@ -253,7 +254,7 @@
       </ol>
 
       <footer class="rodape">
-        <span>POP-ANDON-01 · rev. 2 · nov/2026</span>
+        <span>POP-ANDON-01 · rev. 3 · nov/2026</span>
         <span>GLean · Grupo de Estudos em Lean da UFSC</span>
       </footer>
     </section>

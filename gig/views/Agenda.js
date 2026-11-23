@@ -10,9 +10,11 @@ import {
 import { hojeISO, somarDias, deISO, paraISO, formatarData } from "../lib/util.js";
 import { nomeStatus } from "../lib/constantes.js";
 import { ICONES } from "../components/Icones.js";
+import Logo from "../components/Logo.js";
 
 const CHAVE_SELECAO = "gig-agenda-selecao";
-const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];   // a semana começa no domingo, como no Google Agenda
+const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 const HORA_PX = 48;                        // altura de uma hora na grade
 const HORAS = Array.from({ length: 24 }, (_, h) => h);
 const doisDig = (n) => String(n).padStart(2, "0");
@@ -45,24 +47,26 @@ function distribuir(blocos) {
   return saida;
 }
 
-function segundaDe(iso) {
+function domingoDe(iso) {
   const d = deISO(iso);
-  const dia = (d.getDay() + 6) % 7;          // 0 = segunda
-  d.setDate(d.getDate() - dia);
+  d.setDate(d.getDate() - d.getDay());       // getDay(): 0 = domingo
   return paraISO(d);
 }
+const primeiroDoMes = (iso) => iso.slice(0, 8) + "01";
 
 export default {
+  components: { Logo },
   data() {
     return {
       store, agenda, ICONES, DIAS, CORES_EVENTO, HORAS, HORA_PX,
       agora: Date.now(), relogio: null, rolouGrade: false,
-      inicioSemana: segundaDe(hojeISO()),
+      inicioSemana: domingoDe(hojeISO()),
       agendas: [], selecionadas: [], eventos: [], atas: [],
       carregando: false, erro: "", ok: "",
       sel: null, encsSel: [], novoEnc: { titulo: "", responsavel: "", prazo: "" }, ataParaVincular: "",
       form: null, modo: "", salvando: false, outroEmail: "",
       config: { clientId: "", agendaGrupo: "" }, mostrarConfig: false,
+      telaCheia: this.$route.query.tela === "cheia", mesMini: primeiroDoMes(domingoDe(hojeISO())),
     };
   },
   computed: {
@@ -86,6 +90,25 @@ export default {
     linhaAgora() {
       const d = new Date(this.agora);
       return { iso: paraISO(d), top: (d.getHours() * 60 + d.getMinutes()) / 60 * HORA_PX };
+    },
+    // "novembro de 2026" ou "nov. – dez. de 2026", como no topo do Google Agenda
+    tituloMes() {
+      const a = deISO(this.inicioSemana), b = deISO(somarDias(this.inicioSemana, 6));
+      if (a.getMonth() === b.getMonth()) return `${MESES[a.getMonth()]} de ${a.getFullYear()}`;
+      const curto = (d) => MESES[d.getMonth()].slice(0, 3) + ".";
+      return a.getFullYear() === b.getFullYear()
+        ? `${curto(a)} – ${curto(b)} de ${b.getFullYear()}`
+        : `${curto(a)} de ${a.getFullYear()} – ${curto(b)} de ${b.getFullYear()}`;
+    },
+    // mini calendário do mês na lateral (tela cheia)
+    miniTitulo() { const d = deISO(this.mesMini); return `${MESES[d.getMonth()]} de ${d.getFullYear()}`; },
+    miniDias() {
+      const mes = this.mesMini.slice(0, 7), hoje = hojeISO(), fimSemana = somarDias(this.inicioSemana, 6);
+      const ini = domingoDe(this.mesMini);
+      return Array.from({ length: 42 }, (_, i) => {
+        const iso = somarDias(ini, i);
+        return { iso, n: Number(iso.slice(8)), fora: iso.slice(0, 7) !== mes, hoje: iso === hoje, semana: iso >= this.inicioSemana && iso <= fimSemana };
+      });
     },
     tituloSemana() {
       const fim = somarDias(this.inicioSemana, 6);
@@ -111,9 +134,11 @@ export default {
   },
   created() {
     if (agenda.conectado) this.iniciar();
+    if (this.telaCheia) document.body.classList.add("sem-rolagem");
     this.relogio = setInterval(() => { this.agora = Date.now(); }, 60000);
   },
-  beforeUnmount() { clearInterval(this.relogio); },
+  mounted() { this.aoTecla = (e) => { if (e.key === "Escape" && this.telaCheia && !this.sel && !this.form) this.fecharTelaCheia(); }; addEventListener("keydown", this.aoTecla); },
+  beforeUnmount() { clearInterval(this.relogio); removeEventListener("keydown", this.aoTecla); document.body.classList.remove("sem-rolagem"); this.sairDoFullscreen(); },
   methods: {
     formatarData, rotuloHorario, linkMeet, nomeDoMembro, nomeStatus, dataDoEvento,
     cobre(e, iso) {
@@ -151,6 +176,7 @@ export default {
         };
       });
     },
+    domingoDaData: (iso) => domingoDe(iso),
     rotuloHora: (h) => (h === 0 ? "" : doisDig(h) + ":00"),
     // Clique num horário vazio: nova reunião começando ali (de meia em meia hora).
     novaNoHorario(ev, iso) {
@@ -198,7 +224,25 @@ export default {
       try { localStorage.setItem(CHAVE_SELECAO, JSON.stringify(this.selecionadas)); } catch {}
       this.carregar();
     },
-    mudarSemana(n) { this.inicioSemana = n === 0 ? segundaDe(hojeISO()) : somarDias(this.inicioSemana, 7 * n); this.carregar(); },
+    mudarSemana(n) { this.irParaSemana(n === 0 ? domingoDe(hojeISO()) : somarDias(this.inicioSemana, 7 * n)); },
+    irParaSemana(domingo) { this.inicioSemana = domingo; this.mesMini = primeiroDoMes(somarDias(domingo, 3)); this.carregar(); },
+    mudarMesMini(n) { const d = deISO(this.mesMini); d.setMonth(d.getMonth() + n); this.mesMini = primeiroDoMes(paraISO(d)); },
+    // Tela cheia: a agenda ocupa a tela toda, no layout do Google Agenda, e
+    // usa o modo tela cheia do navegador quando ele deixa.
+    abrirTelaCheia() {
+      this.telaCheia = true; this.rolouGrade = false;
+      document.body.classList.add("sem-rolagem");
+      try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); } catch {}
+      this.$nextTick(() => this.rolarGrade());
+    },
+    fecharTelaCheia() {
+      this.telaCheia = false; this.rolouGrade = false;
+      document.body.classList.remove("sem-rolagem");
+      this.sairDoFullscreen();
+      if (this.$route.query.tela) history.replaceState(history.state, "", location.href.replace(/[?&]tela=cheia/, ""));
+      this.$nextTick(() => this.rolarGrade());
+    },
+    sairDoFullscreen() { try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {} },
     async carregar() {
       if (!agenda.conectado) return;
       this.carregando = true; this.erro = "";
@@ -362,8 +406,22 @@ export default {
     },
   },
   template: `
-  <div>
-    <header class="cabecalho">
+  <div :class="{ gcal: telaCheia }">
+    <!-- ===== tela cheia: barra do topo no layout do Google Agenda ===== -->
+    <header class="gcal-topo" v-if="telaCheia">
+      <button class="gcal-voltar" @click="fecharTelaCheia" title="Voltar ao GIG (Esc)"><span v-html="ICONES.voltar"></span> Voltar ao GIG</button>
+      <span class="gcal-marca"><Logo so-icone :altura="36" /><span>Agenda</span></span>
+      <template v-if="agenda.conectado">
+        <button class="gcal-hoje" @click="mudarSemana(0)">Hoje</button>
+        <button class="gcal-seta" @click="mudarSemana(-1)" title="Semana anterior"><svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4-4.6-4.6z"/></svg></button>
+        <button class="gcal-seta" @click="mudarSemana(1)" title="Próxima semana"><svg viewBox="0 0 24 24"><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4 4.6 4.6z"/></svg></button>
+        <h2 class="gcal-titulo">{{ tituloMes }}</h2>
+      </template>
+      <span style="flex:1"></span>
+      <span class="gcal-visao" v-if="agenda.conectado">Semana</span>
+    </header>
+
+    <header class="cabecalho" v-else>
       <div><h1>Agenda</h1><p class="sub">Suas agendas do Google, com as atas e os encaminhamentos de cada reunião.</p></div>
       <div class="acoes" v-if="agenda.conectado">
         <div class="filtros" style="margin:0">
@@ -372,6 +430,7 @@ export default {
           <button class="btn icone" @click="mudarSemana(1)" v-html="ICONES.seta" title="Próxima semana"></button>
           <b style="min-width:110px">{{ tituloSemana }}</b>
         </div>
+        <button class="btn" @click="abrirTelaCheia" title="Abrir a agenda na tela toda"><span v-html="ICONES.telaCheia"></span> Tela cheia</button>
         <button class="btn destaque" @click="nova()"><span v-html="ICONES.mais"></span> Nova reunião</button>
       </div>
     </header>
@@ -380,7 +439,7 @@ export default {
     <p class="sucesso" v-if="ok">{{ ok }}</p>
 
     <!-- configuração: só a liderança -->
-    <section class="cartao" v-if="lider && (mostrarConfig || !configurado)" style="margin-bottom:16px">
+    <section class="cartao" v-if="!telaCheia && lider && (mostrarConfig || !configurado)" style="margin-bottom:16px">
       <div class="cartao-titulo">Configurar integração com o Google Agenda
         <button class="btn pequeno" v-if="configurado" @click="mostrarConfig = false">fechar</button></div>
       <p class="dica">O Client ID é o identificador OAuth do tipo "Aplicativo da Web" do projeto no Google Cloud (o mesmo do Firebase). Não é segredo. Passo a passo no README.</p>
@@ -393,7 +452,7 @@ export default {
       <button class="btn destaque" @click="salvarConfig">Salvar</button>
     </section>
 
-    <div class="aviso" v-if="!configurado && !lider">A integração com o Google Agenda ainda não foi configurada pela liderança.</div>
+    <div class="aviso" v-if="!telaCheia && !configurado && !lider">A integração com o Google Agenda ainda não foi configurada pela liderança.</div>
 
     <section class="cartao" v-else-if="configurado && !agenda.conectado" style="text-align:center;padding:36px 22px">
       <div style="width:56px;height:56px;margin:0 auto 12px;color:var(--azul)" v-html="ICONES.agenda"></div>
@@ -403,8 +462,35 @@ export default {
       <p class="erro" v-if="agenda.erro">{{ agenda.erro }}</p>
     </section>
 
-    <template v-if="agenda.conectado">
-      <div class="filtros">
+    <div class="gcal-corpo" v-if="telaCheia && !agenda.conectado" style="place-items:center">
+      <button class="gcal-hoje" @click="fecharTelaCheia">Conecte o Google Agenda para ver a semana</button>
+    </div>
+
+    <div :class="{ 'gcal-corpo': telaCheia }" v-if="agenda.conectado">
+      <!-- ===== tela cheia: lateral com Criar, mini calendário e agendas ===== -->
+      <aside class="gcal-lateral" v-if="telaCheia">
+        <button class="gcal-criar" @click="nova()"><svg viewBox="0 0 36 36"><path fill="#2e8bc0" d="M16 16v-7h4v7z"/><path fill="#5fb6e3" d="M20 16h7v4h-7z"/><path fill="#1f7fb8" d="M20 20v7h-4v-7z"/><path fill="#8fd0f2" d="M16 20H9v-4h7z"/><path fill="#3a9ad3" d="M16 16h4v4h-4z"/></svg><span>Criar</span></button>
+        <div class="gcal-mini">
+          <div class="gcal-mini-topo">
+            <b>{{ miniTitulo }}</b>
+            <button class="gcal-seta pequena" @click="mudarMesMini(-1)" title="Mês anterior"><svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4-4.6-4.6z"/></svg></button>
+            <button class="gcal-seta pequena" @click="mudarMesMini(1)" title="Próximo mês"><svg viewBox="0 0 24 24"><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4 4.6 4.6z"/></svg></button>
+          </div>
+          <div class="gcal-mini-grade">
+            <span class="gcal-mini-sem" v-for="(l, i) in ['D','S','T','Q','Q','S','S']" :key="'s' + i">{{ l }}</span>
+            <button v-for="d in miniDias" :key="d.iso" class="gcal-mini-dia" :class="{ fora: d.fora, hoje: d.hoje, semana: d.semana }" @click="irParaSemana(domingoDaData(d.iso))">{{ d.n }}</button>
+          </div>
+        </div>
+        <div class="gcal-agendas">
+          <h3>Minhas agendas</h3>
+          <label class="gcal-agenda" v-for="a in agendas" :key="a.id" :style="{ '--cor': a.cor }">
+            <input type="checkbox" :checked="selecionadas.includes(a.id)" @change="alternarAgenda(a.id)">
+            <i></i><span>{{ a.nome }}</span>
+          </label>
+        </div>
+      </aside>
+
+      <div class="filtros" v-else>
         <button v-for="a in agendas" :key="a.id" class="chip-agenda" :class="{ sel: selecionadas.includes(a.id) }" @click="alternarAgenda(a.id)" :style="{ '--cor': a.cor }">
           <i></i>{{ a.nome }}<small v-if="a.id === config.agendaGrupo">grupo</small>
         </button>
@@ -413,12 +499,12 @@ export default {
         <button class="btn pequeno" @click="sairDaAgenda">Desconectar</button>
       </div>
 
-      <div class="calendario" :class="{ carregando }">
+      <div class="calendario" :class="{ carregando, 'gcal-principal': telaCheia }">
         <!-- cabeçalho dos dias -->
         <div class="cal-cab">
           <div class="cal-fuso">GMT-3</div>
           <div class="cal-dia-cab" v-for="d in dias" :key="d.iso" :class="{ hoje: d.hoje }">
-            <span>{{ d.nome }}</span><b>{{ d.numero }}</b>
+            <span>{{ telaCheia ? d.nome.toUpperCase() + "." : d.nome }}</span><b>{{ d.numero }}</b>
           </div>
         </div>
         <!-- eventos de dia inteiro -->
@@ -452,7 +538,7 @@ export default {
           </div>
         </div>
       </div>
-    </template>
+    </div>
 
     <!-- ================= painel do evento ================= -->
     <div class="modal-fundo" v-if="sel && !form" @click.self="fechar">

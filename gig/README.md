@@ -1,4 +1,4 @@
-# Plataforma GIG
+# Plataforma GIG — Gestão Interna do Grupo
 
 Plataforma de gestão semanal do grupo, em [glean.com.br/gig](https://glean.com.br/gig/):
 login com a conta Google `@glean.ufsc.br`, GIG semanal (planejado × realizado por tipo de
@@ -10,6 +10,16 @@ quedas no ID e dashboards para a liderança.
 Roda sem build (Vue 3 e vue-router por CDN, via *import map*) e usa o projeto Firebase comum
 ([`../firebase/`](../firebase/)): Authentication (Google) e Cloud Firestore. Tudo cabe no
 plano gratuito.
+
+**Marca:** o ícone do GIG vem da marca do GLean (o anel com seta do ciclo de melhoria, no
+mesmo degradê) envolvendo uma grade 2×2, os quatro blocos da planilha do GIG. O desenho está
+em [`lib/marca.js`](lib/marca.js); os arquivos prontos ficam em
+[`../assets/marca/`](../assets/marca/) (`gig-icone.svg`, `gig-logo.svg` e as versões claras,
+para fundo escuro).
+
+**Modo escuro:** em **Perfil e configurações → Aparência** (Claro, Escuro ou Automático, que
+segue o sistema) ou no botão de lua/sol ao lado do nome, na navegação. Vale para o navegador
+em que foi escolhido.
 
 ## Ativar (uma vez)
 
@@ -71,6 +81,13 @@ Configuração, uma vez, no [Google Cloud Console](https://console.cloud.google.
 Se o Workspace restringir apps de terceiros (Admin → Segurança → Controles de API), o
 administrador precisa marcar este Client ID como confiável.
 
+## Agenda
+
+A semana começa no domingo, como no Google Agenda. O botão **Tela cheia** abre a agenda
+ocupando a tela inteira, no layout do Google Agenda (botão Criar, mini calendário do mês, lista
+"Minhas agendas" e a grade da semana); **Voltar ao GIG** (ou `Esc`) retorna à plataforma.
+O link `#/agenda?tela=cheia` já abre nesse modo.
+
 ## DDLs e formulários
 
 **DDL** é uma entrega com prazo: terça ou quinta às 23:59, ou um prazo *excepcional* (outro dia
@@ -100,7 +117,7 @@ CSV. Cada membro só lê a própria resposta.
 | [`styles.css`](styles.css) | Paleta e componentes (mesmos tokens do Andon) |
 | `lib/` | Firebase, Google Agenda (`agenda.js`), store reativa, semana do semestre, cálculo do ID, perguntas da pesquisinha, catálogos iniciais |
 | `views/` | Uma tela por arquivo: Início, GIG, Pesquisinha, DDLs, Formulários (lista, editor, resposta, respostas), Agenda, Encaminhamentos, Atas, Membros, Quedas, Dashboards, Perfil |
-| `components/` | Navegação, faixa de DDL, seletor de semana, seletor de prazo, destinatários, escala, gráfico |
+| `components/` | Logo do GIG, navegação, faixa de DDL, seletor de semana, seletor de prazo, destinatários, escala, gráfico |
 | `dados/` | Planilhas de referência (GIG, gerenciamento, pesquisinha). **Fora do git** (dados pessoais) |
 | [`../firebase/firestore.rules`](../firebase/firestore.rules) | Regras do Firestore (colar no Console) |
 

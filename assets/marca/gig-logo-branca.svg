@@ -1,0 +1,16 @@
+<svg viewBox="0 0 186 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GIG — Gestão Interna do Grupo">
+<g>
+  <defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd0f2"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
+  <path d="M45 9.5A26 26 0 1 1 27.5 6.4" fill="none" stroke="url(#a)" stroke-width="4.6" stroke-linecap="round"/>
+  <path d="M33 5.4 26.9 10.2 25.8 2.9Z" fill="#8fd0f2"/>
+  <rect x="21" y="21" width="9.6" height="9.6" rx="2.2" fill="#ffffff"/>
+  <rect x="33.4" y="21" width="9.6" height="9.6" rx="2.2" fill="#cfe9f8"/>
+  <rect x="21" y="33.4" width="9.6" height="9.6" rx="2.2" fill="#9fd5f2"/>
+  <rect x="33.4" y="33.4" width="9.6" height="9.6" rx="2.2" fill="#5fb6e3"/>
+</g>
+<g transform="translate(76 10)">
+  <g fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linecap="butt">
+    <path d="M33.4 11.5A17 17 0 1 0 37 22H21.5"/><path d="M50 5V39"/><path d="M93.4 11.5A17 17 0 1 0 97 22H81.5"/>
+  </g>
+</g>
+</svg>

@@ -3,12 +3,13 @@ import { db, doc, updateDoc, serverTimestamp, mensagemErro } from "../lib/fireba
 import { TIPOS, nomePapel, coresDosCargos } from "../lib/constantes.js";
 import { arred, fmt } from "../lib/util.js";
 import { ICONES } from "../components/Icones.js";
+import { tema, definirTema } from "../lib/tema.js";
 
 export default {
   data() {
     const m = store.membro;
     return {
-      store, TIPOS, ICONES, nome: m.nome, salvando: false, erro: "", ok: "",
+      store, TIPOS, ICONES, tema, nome: m.nome, salvando: false, erro: "", ok: "",
       padroes: Object.fromEntries(TIPOS.map((t) => [t.id, (m.padroes || []).filter((p) => p.tipo === t.id).map((p) => ({ atividade: p.atividade, planejado: p.planejado }))])),
     };
   },
@@ -16,7 +17,7 @@ export default {
     totalPadrao() { return TIPOS.reduce((s, t) => s + this.padroes[t.id].reduce((x, p) => x + arred(p.planejado), 0), 0); },
   },
   methods: {
-    fmt, nomePapel, coresDosCargos,
+    fmt, nomePapel, definirTema, coresDosCargos,
     nomeProcesso(id) { return (store.processos.find((p) => p.id === id) || {}).nome || id; },
     sugestoes(tipo) { return store.atividades.filter((a) => a.tipo === tipo && a.ativo !== false); },
     async salvar() {
@@ -32,7 +33,7 @@ export default {
   },
   template: `
   <div>
-    <header class="cabecalho"><div><h1>Meu perfil</h1><p class="sub">Seus dados e as atividades padrão com que cada semana do GIG começa.</p></div></header>
+    <header class="cabecalho"><div><h1>Perfil e configurações</h1><p class="sub">Seus dados, as atividades padrão com que cada semana do GIG começa e a aparência da plataforma.</p></div></header>
 
     <div class="grade grade-2">
       <section class="cartao">
@@ -66,6 +67,18 @@ export default {
         </div>
       </section>
     </div>
+
+    <section class="cartao" id="configuracoes" style="margin-top:16px">
+      <div class="cartao-titulo"><span><span class="titulo-icone" v-html="ICONES.config"></span> Configurações</span></div>
+      <div class="config-linha">
+        <div><b>Aparência</b><p class="dica" style="margin:2px 0 0">O modo escuro vale para todas as telas do GIG neste navegador. "Automático" segue o tema do sistema.</p></div>
+        <div class="segmentado">
+          <button type="button" :class="{ sel: tema.preferencia === 'claro' }" @click="definirTema('claro')"><span v-html="ICONES.sol"></span> Claro</button>
+          <button type="button" :class="{ sel: tema.preferencia === 'escuro' }" @click="definirTema('escuro')"><span v-html="ICONES.lua"></span> Escuro</button>
+          <button type="button" :class="{ sel: tema.preferencia === 'sistema' }" @click="definirTema('sistema')">Automático</button>
+        </div>
+      </div>
+    </section>
 
     <section class="cartao" style="margin-top:16px">
       <button class="btn destaque" @click="salvar" :disabled="salvando"><span v-html="ICONES.salvar"></span> Salvar perfil</button>

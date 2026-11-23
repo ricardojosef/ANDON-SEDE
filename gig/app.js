@@ -10,6 +10,7 @@ import { store, iniciarStore, pararStore } from "./lib/store.js";
 import Nav from "./components/Nav.js";
 import AvisoDdl from "./components/AvisoDdl.js";
 import { iniciarLembretes } from "./lib/lembretes.js";
+import "./lib/tema.js"; // modo claro/escuro
 import Login from "./views/Login.js";
 import Inicio from "./views/Inicio.js";
 import Gig from "./views/Gig.js";
