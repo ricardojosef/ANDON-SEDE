@@ -5,12 +5,12 @@ import { nomePapel } from "../lib/constantes.js";
 import { primeiroNome } from "../lib/util.js";
 import { ddlsPendentes } from "../lib/ddl.js";
 import { totalNaoLidas } from "../lib/chat.js";
-import { tema, alternarTema } from "../lib/tema.js";
+import { tema, alternarTema, layout, alternarMenu } from "../lib/tema.js";
 import Logo from "./Logo.js";
 
 export default {
   components: { Logo },
-  data() { return { store, ICONES, tema }; },
+  data() { return { store, ICONES, tema, layout }; },
   computed: {
     itens() {
       const itens = [
@@ -38,13 +38,16 @@ export default {
       const p = this.$route.path;
       return item.to === "/" ? p === "/" : p.startsWith(item.to);
     },
-    sair, alternarTema,
+    sair, alternarTema, alternarMenu,
   },
   template: `
   <nav class="nav">
-    <router-link to="/" class="nav-marca" title="GIG · Gestão Interna do Grupo"><Logo variante="clara" :altura="40" /></router-link>
-    <router-link v-for="i in itens" :key="i.to" :to="i.to" class="nav-item" :class="{ ativo: ativo(i) }">
-      <span class="nav-icone" v-html="ICONES[i.icone]"></span><span>{{ i.nome }}</span>
+    <div class="nav-topo">
+      <router-link to="/" class="nav-marca" title="GIG · Gestão Interna do Grupo"><Logo variante="clara" :altura="38" :so-icone="layout.menuRecolhido" /></router-link>
+      <button class="nav-recolher" @click="alternarMenu" :title="layout.menuRecolhido ? 'Mostrar o menu' : 'Esconder o menu'" :aria-expanded="String(!layout.menuRecolhido)" v-html="ICONES.menuLateral"></button>
+    </div>
+    <router-link v-for="i in itens" :key="i.to" :to="i.to" class="nav-item" :class="{ ativo: ativo(i) }" :title="layout.menuRecolhido ? i.nome : ''">
+      <span class="nav-icone" v-html="ICONES[i.icone]"></span><span class="nav-nome">{{ i.nome }}</span>
       <span class="nav-contador" v-if="i.contador">{{ i.contador }}</span>
     </router-link>
     <div class="nav-rodape" v-if="store.membro">

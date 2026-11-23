@@ -1,5 +1,5 @@
 // Modo claro/escuro. A preferência fica neste navegador (localStorage):
-// "claro", "escuro" ou "sistema" (segue o Windows/celular). O index.html
+// "claro" (padrão), "escuro" ou "sistema" (segue o Windows/celular). O index.html
 // aplica o tema antes de desenhar a página, para não piscar branco.
 import { reactive } from "vue";
 
@@ -7,7 +7,7 @@ const CHAVE = "gig-tema";
 const midia = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
 function lerPreferencia() {
-  try { return localStorage.getItem(CHAVE) || "sistema"; } catch { return "sistema"; }
+  try { return localStorage.getItem(CHAVE) || "claro"; } catch { return "claro"; }
 }
 
 export const tema = reactive({ preferencia: lerPreferencia(), efetivo: "claro" });
@@ -26,6 +26,14 @@ export function definirTema(preferencia) {
 }
 
 export const alternarTema = () => definirTema(tema.efetivo === "escuro" ? "claro" : "escuro");
+
+// Menu lateral recolhido (só ícones), também lembrado neste navegador.
+const CHAVE_MENU = "gig-menu-recolhido";
+export const layout = reactive({ menuRecolhido: (() => { try { return localStorage.getItem(CHAVE_MENU) === "1"; } catch { return false; } })() });
+export function alternarMenu() {
+  layout.menuRecolhido = !layout.menuRecolhido;
+  try { localStorage.setItem(CHAVE_MENU, layout.menuRecolhido ? "1" : "0"); } catch {}
+}
 
 if (midia && midia.addEventListener) midia.addEventListener("change", () => { if (tema.preferencia === "sistema") aplicar(); });
 aplicar();

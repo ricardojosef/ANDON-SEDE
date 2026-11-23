@@ -547,7 +547,7 @@ button.chip:hover { border-color: var(--azul); }
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
     overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
-  .nav-marca, .nav-rodape { display: none; }
+  .nav-topo, .nav-rodape { display: none; }
   .nav-item { flex: 1 0 64px; flex-direction: column; gap: 3px; padding: 6px 4px; font-size: 10.5px; text-align: center; }
   .nav-item svg { width: 22px; height: 22px; }
   .nav-contador { position: absolute; top: 2px; right: calc(50% - 24px); margin: 0; min-width: 17px; height: 17px; font-size: 10px; padding: 0 4px; }
@@ -573,7 +573,33 @@ button.chip:hover { border-color: var(--azul); }
 .logo-cor small { color: var(--texto-fraco); }
 .logo-clara { color: #fff; }
 .logo-clara small { color: #9fc0da; }
-.nav-marca { text-decoration: none; padding: 0 8px 22px; }
+.nav-marca { text-decoration: none; padding: 0; min-width: 0; }
+.nav-topo { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 0 0 22px 6px; }
+.nav-marca .logo-gig { gap: 9px; }
+.nav-marca .logo-gig small { font-size: 9.5px; letter-spacing: 0; }
+.nav-recolher {
+  flex: none; width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: #9fc0da;
+  display: grid; place-items: center; cursor: pointer; padding: 0;
+}
+.nav-recolher:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.nav-recolher svg { width: 20px; height: 20px; transition: transform .2s; }
+.app, .nav { transition: grid-template-columns .2s ease; }
+
+/* menu recolhido: só os ícones (o nome aparece ao passar o mouse) — só no desktop */
+@media (min-width: 901px) {
+  .app.menu-recolhido { --nav-largura: 76px; }
+  .menu-recolhido .nav { padding: 18px 10px 14px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+  .menu-recolhido .nav-topo { flex-direction: column; gap: 10px; padding: 0 0 16px; }
+  .menu-recolhido .nav-recolher svg { transform: scaleX(-1); }
+  .menu-recolhido .nav-item { justify-content: center; padding: 11px 0; }
+  .menu-recolhido .nav-nome, .menu-recolhido .nav-usuario div { display: none; }
+  .menu-recolhido .nav-contador { position: absolute; top: 3px; right: 6px; margin: 0; min-width: 17px; height: 17px; font-size: 10px; padding: 0 4px; }
+  .menu-recolhido .nav-rodape { flex-direction: column; gap: 4px; padding-top: 10px; }
+  .menu-recolhido .nav-usuario { flex: none; padding: 4px; }
+}
+
+/* chat: sem moldura, ocupando a área toda ao lado do menu */
+.app.tela-chat .conteudo { padding: 0; }
 .login-logo { margin: 0 auto 4px; }
 .login-glean { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--linha); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--texto-fraco); }
 .login-glean img { height: 30px; margin: 0; }
@@ -751,12 +777,10 @@ body.sem-rolagem { overflow: hidden; }
 /* ------------------------------ chat ------------------------------ */
 :root { --chat-minha: #d9edf9; --chat-outra: var(--superficie); --chat-fundo: #eef3f7; }
 :root[data-tema="escuro"] { --chat-minha: #17405f; --chat-fundo: #0f1923; }
-.conteudo:has(> .chat) { padding-bottom: 24px; }
 .chat {
-  height: calc(100vh - 52px); min-height: 460px;
-  display: grid; grid-template-columns: 340px minmax(0, 1fr);
-  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio);
-  box-shadow: var(--sombra); overflow: hidden;
+  height: 100vh; height: 100dvh; min-height: 420px;
+  display: grid; grid-template-columns: 360px minmax(0, 1fr);
+  background: var(--superficie); overflow: hidden;
 }
 .chat-avatar {
   width: 44px; height: 44px; border-radius: 50%; flex: none; display: grid; place-items: center;
@@ -911,9 +935,8 @@ body.sem-rolagem { overflow: hidden; }
 .chat-foto-topo .btn { background: rgba(255, 255, 255, .12); border-color: transparent; color: #fff; }
 
 @media (max-width: 900px) {
-  .conteudo:has(> .chat) { padding: 0 0 64px; }
-  .conteudo:has(> .chat) > .aviso-ddl { display: none; }
-  .chat { height: calc(100dvh - 64px); min-height: 0; border: 0; border-radius: 0; box-shadow: none; grid-template-columns: minmax(0, 1fr); }
+  .app.tela-chat .conteudo { padding: 0 0 64px; }
+  .chat { height: calc(100dvh - 64px); min-height: 0; grid-template-columns: minmax(0, 1fr); }
   .chat.com-conversa .chat-lista, .chat:not(.com-conversa) .chat-conversa, .chat:not(.com-conversa) .chat-vazio { display: none; }
   .chat-lista { border-right: 0; }
   .chat-voltar { display: inline-flex; }

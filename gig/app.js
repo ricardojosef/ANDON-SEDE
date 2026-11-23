@@ -10,7 +10,7 @@ import { store, iniciarStore, pararStore } from "./lib/store.js";
 import Nav from "./components/Nav.js";
 import AvisoDdl from "./components/AvisoDdl.js";
 import { iniciarLembretes } from "./lib/lembretes.js";
-import "./lib/tema.js"; // modo claro/escuro
+import { layout } from "./lib/tema.js"; // modo claro/escuro e menu recolhido
 import Login from "./views/Login.js";
 import Inicio from "./views/Inicio.js";
 import Gig from "./views/Gig.js";
@@ -128,16 +128,16 @@ router.beforeEach(async (to) => {
 
 const App = {
   components: { Nav, AvisoDdl },
-  data() { return { store }; },
+  data() { return { store, layout }; },
   template: `
     <div v-if="!store.pronto" class="tela-cheia"><p class="carregando">Carregando…</p></div>
-    <div v-else-if="store.user && store.membro" class="app">
+    <div v-else-if="store.user && store.membro" class="app" :class="{ 'menu-recolhido': layout.menuRecolhido, 'tela-chat': $route.path.startsWith('/chat') }">
       <Nav />
       <main class="conteudo">
         <div class="aviso" v-if="store.membro.ativo === false">
           Sua conta está marcada como inativa. Fale com a liderança.
         </div>
-        <AvisoDdl />
+        <AvisoDdl v-if="!$route.path.startsWith('/chat')" />
         <router-view :key="$route.fullPath" />
       </main>
     </div>

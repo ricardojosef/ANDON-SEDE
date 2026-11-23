@@ -71,7 +71,7 @@ export default {
     <section class="cartao" id="configuracoes" style="margin-top:16px">
       <div class="cartao-titulo"><span><span class="titulo-icone" v-html="ICONES.config"></span> Configurações</span></div>
       <div class="config-linha">
-        <div><b>Aparência</b><p class="dica" style="margin:2px 0 0">O modo escuro vale para todas as telas do GIG neste navegador. "Automático" segue o tema do sistema.</p></div>
+        <div><b>Aparência</b><p class="dica" style="margin:2px 0 0">O modo escuro vale para todas as telas do GIG neste navegador. O padrão é o claro; "Automático" segue o tema do sistema.</p></div>
         <div class="segmentado">
           <button type="button" :class="{ sel: tema.preferencia === 'claro' }" @click="definirTema('claro')"><span v-html="ICONES.sol"></span> Claro</button>
           <button type="button" :class="{ sel: tema.preferencia === 'escuro' }" @click="definirTema('escuro')"><span v-html="ICONES.lua"></span> Escuro</button>

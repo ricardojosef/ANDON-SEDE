@@ -17,9 +17,12 @@ em [`lib/marca.js`](lib/marca.js); os arquivos prontos ficam em
 [`../assets/marca/`](../assets/marca/) (`gig-icone.svg`, `gig-logo.svg` e as versões claras,
 para fundo escuro).
 
-**Modo escuro:** em **Perfil e configurações → Aparência** (Claro, Escuro ou Automático, que
-segue o sistema) ou no botão de lua/sol ao lado do nome, na navegação. Vale para o navegador
+**Modo escuro:** o GIG abre no modo claro. Em **Perfil e configurações → Aparência** dá para
+escolher Escuro ou Automático (segue o sistema) ou no botão de lua/sol ao lado do nome, na navegação. Vale para o navegador
 em que foi escolhido.
+
+**Menu lateral:** o botão ao lado da logo esconde o menu, deixando só os ícones (o nome aparece
+ao passar o mouse); o mesmo botão mostra o menu de novo. O GIG lembra a escolha neste navegador.
 
 ## Ativar (uma vez)
 
