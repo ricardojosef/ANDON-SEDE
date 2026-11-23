@@ -8,6 +8,8 @@ import {
 } from "./lib/firebase.js";
 import { store, iniciarStore, pararStore } from "./lib/store.js";
 import Nav from "./components/Nav.js";
+import AvisoDdl from "./components/AvisoDdl.js";
+import { iniciarLembretes } from "./lib/lembretes.js";
 import Login from "./views/Login.js";
 import Inicio from "./views/Inicio.js";
 import Gig from "./views/Gig.js";
@@ -20,12 +22,23 @@ import Membros from "./views/Membros.js";
 import Quedas from "./views/Quedas.js";
 import Dashboards from "./views/Dashboards.js";
 import Perfil from "./views/Perfil.js";
+import Ddls from "./views/Ddls.js";
+import Formularios from "./views/Formularios.js";
+import FormularioEditar from "./views/FormularioEditar.js";
+import FormularioResponder from "./views/FormularioResponder.js";
+import FormularioRespostas from "./views/FormularioRespostas.js";
 
 const rotas = [
   { path: "/login", component: Login, meta: { publica: true } },
   { path: "/", component: Inicio },
   { path: "/gig", component: Gig },
   { path: "/clima", component: Clima },
+  { path: "/ddls", component: Ddls },
+  { path: "/formularios", component: Formularios },
+  { path: "/formularios/novo", component: FormularioEditar },
+  { path: "/formularios/:id/editar", component: FormularioEditar, props: true },
+  { path: "/formularios/:id/respostas", component: FormularioRespostas, props: true },
+  { path: "/formularios/:id", component: FormularioResponder, props: true },
   { path: "/encaminhamentos", component: Encaminhamentos },
   { path: "/agenda", component: Agenda },
   { path: "/atas", component: Atas },
@@ -78,6 +91,7 @@ onAuthStateChanged(auth, async (user) => {
       await garantirMembro(user);
       store.user = user;
       iniciarStore(user.uid);
+      iniciarLembretes();
       if (router.currentRoute.value.path === "/login") router.replace("/");
     } else {
       store.user = null;
@@ -107,7 +121,7 @@ router.beforeEach(async (to) => {
 });
 
 const App = {
-  components: { Nav },
+  components: { Nav, AvisoDdl },
   data() { return { store }; },
   template: `
     <div v-if="!store.pronto" class="tela-cheia"><p class="carregando">Carregando…</p></div>
@@ -117,6 +131,7 @@ const App = {
         <div class="aviso" v-if="store.membro.ativo === false">
           Sua conta está marcada como inativa. Fale com a liderança.
         </div>
+        <AvisoDdl />
         <router-view :key="$route.fullPath" />
       </main>
     </div>

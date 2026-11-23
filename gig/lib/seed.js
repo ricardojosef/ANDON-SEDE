@@ -85,16 +85,23 @@ export const ATIVIDADES_INICIAIS = [
   ["processos", "Kikai: Reuniões"], ["processos", "Kikai: Reuniões Internas"], ["processos", "Kikai: Reuniões Externas (Stakeholders)"], ["processos", "Kikai: Atividades"], ["processos", "Kikai: Atividades de Big-Shusa"],
   ["processos", "Conhecimento: Reuniões"], ["processos", "Conhecimento: Atividades"], ["processos", "Conhecimento: Atividades de Shusa"],
   ["processos", "Processo Seletivo: Reuniões"], ["processos", "Processo Seletivo: Atividades"], ["processos", "Processo Seletivo: Atividades de Shusa"], ["processos", "Processo Seletivo: Currículo e A3"], ["processos", "Processo Seletivo: Dinâmica"], ["processos", "Processo Seletivo: Entrevista"], ["processos", "Processo Seletivo: Feedbacks"], ["processos", "Processo Seletivo: Reuniões de Decisão"], ["processos", "Processo Seletivo: Reuniões (avaliadores)"], ["processos", "Processo Seletivo: Atividades (avaliadores)"], ["processos", "Processo Seletivo: Daily (demais membros)"], ["processos", "Processo Seletivo: Prospecção PS"],
-  ["processos", "DP: Atividades de Shusa"],
+  ["processos", "Dinâmica dos Parafusos: Atividades de Shusa", "Atividades de Shusa da Dinâmica dos Parafusos (DP)"],
   ["processos", "Kaigi Lean: Reuniões"], ["processos", "Kaigi Lean: Atividades"], ["processos", "Kaigi Lean: Atividades de Shusa (Organização)"], ["processos", "Kaigi Lean: Atividades de Shusa (Vendas)"], ["processos", "Kaigi Lean: Auxílio Kaigi (demais membros)"], ["processos", "Kaigi Lean: Prospecção & Vendas"],
   ["processos", "Visibilidade: Atividades de Shusa"], ["processos", "Visibilidade: Marketing de Conteúdo"],
   ["processos", "Oportunidades Práticas: Reuniões"], ["processos", "Oportunidades Práticas: Atividades"], ["processos", "Oportunidades Práticas: Atividades de Shusa"],
-  ["processos", "Expansão: Reuniões"], ["processos", "Expansão: Atividades de Shusa"],
+  ["processos", "Expansão: Reuniões"], ["processos", "Expansão: Atividades"], ["processos", "Expansão: Atividades de Shusa"],
   ["processos", "GLean Run: Reuniões"], ["processos", "GLean Run: Atividades"], ["processos", "GLean Run: Atividades de Shusa"],
   ["processos", "Summer Job: Reuniões"], ["processos", "Summer Job: Atividades"], ["processos", "Summer Job: Atividades de Shusa"], ["processos", "Summer Job (demais membros)"],
   ["processos", "Padrinhos: Reuniões"], ["processos", "Padrinhos: Atividades"],
   ["processos", "Hoshin: Construção", "Reuniões e atividades da construção das A3 Hoshin"],
-  ["processos", "Cadeia de Ajuda", "Ajuda prestada a outro processo pela cadeia de ajuda"],
+  ["processos", "Hoshin: Review/Planning", "Momentos de review e planning do Hoshin"],
+  ["processos", "Hoshin: Atividades", "Atividades das metas Hoshin"],
+  ["processos", "Cadeia de Ajuda: Kaigi", "Ajuda prestada ao Kaigi Lean pela cadeia de ajuda"],
+  ["processos", "Cadeia de Ajuda: Gestão de Pessoas", "Ajuda prestada à Gestão de Pessoas pela cadeia de ajuda"],
+  ["processos", "Cadeia de Ajuda: Conhecimento", "Ajuda prestada ao Conhecimento pela cadeia de ajuda"],
+  ["processos", "Cadeia de Ajuda: DP", "Ajuda prestada à Dinâmica dos Parafusos pela cadeia de ajuda"],
+  ["processos", "Cadeia de Ajuda: Liderança", "Ajuda prestada à Liderança pela cadeia de ajuda"],
+  ["processos", "Cadeia de Ajuda: Summer/OP", "Ajuda prestada ao Summer Job / Oportunidades Práticas pela cadeia de ajuda"],
 
   ["projetos", "Consultoria: Atividades de Projeto Prático"], ["projetos", "Consultoria: Reuniões de Projeto"], ["projetos", "Consultoria: Visita à Empresa"],
   ["projetos", "Mentoria: Atividades"], ["projetos", "Mentoria: Reuniões"], ["projetos", "Mentoria: Visitas à Empresa"],
@@ -120,7 +127,12 @@ export function atividadeDoSeed([tipo, nome, descricao = ""]) {
 
 // Grava processos, atividades e config de quedas. Só escreve o que ainda não
 // existe (ids determinísticos), então rodar duas vezes não duplica nada.
-export async function semearCatalogos({ processos = [], atividades = [] } = {}) {
+export const faltandoNoCatalogo = (atividades = []) => {
+  const tem = new Set(atividades.map((a) => a.id));
+  return ATIVIDADES_INICIAIS.map(atividadeDoSeed).filter((a) => !tem.has(a.id));
+};
+
+export async function semearCatalogos({ processos = [], atividades = [], configQuedasExiste = false } = {}) {
   const temProcesso = new Set(processos.map((p) => p.id));
   const temAtividade = new Set(atividades.map((a) => a.id));
   const lote = writeBatch(db);
@@ -140,7 +152,9 @@ export async function semearCatalogos({ processos = [], atividades = [] } = {}) 
     lote.set(doc(db, "atividades", id), dados);
     n++;
   }
-  lote.set(doc(db, "config", "quedas"), CONFIG_QUEDAS_PADRAO, { merge: true });
+  // não sobrescreve motivos de queda que a gestão já ajustou
+  if (!configQuedasExiste) { lote.set(doc(db, "config", "quedas"), CONFIG_QUEDAS_PADRAO, { merge: true }); n++; }
+  if (!n) return 0;
   await lote.commit();
   return n;
 }

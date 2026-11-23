@@ -1,6 +1,6 @@
 // Firebase da plataforma. O projeto é o mesmo do Andon da sede, então a
-// configuração vem de um lugar só (andon/config.js).
-import { FIREBASE_CONFIG } from "../../andon/config.js";
+// configuração vem de um lugar só (firebase/config.js).
+import { FIREBASE_CONFIG } from "../../firebase/config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
@@ -20,7 +20,7 @@ export {
 };
 
 // Só contas do Google Workspace do grupo entram. O front checa aqui e as
-// regras do Firestore checam de novo (gig/firestore.rules).
+// regras do Firestore checam de novo (firebase/firestore.rules).
 export const DOMINIO = "glean.ufsc.br";
 export const emailPermitido = (email) =>
   typeof email === "string" && email.toLowerCase().endsWith("@" + DOMINIO);

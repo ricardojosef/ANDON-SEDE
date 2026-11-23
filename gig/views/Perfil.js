@@ -1,6 +1,6 @@
 import { store } from "../lib/store.js";
 import { db, doc, updateDoc, serverTimestamp, mensagemErro } from "../lib/firebase.js";
-import { TIPOS, nomePapel } from "../lib/constantes.js";
+import { TIPOS, nomePapel, coresDosCargos } from "../lib/constantes.js";
 import { arred, fmt } from "../lib/util.js";
 import { ICONES } from "../components/Icones.js";
 
@@ -16,7 +16,7 @@ export default {
     totalPadrao() { return TIPOS.reduce((s, t) => s + this.padroes[t.id].reduce((x, p) => x + arred(p.planejado), 0), 0); },
   },
   methods: {
-    fmt, nomePapel,
+    fmt, nomePapel, coresDosCargos,
     nomeProcesso(id) { return (store.processos.find((p) => p.id === id) || {}).nome || id; },
     sugestoes(tipo) { return store.atividades.filter((a) => a.tipo === tipo && a.ativo !== false); },
     async salvar() {
@@ -37,7 +37,7 @@ export default {
     <div class="grade grade-2">
       <section class="cartao">
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px">
-          <img class="avatar" :src="store.membro.foto || '../assets/favicon_glean.png'" alt="" style="width:64px;height:64px">
+          <img class="avatar" :src="store.membro.foto || '../assets/marca/favicon_glean.png'" alt="" style="width:64px;height:64px">
           <div><b style="font-size:18px">{{ store.membro.nome }}</b><div class="dica" style="margin:0">{{ store.membro.email }}</div></div>
         </div>
         <label class="campo"><span>Nome exibido</span><input v-model="nome"></label>
@@ -46,7 +46,7 @@ export default {
           <div class="campo"><span>Papel</span><div>{{ nomePapel(store.membro.papel) }}</div></div>
         </div>
         <div class="campo"><span>Cargos</span>
-          <div v-if="(store.membro.cargos || []).length"><span class="selo" v-for="(c, i) in store.membro.cargos" :key="i" style="margin:2px">{{ nomeProcesso(c.processo) }} · {{ c.cargo }}</span></div>
+          <div v-if="(store.membro.cargos || []).length"><span class="selo cargo" v-for="(c, i) in store.membro.cargos" :key="i" :style="coresDosCargos(store.membro.cargos)[i]">{{ nomeProcesso(c.processo) }} · {{ c.cargo }}</span></div>
           <div class="dica" v-else style="margin:0">Nenhum cargo atribuído ainda (quem atribui é a liderança).</div>
         </div>
       </section>

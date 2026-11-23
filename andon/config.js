@@ -1,20 +1,12 @@
 // ---------------------------------------------------------------------------
 // Configuração do Andon GLean
 // ---------------------------------------------------------------------------
-// Edite este arquivo depois de criar seu projeto no Firebase.
-// Enquanto os campos estiverem em branco, o painel roda em "modo local":
-// funciona normalmente, mas os dados ficam só neste navegador.
-// Veja o passo a passo no README.md.
+// O Firebase é o mesmo para todo o site e fica em firebase/config.js; aqui ele
+// só é reexportado. Se aqueles campos estiverem em branco, o painel roda em
+// "modo local": funciona, mas os dados ficam só neste navegador.
+// Veja o passo a passo em andon/README.md.
 // ---------------------------------------------------------------------------
-export const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDJ8cfkl0PYOaD0DG-Fhws-lMyK2tp3-o4",
-  authDomain: "andon-sede.firebaseapp.com",
-  databaseURL: "https://andon-sede-default-rtdb.firebaseio.com",
-  projectId: "andon-sede",
-  storageBucket: "andon-sede.firebasestorage.app",
-  messagingSenderId: "534532168528",
-  appId: "1:534532168528:web:1fe70c653b18ad6067ea55"
-};
+export { FIREBASE_CONFIG } from "../firebase/config.js";
 // (app.js já inicializa o Firebase a partir desta config — não é preciso
 // chamar initializeApp aqui.)
 

@@ -8,6 +8,10 @@ import SeletorSemana from "../components/SeletorSemana.js";
 
 const linhaVazia = () => ({ atividade: "", planejado: "", realizado: "" });
 const linhasVazias = () => Object.fromEntries(TIPOS.map((t) => [t.id, []]));
+const MIN_LINHAS = 8; // como na planilha: sempre há linhas em branco para preencher
+const vazia = (l) => !String(l.atividade || "").trim() && l.planejado === "" && l.realizado === "";
+// Cores da planilha do GIG
+export const CORES_FEELING = { azul: "#6fa8dc", verde: "#70ad47", amarelo: "#ffff66", vermelho: "#c00000" };
 
 export default {
   components: { SeletorSemana },
@@ -37,12 +41,30 @@ export default {
   },
   watch: {
     semana() { this.carregar(); },
+    // mantém as quatro colunas com o mesmo número de linhas e sempre uma em branco no fim
+    linhas: { deep: true, handler() { this.completarLinhas(); } },
     "store.semestres"(novo, antigo) { if (!antigo.length && novo.length) { this.semana = semanaAtual(semestreAtivo()); this.carregar(); } },
   },
   created() { this.carregar(); },
   methods: {
     fmt,
-    corCss: (cor) => `var(--st-${cor})`,
+    corFeeling: (cor) => CORES_FEELING[cor] || "#fff",
+    textoFeeling: (cor) => (cor === "vermelho" ? "#fff" : "#1d1d1d"),
+    completarLinhas() {
+      const ls = this.linhas;
+      const usadas = Math.max(0, ...TIPOS.map((t) => {
+        const a = ls[t.id]; let n = a.length;
+        while (n > 0 && vazia(a[n - 1])) n--;
+        return n;
+      }));
+      const alvo = Math.max(MIN_LINHAS, usadas + 1);
+      for (const t of TIPOS) {
+        const a = ls[t.id];
+        while (a.length < alvo) a.push(linhaVazia());
+        // remove sobras em branco no fim (quando alguém apaga linhas)
+        while (a.length > alvo && vazia(a[a.length - 1])) a.pop();
+      }
+    },
     idDoc(semana = this.semana) { return idSemana(this.semestre.id, semana, this.uid); },
     agrupar(atividades) {
       const linhas = linhasVazias();
@@ -86,6 +108,7 @@ export default {
     },
     adicionar(tipo) { this.linhas[tipo].push(linhaVazia()); },
     remover(tipo, i) { this.linhas[tipo].splice(i, 1); },
+    preenchida(l) { return !vazia(l); },
     escolherFeeling(f) { this.feeling = { cor: f.cor, motivo: f.motivos[0] }; },
     atividadesPlanas() {
       return TIPOS.flatMap((t) => this.linhas[t.id]
@@ -144,26 +167,40 @@ export default {
         <span v-if="!(store.membro.padroes || []).length">(você ainda não tem nenhuma: preencha e use "Salvar como minhas atividades padrão")</span>.
       </div>
 
-      <div class="gig-grade">
-        <section class="cartao gig-tipo" v-for="t in TIPOS" :key="t.id">
-          <h3>{{ t.nome }} <small>{{ fmt(totais[t.id].p) }}h → {{ fmt(totais[t.id].r) }}h</small></h3>
-          <div class="gig-cab"><span>Atividade</span><span>Plan.</span><span>Real.</span><span></span></div>
-          <div class="gig-linha" v-for="(l, i) in linhas[t.id]" :key="i">
-            <input v-model="l.atividade" :list="'cat-' + t.id" placeholder="Atividade">
-            <input class="horas" v-model="l.planejado" inputmode="decimal" placeholder="0">
-            <input class="horas" v-model="l.realizado" inputmode="decimal" placeholder="0">
-            <button class="remover" @click="remover(t.id, i)" title="Remover linha">×</button>
+      <div class="planilha-gig" :class="{ carregando }">
+        <!-- coluna da esquerda, como na planilha: status (feeling) e totais -->
+        <div class="pg-resumo">
+          <div class="pg-cab-resumo">Status</div>
+          <div class="pg-status" :style="{ background: corFeeling(feeling.cor), color: textoFeeling(feeling.cor) }">
+            <b>{{ (FEELINGS.find(f => f.cor === feeling.cor) || {}).nome }}</b>
+            <small v-if="feeling.motivo !== (FEELINGS.find(f => f.cor === feeling.cor) || {}).nome">{{ feeling.motivo }}</small>
           </div>
+          <div class="pg-cab-resumo">Planejado</div>
+          <div class="pg-valor">{{ fmt(totais.geral.p) }}<small>h</small></div>
+          <div class="pg-cab-resumo">Realizado</div>
+          <div class="pg-valor">{{ fmt(totais.geral.r) }}<small>h</small></div>
+        </div>
+
+        <div class="pg-bloco" v-for="t in TIPOS" :key="t.id" :class="'pg-' + t.id">
+          <div class="pg-titulo">{{ t.nome }}</div>
+          <div class="pg-cab"><span>Atividade</span><span>P</span><span>R</span></div>
+          <div class="pg-linha" v-for="(l, i) in linhas[t.id]" :key="i" :class="{ vazia: !preenchida(l) }">
+            <input v-model="l.atividade" :list="'cat-' + t.id" :aria-label="t.nome + ' linha ' + (i + 1)">
+            <input class="horas" v-model="l.planejado" inputmode="decimal" aria-label="Planejado">
+            <input class="horas" v-model="l.realizado" inputmode="decimal" aria-label="Realizado">
+            <button class="pg-remover" v-if="preenchida(l)" @click="remover(t.id, i)" title="Apagar linha">×</button>
+          </div>
+          <div class="pg-total"><span>Total</span><span>{{ fmt(totais[t.id].p) }}</span><span>{{ fmt(totais[t.id].r) }}</span></div>
           <datalist :id="'cat-' + t.id"><option v-for="a in sugestoes(t.id)" :key="a.id" :value="a.nome"></option></datalist>
-          <button class="btn pequeno" @click="adicionar(t.id)"><span v-html="ICONES.mais"></span> linha</button>
-        </section>
+        </div>
       </div>
+      <p class="dica" style="margin:8px 2px 0">Digite nas linhas em branco: novas linhas aparecem sozinhas. As sugestões vêm do catálogo de atividades (filtrado pelo seu módulo).</p>
 
       <section class="cartao" style="margin-top:16px">
-        <div class="cartao-titulo">Como foi a sua semana? <small style="font-weight:500;color:var(--texto-fraco)">Feeling de sobrecarga</small></div>
+        <div class="cartao-titulo"><span>Como será a sua semana? <small style="font-weight:500;color:var(--texto-fraco)">Feeling de sobrecarga</small></span></div>
         <div class="feeling">
-          <button v-for="f in FEELINGS" :key="f.cor" :class="{ sel: feeling.cor === f.cor }" :style="{ color: corCss(f.cor) }" @click="escolherFeeling(f)">
-            <span class="ponto" :class="f.cor"></span><span style="color:var(--texto)">{{ f.nome }}</span>
+          <button v-for="f in FEELINGS" :key="f.cor" :class="{ sel: feeling.cor === f.cor }" :style="{ '--cor': corFeeling(f.cor) }" @click="escolherFeeling(f)">
+            <span class="ponto" :style="{ background: corFeeling(f.cor) }"></span><span>{{ f.nome }}</span>
           </button>
         </div>
         <div class="campo" style="margin:12px 0 0;max-width:360px" v-if="motivos.length > 1">
@@ -173,11 +210,7 @@ export default {
       </section>
 
       <section class="cartao" style="margin-top:16px">
-        <div class="totais">
-          <div><b>{{ fmt(totais.geral.p) }}h</b><span>planejado</span></div>
-          <div><b>{{ fmt(totais.geral.r) }}h</b><span>realizado</span></div>
-        </div>
-        <div class="linha" style="margin-top:16px">
+        <div class="linha">
           <button class="btn destaque" @click="salvar" :disabled="salvando || carregando"><span v-html="ICONES.salvar"></span> Salvar semana</button>
           <button class="btn" @click="salvarPadrao" :disabled="salvando || carregando">Salvar como minhas atividades padrão</button>
           <button class="btn" @click="copiarAnterior" :disabled="semana <= 1 || salvando"><span v-html="ICONES.copiar"></span> Copiar semana anterior</button>

@@ -21,7 +21,7 @@ export default {
   template: `
   <div class="tela-cheia login">
     <div class="login-caixa">
-      <img src="../assets/logo.png" alt="GLean">
+      <img src="../assets/marca/logo.png" alt="GLean">
       <h1>GIG</h1>
       <p>Gestão semanal do GLean: carga, pesquisinha, atas e encaminhamentos.</p>
       <button class="btn btn-google" @click="entrar" :disabled="ocupado">

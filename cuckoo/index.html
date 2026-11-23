@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cuckoo</title>
-<link rel="icon" href="../assets/favicon_glean.png">
+<link rel="icon" href="../assets/marca/favicon_glean.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
@@ -438,7 +438,7 @@
     </div>
   </section>
 
-  <img class="logo-glean" src="../assets/logo-branca-glean.png" alt="GLean, Grupo de Estudos em Lean">
+  <img class="logo-glean" src="../assets/marca/logo-branca-glean.png" alt="GLean, Grupo de Estudos em Lean">
 
   <!-- Novo tempo (círculo "+") -->
   <div id="novo-tempo" class="sobreposicao">
@@ -982,7 +982,7 @@
     // lugar só. É carregada aqui (e não no topo) para que o timer sem sessão
     // funcione mesmo se este arquivo não puder ser lido.
     const [{ FIREBASE_CONFIG }, { initializeApp }, m] = await Promise.all([
-      import("../andon/config.js"),
+      import("../firebase/config.js"),
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"),
     ]);

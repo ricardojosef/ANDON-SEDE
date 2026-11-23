@@ -1,8 +1,8 @@
 import { store, semestreAtivo } from "../lib/store.js";
 import { db, doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, mensagemErro } from "../lib/firebase.js";
 import { slug, hojeISO } from "../lib/util.js";
-import { TIPOS, PAPEIS, MODULOS_PADRAO, nomePapel, nomeTipo } from "../lib/constantes.js";
-import { semearCatalogos, CARGOS_PADRAO } from "../lib/seed.js";
+import { TIPOS, PAPEIS, MODULOS_PADRAO, nomePapel, nomeTipo, coresDosCargos } from "../lib/constantes.js";
+import { semearCatalogos, faltandoNoCatalogo, CARGOS_PADRAO } from "../lib/seed.js";
 import { ICONES } from "../components/Icones.js";
 
 export default {
@@ -31,9 +31,10 @@ export default {
       return (p && p.cargos && p.cargos.length) ? p.cargos : CARGOS_PADRAO;
     },
     catalogosVazios() { return !store.processos.length && !store.atividades.length; },
+    faltando() { return faltandoNoCatalogo(store.atividades); },
   },
   methods: {
-    nomePapel, nomeTipo,
+    nomePapel, nomeTipo, coresDosCargos,
     nomeProcesso(id) { return (store.processos.find((p) => p.id === id) || {}).nome || id; },
     limpar() { this.erro = ""; this.ok = ""; },
     // ---- membros ----
@@ -90,8 +91,8 @@ export default {
     async semear() {
       this.limpar(); this.salvando = true;
       try {
-        const n = await semearCatalogos({ processos: store.processos, atividades: store.atividades });
-        this.ok = `${n} itens carregados (processos, atividades e motivos de queda).`;
+        const n = await semearCatalogos({ processos: store.processos, atividades: store.atividades, configQuedasExiste: store.configQuedasExiste });
+        this.ok = n ? `${n} itens importados da planilha do GIG.` : "O catálogo já tem todas as atividades da planilha.";
       } catch (err) { this.erro = mensagemErro(err); }
       finally { this.salvando = false; }
     },
@@ -164,7 +165,7 @@ export default {
         <div class="campo">
           <span>Cargos por processo</span>
           <div class="linha" style="gap:6px" v-for="(c, i) in sel.cargos" :key="i">
-            <span class="selo">{{ nomeProcesso(c.processo) }} · {{ c.cargo }}</span>
+            <span class="selo cargo" :style="coresDosCargos(sel.cargos)[i]">{{ nomeProcesso(c.processo) }} · {{ c.cargo }}</span>
             <button class="remover" @click="sel.cargos.splice(i, 1)">×</button>
           </div>
           <div class="linha">
@@ -180,12 +181,12 @@ export default {
           <thead><tr><th></th><th>Nome</th><th>E-mail</th><th>Módulo</th><th>Papel</th><th>Cargos</th><th></th></tr></thead>
           <tbody>
             <tr v-for="m in membrosOrdenados" :key="m.id" :style="m.ativo === false ? 'opacity:.5' : ''">
-              <td><img class="avatar" :src="m.foto || '../assets/favicon_glean.png'" alt=""></td>
+              <td><img class="avatar" :src="m.foto || '../assets/marca/favicon_glean.png'" alt=""></td>
               <td><b>{{ m.nome }}</b><span class="selo neutro" v-if="m.ativo === false" style="margin-left:6px">inativo</span></td>
               <td style="font-size:13px;color:var(--texto-fraco)">{{ m.email }}</td>
               <td>{{ m.modulo || "—" }}</td>
               <td>{{ nomePapel(m.papel) }}</td>
-              <td><span class="selo" v-for="(c, i) in (m.cargos || [])" :key="i" style="margin:2px">{{ nomeProcesso(c.processo) }} · {{ c.cargo }}</span></td>
+              <td><span class="selo cargo" v-for="(c, i) in (m.cargos || [])" :key="i" :style="coresDosCargos(m.cargos)[i]">{{ nomeProcesso(c.processo) }} · {{ c.cargo }}</span></td>
               <td><button class="btn pequeno" @click="editar(m)">Editar</button></td>
             </tr>
           </tbody>
@@ -232,6 +233,11 @@ export default {
         <label class="check" style="margin-bottom:14px"><input type="checkbox" v-model="ativ.ativo"> Ativa (aparece nas sugestões do GIG)</label>
         <div class="linha"><button class="btn destaque" @click="salvarAtividade" :disabled="salvando">Salvar</button><button class="btn perigo" v-if="ativ.id" @click="excluirAtividade">Excluir</button></div>
       </section>
+      <div class="aviso aviso-import" v-if="faltando.length && !catalogosVazios">
+        <span><b>{{ faltando.length }}</b> atividade(s) da planilha do GIG 26.2 ainda não estão no catálogo
+        <span class="dica" style="margin:0">({{ faltando.slice(0, 4).map(a => a.nome).join(", ") }}{{ faltando.length > 4 ? "…" : "" }})</span></span>
+        <button class="btn pequeno destaque" @click="semear" :disabled="salvando">Importar da planilha</button>
+      </div>
       <div class="filtros">
         <input v-model="buscaAtiv" placeholder="Buscar atividade">
         <select v-model="filtroTipo"><option value="">Todos os tipos</option><option v-for="t in TIPOS" :key="t.id" :value="t.id">{{ t.nome }}</option></select>

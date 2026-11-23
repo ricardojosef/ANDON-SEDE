@@ -136,7 +136,7 @@ img { max-width: 100%; display: block; }
   .hero {
     background-image:
       radial-gradient(900px 560px at 20% 42%, rgba(13,44,71,.72), transparent 70%),
-      url("assets/desktopglean-ps.png");
+      url("../assets/fotos/desktopglean-ps.png");
     background-size: auto, cover;
     background-position: center, center right;
     background-repeat: no-repeat, no-repeat;

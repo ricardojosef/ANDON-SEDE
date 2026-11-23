@@ -6,6 +6,8 @@ export const ICONES = {
   inicio: base('<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/>'),
   gig: base('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M8 15h3M13 15h3"/>'),
   agenda: base('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="12" cy="15.5" r="2.6"/><path d="M12 14.4v1.2l.8.6"/>'),
+  ddl: base('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6M12 2v3"/>'),
+  form: base('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
   clima: base('<path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z"/><path d="M9.5 10.5s1 1.5 2.5 1.5 2.5-1.5 2.5-1.5"/>'),
   enc: base('<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>'),
   atas: base('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6"/>'),

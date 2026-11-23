@@ -5,6 +5,7 @@
 import { reactive } from "vue";
 import { db, collection, doc, onSnapshot, comId } from "./firebase.js";
 import { CONFIG_QUEDAS_PADRAO } from "./id.js";
+import { semanaAtual, idSemana } from "./semana.js";
 
 export const store = reactive({
   pronto: false,        // já sabemos se há alguém logado?
@@ -16,8 +17,12 @@ export const store = reactive({
   atividades: [],
   semestres: [],
   configQuedas: CONFIG_QUEDAS_PADRAO,
+  configQuedasExiste: false,
   configClima: {},
   configAgenda: {},     // { clientId, agendaGrupo } — integração com o Google Agenda
+  ddls: [],             // DDLs do tipo tarefa (ddls/{id})
+  formularios: [],      // formulários (os com prazo também são DDLs)
+  climaDaSemana: null,  // a pesquisinha desta semana do usuário (null = não respondida)
 });
 
 // Derivados simples, usados em várias telas.
@@ -31,9 +36,27 @@ export const processosDoMembro = (m = store.membro) =>
   ((m && m.cargos) || []).map((c) => c.processo).filter(Boolean);
 
 let desligar = [];
+let desligarClima = null;
+let climaAtual = "";
+
+// A pesquisinha é DDL de quinta; acompanhar o documento da semana atual deixa
+// o contador de DDLs certo sem consultas extras. Chamado quando o semestre
+// muda e periodicamente (a semana vira com a página aberta).
+export function acompanharClimaDaSemana() {
+  const sem = store.semestres.find((s) => s.ativo);
+  const uid = store.membro && store.membro.id;
+  const id = sem && uid ? idSemana(sem.id, semanaAtual(sem), uid) : "";
+  if (id === climaAtual) return;
+  if (desligarClima) desligarClima();
+  climaAtual = id; desligarClima = null; store.climaDaSemana = null;
+  if (!id) return;
+  desligarClima = onSnapshot(doc(db, "clima", id),
+    (s) => { store.climaDaSemana = s.exists() ? s.data() : null; },
+    (err) => console.error("snapshot clima", err));
+}
 
 export function iniciarStore(uid) {
-  pararStore();
+  pararStore({ manterMembro: true }); // o cadastro já foi lido no login; não some enquanto o snapshot chega
   const escuta = (ref, aoMudar) =>
     desligar.push(onSnapshot(ref, aoMudar, (err) => console.error("snapshot", err)));
 
@@ -47,17 +70,26 @@ export function iniciarStore(uid) {
   });
   escuta(collection(db, "semestres"), (s) => {
     store.semestres = s.docs.map(comId).sort((a, b) => b.id.localeCompare(a.id));
+    acompanharClimaDaSemana();
+  });
+  escuta(collection(db, "ddls"), (s) => { store.ddls = s.docs.map(comId); });
+  escuta(collection(db, "formularios"), (s) => {
+    store.formularios = s.docs.map(comId).sort((a, b) => (b.criadoEmISO || "").localeCompare(a.criadoEmISO || ""));
   });
   escuta(doc(db, "config", "quedas"), (s) => {
+    store.configQuedasExiste = s.exists();
     store.configQuedas = s.exists() ? { ...CONFIG_QUEDAS_PADRAO, ...s.data() } : CONFIG_QUEDAS_PADRAO;
   });
   escuta(doc(db, "config", "clima"), (s) => { store.configClima = s.exists() ? s.data() : {}; });
   escuta(doc(db, "config", "agenda"), (s) => { store.configAgenda = s.exists() ? s.data() : {}; });
 }
 
-export function pararStore() {
+export function pararStore({ manterMembro = false } = {}) {
   desligar.forEach((f) => f());
   desligar = [];
-  store.membro = null;
+  if (desligarClima) desligarClima();
+  desligarClima = null; climaAtual = ""; store.climaDaSemana = null;
+  store.ddls = []; store.formularios = [];
+  if (!manterMembro) store.membro = null;
   store.membros = []; store.processos = []; store.atividades = []; store.semestres = [];
 }

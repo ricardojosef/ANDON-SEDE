@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "andon": { ".read": true, ".write": true },
+    "cuckoo": {
+      "sessoes": {
+        "$codigo": {
+          ".read": true,
+          ".write": true,
+          ".validate": "$codigo.matches(/^[A-Z0-9]{5}$/)"
+        }
+      }
+    },
+    "$outros": { ".read": false, ".write": false }
+  }
+}

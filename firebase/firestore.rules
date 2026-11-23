@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Regras do Firestore da plataforma GIG (glean.com.br/gig).
+// Regras do Firestore da plataforma GIG (glean.com.br/gig) — firebase/firestore.rules.
 // Cole o arquivo inteiro em Firebase Console → Firestore Database → Rules.
 //
 // Só entra quem tem conta Google verificada do domínio glean.ufsc.br. Os papéis
@@ -81,6 +81,40 @@ service cloud.firestore {
       allow create: if logado() && request.resource.data.criadoPor == request.auth.uid;
       allow update: if lider() || eu(resource.data.responsavel) || eu(resource.data.criadoPor);
       allow delete: if lider() || eu(resource.data.criadoPor);
+    }
+
+    // Um membro só pode mexer na própria chave de um mapa (ex.: marcar a
+    // própria DDL como feita, registrar que respondeu um formulário).
+    function soMinhaChave(campo) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([campo])
+        && request.resource.data.get(campo, {}).diff(resource.data.get(campo, {}))
+             .affectedKeys().hasOnly([request.auth.uid]);
+    }
+
+    // ---- DDLs (tarefas com prazo): qualquer membro cria para um grupo;
+    // edita/exclui quem criou ou a liderança; cada destinatário marca a sua.
+    match /ddls/{id} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.criadoPor == request.auth.uid;
+      allow update, delete: if lider() || eu(resource.data.criadoPor);
+      allow update: if logado() && soMinhaChave('concluidos');
+    }
+
+    // ---- formulários: qualquer membro cria; edita o autor ou a liderança.
+    // As respostas ficam numa subcoleção: cada um lê/escreve só a sua, e o
+    // autor do formulário e a liderança leem todas.
+    match /formularios/{fid} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.autor == request.auth.uid;
+      allow update, delete: if lider() || eu(resource.data.autor);
+      allow update: if logado() && soMinhaChave('respondentes');
+
+      match /respostas/{uid} {
+        function form() { return get(/databases/$(database)/documents/formularios/$(fid)).data; }
+        allow read: if eu(uid) || lider() || eu(form().autor);
+        allow create, update: if eu(uid) && request.resource.data.uid == uid && form().get('aberto', true) != false;
+        allow delete: if lider() || eu(form().autor);
+      }
     }
   }
 }

@@ -1,12 +1,14 @@
 import { store, semestreAtivo, ehGestao, membrosAtivos } from "../lib/store.js";
-import { db, doc, getDoc, listar, where, mensagemErro } from "../lib/firebase.js";
+import { db, doc, getDoc, updateDoc, listar, where, mensagemErro } from "../lib/firebase.js";
+import { ddlsPendentes, situacaoPrazo } from "../lib/ddl.js";
+import { ICONES } from "../components/Icones.js";
 import { semanaAtual, datasDaSemana, idSemana } from "../lib/semana.js";
 import { formatarData, diasAte, primeiroNome, fmt } from "../lib/util.js";
 import { FEELINGS, nomeStatus } from "../lib/constantes.js";
 
 export default {
   data() {
-    return { store, gig: null, clima: null, encs: [], resumo: null, carregando: true, erro: "" };
+    return { store, ICONES, gig: null, encs: [], resumo: null, carregando: true, erro: "" };
   },
   computed: {
     semestre() { return semestreAtivo(); },
@@ -20,6 +22,9 @@ export default {
       const cor = this.gig && this.gig.feeling && this.gig.feeling.cor;
       return FEELINGS.find((f) => f.cor === cor) || null;
     },
+    // a pesquisinha já é acompanhada pelo store (store.climaDaSemana)
+    clima() { return store.climaDaSemana; },
+    ddls() { return ddlsPendentes(store.membro.id); },
     abertos() {
       return this.encs
         .filter((e) => ["aberto", "andamento"].includes(e.status))
@@ -29,7 +34,11 @@ export default {
   watch: { "store.semestres": "carregar" },
   created() { this.carregar(); },
   methods: {
-    fmt, formatarData, nomeStatus,
+    fmt, formatarData, nomeStatus, situacaoPrazo,
+    async marcarFeita(d) {
+      try { await updateDoc(doc(db, "ddls", d.id), { [`concluidos.${store.membro.id}`]: new Date().toISOString() }); }
+      catch (err) { this.erro = mensagemErro(err); }
+    },
     atrasado(e) { return Boolean(e.prazo) && diasAte(e.prazo) < 0; },
     prazoTexto(e) {
       if (!e.prazo) return "sem prazo";
@@ -46,12 +55,8 @@ export default {
         this.encs = await listar("encaminhamentos", where("responsavel", "==", uid));
         if (!this.semestre) return;
         const sem = this.semestre.id, n = this.semana;
-        const [g, c] = await Promise.all([
-          getDoc(doc(db, "gig", idSemana(sem, n, uid))),
-          getDoc(doc(db, "clima", idSemana(sem, n, uid))),
-        ]);
+        const g = await getDoc(doc(db, "gig", idSemana(sem, n, uid)));
         this.gig = g.exists() ? g.data() : null;
-        this.clima = c.exists() ? c.data() : null;
         if (ehGestao()) {
           const [gigs, climas] = await Promise.all([
             listar("gig", where("semestre", "==", sem), where("semana", "==", n)),
@@ -90,7 +95,7 @@ export default {
         <span>Pesquisinha da semana {{ semana }}</span>
         <b v-if="clima" style="color:#2fa36b">respondida</b>
         <b v-else style="color:#e8a317">pendente</b>
-        <span>{{ clima ? "Você ainda pode editar até a semana virar" : "Leva uns 5 minutos" }}</span>
+        <span>{{ clima ? "Você ainda pode alterar até a semana virar" : "DDL de quinta, 23:59 · leva uns 5 minutos" }}</span>
       </router-link>
       <div class="cartao indicador" v-if="resumo">
         <span>Preenchimento do grupo nesta semana</span>
@@ -99,27 +104,51 @@ export default {
       </div>
     </div>
 
-    <section class="cartao" style="margin-top:16px">
-      <div class="cartao-titulo">
-        Meus encaminhamentos abertos
-        <router-link to="/encaminhamentos" class="btn pequeno">Ver todos</router-link>
-      </div>
-      <p class="vazio" v-if="carregando">Carregando…</p>
-      <p class="vazio" v-else-if="!abertos.length">Nenhum encaminhamento aberto para você. 🎉</p>
-      <div v-else>
-        <div class="enc" v-for="e in abertos" :key="e.id" :class="{ atrasado: atrasado(e) }">
-          <span class="status-ponto" :class="'status-' + e.status"></span>
-          <div>
-            <div class="titulo">{{ e.titulo }}</div>
-            <div class="meta">
-              <span class="prazo">{{ prazoTexto(e) }}</span>
-              <span>{{ nomeStatus(e.status) }}</span>
-              <router-link v-if="e.origem && e.origem.tipo === 'ata'" :to="'/atas/' + e.origem.id">{{ e.origem.titulo || "ata" }}</router-link>
+    <div class="grade grade-2 inicio-listas">
+      <section class="cartao">
+        <div class="cartao-titulo">
+          <span>Minhas DDLs <span class="selo" :class="ddls.some(d => situacaoPrazo(d.prazo).classe === 'atrasado') ? 'erro' : 'aviso'" v-if="ddls.length">{{ ddls.length }} pendente{{ ddls.length > 1 ? "s" : "" }}</span></span>
+          <router-link to="/ddls" class="btn pequeno">Ver todas</router-link>
+        </div>
+        <p class="vazio" v-if="!ddls.length">Nenhuma DDL pendente. 🎉</p>
+        <div v-else>
+          <div class="ddl" v-for="d in ddls.slice(0, 6)" :key="d.tipo + d.id" :class="situacaoPrazo(d.prazo).classe">
+            <span class="ddl-tipo" :class="'tipo-' + d.tipo" v-html="d.tipo === 'tarefa' ? ICONES.ddl : ICONES.form"></span>
+            <div class="ddl-corpo">
+              <div class="titulo">{{ d.titulo }}</div>
+              <div class="meta"><span class="prazo">{{ situacaoPrazo(d.prazo).texto }}</span><span v-if="d.criadoPorNome">por {{ d.criadoPorNome }}</span></div>
+            </div>
+            <div class="acoes">
+              <button class="btn pequeno destaque" v-if="d.tipo === 'tarefa'" @click="marcarFeita(d)">Feita</button>
+              <router-link class="btn pequeno destaque" v-else :to="d.link">Responder</router-link>
             </div>
           </div>
-          <div></div>
+          <router-link to="/ddls" class="dica" v-if="ddls.length > 6" style="display:block;margin:8px 0 0">+ {{ ddls.length - 6 }} em DDLs</router-link>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="cartao">
+        <div class="cartao-titulo">
+          <span>Meus encaminhamentos <span class="selo" v-if="abertos.length">{{ abertos.length }} aberto{{ abertos.length > 1 ? "s" : "" }}</span></span>
+          <router-link to="/encaminhamentos" class="btn pequeno">Ver todos</router-link>
+        </div>
+        <p class="vazio" v-if="carregando">Carregando…</p>
+        <p class="vazio" v-else-if="!abertos.length">Nenhum encaminhamento aberto para você. 🎉</p>
+        <div v-else>
+          <div class="enc" v-for="e in abertos" :key="e.id" :class="{ atrasado: atrasado(e) }">
+            <span class="status-ponto" :class="'status-' + e.status"></span>
+            <div>
+              <div class="titulo">{{ e.titulo }}</div>
+              <div class="meta">
+                <span class="prazo">{{ prazoTexto(e) }}</span>
+                <span>{{ nomeStatus(e.status) }}</span>
+                <router-link v-if="e.origem && e.origem.tipo === 'ata'" :to="'/atas/' + e.origem.id">{{ e.origem.titulo || "ata" }}</router-link>
+              </div>
+            </div>
+            <div></div>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>`,
 };
